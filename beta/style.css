@@ -1,0 +1,172 @@
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 2rem 1rem 3rem;
+            color: white;
+        }
+
+        header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #c084fc, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        header p {
+            font-size: 1.25rem;
+            color: #cbd5e1;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .categories {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-bottom: 3rem;
+        }
+
+        .category-filter {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #e2e8f0;
+            padding: 0.5rem 1.5rem;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .category-filter:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: #60a5fa;
+            color: white;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .tool-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 28px;
+            padding: 1.8rem 1.2rem;
+            box-shadow: 0 20px 35px -10px rgba(0,0,0,0.5);
+            transition: transform 0.25s ease, box-shadow 0.3s, border-color 0.2s;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            text-decoration: none;
+            color: #f1f5f9;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tool-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(800px circle at var(--x, 50%) var(--y, 50%), rgba(255,255,255,0.06), transparent 40%);
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+        }
+
+        .tool-card:hover::before {
+            opacity: 1;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(96, 165, 250, 0.4);
+            box-shadow: 0 30px 45px -15px black;
+        }
+
+        .tool-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1.2rem;
+            background: rgba(255,255,255,0.03);
+            padding: 0.6rem;
+            border-radius: 18px;
+            width: fit-content;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* cores por categoria (pode ser personalizado) */
+        .cat-pdf .tool-icon { color: #f87171; }
+        .cat-img .tool-icon { color: #4ade80; }
+        .cat-video .tool-icon { color: #fbbf24; }
+        .cat-dev .tool-icon { color: #c084fc; }
+        .cat-ecom .tool-icon { color: #60a5fa; }
+        .cat-fin .tool-icon { color: #34d399; }
+        .cat-study .tool-icon { color: #f472b6; }
+        .cat-health .tool-icon { color: #fb923c; }
+        .cat-other .tool-icon { color: #94a3b8; }
+
+        .tool-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+            line-height: 1.3;
+        }
+
+        .tool-description {
+            font-size: 0.95rem;
+            color: #9ca3af;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+            flex: 1;
+        }
+
+        .tool-tag {
+            background: rgba(255,255,255,0.05);
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            color: #94a3b8;
+            border: 1px solid rgba(255,255,255,0.1);
+            margin-top: 0.5rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 4rem 1rem 2rem;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        /* simples filtro por categoria via js (depois) */
+        .hidden-cat { display: none; }
+    

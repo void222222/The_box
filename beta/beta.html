@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>thebox · ferramentas gratuitas</title>
+    <!--links_css-->
+    <link rel="stylesheet" href="style.css">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📦 thebox</h1>
+            <p>Mais de 50 ferramentas gratuitas para o seu dia a dia: PDF, imagens, vídeo, e-commerce, finanças, estudos, saúde e desenvolvimento.</p>
+        </header>
+
+        <!-- Filtros rápidos -->
+        <div class="categories">
+            <span class="category-filter" onclick="filterTools('all')">Todos</span>
+            <span class="category-filter" onclick="filterTools('pdf')">PDF</span>
+            <span class="category-filter" onclick="filterTools('img')">Imagem</span>
+            <span class="category-filter" onclick="filterTools('video')">Vídeo/Áudio</span>
+            <span class="category-filter" onclick="filterTools('dev')">Dev</span>
+            <span class="category-filter" onclick="filterTools('ecom')">E-commerce</span>
+            <span class="category-filter" onclick="filterTools('fin')">Finanças</span>
+            <span class="category-filter" onclick="filterTools('study')">Estudos</span>
+            <span class="category-filter" onclick="filterTools('health')">Saúde</span>
+            <span class="category-filter" onclick="filterTools('other')">Outros</span>
+        </div>
+
+        <div class="tools-grid" id="toolsGrid">
+            <!-- ========= PDF ========= -->
+            <div class="tool-card cat-pdf" data-category="pdf">
+                <div class="tool-icon"><i class="fas fa-file-pdf"></i></div>
+                <h3 class="tool-title">Juntar PDF</h3>
+                <p class="tool-description">Combine vários PDFs em um único arquivo rapidamente.</p>
+                <span class="tool-tag">PDF</span>
+            </div>
+            <div class="tool-card cat-pdf" data-category="pdf">
+                <div class="tool-icon"><i class="fas fa-cut"></i></div>
+                <h3 class="tool-title">Dividir PDF</h3>
+                <p class="tool-description">Separe páginas ou extraia intervalos de qualquer PDF.</p>
+                <span class="tool-tag">PDF</span>
+            </div>
+            <div class="tool-card cat-pdf" data-category="pdf">
+                <div class="tool-icon"><i class="fas fa-compress-alt"></i></div>
+                <h3 class="tool-title">Comprimir PDF</h3>
+                <p class="tool-description">Reduza o tamanho do arquivo sem perder qualidade visível.</p>
+                <span class="tool-tag">PDF</span>
+            </div>
+            <div class="tool-card cat-pdf" data-category="pdf">
+                <div class="tool-icon"><i class="fas fa-file-word"></i></div>
+                <h3 class="tool-title">PDF para Word</h3>
+                <p class="tool-description">Converta PDF em documento .docx editável.</p>
+                <span class="tool-tag">PDF</span>
+            </div>
+            <div class="tool-card cat-pdf" data-category="pdf">
+                <div class="tool-icon"><i class="fas fa-file-excel"></i></div>
+                <h3 class="tool-title">PDF para Excel</h3>
+                <p class="tool-description">Extraia tabelas de PDF para planilhas Excel.</p>
+                <span class="tool-tag">PDF</span>
+            </div>
+            <div class="tool-card cat-pdf" data-category="pdf">
+                <div class="tool-icon"><i class="fas fa-lock"></i></div>
+                <h3 class="tool-title">Proteger PDF</h3>
+                <p class="tool-description">Adicione senha e criptografia ao seu PDF.</p>
+                <span class="tool-tag">PDF</span>
+            </div>
+            <div class="tool-card cat-pdf" data-category="pdf">
+                <div class="tool-icon"><i class="fas fa-lock-open"></i></div>
+                <h3 class="tool-title">Desbloquear PDF</h3>
+                <p class="tool-description">Remova a senha de PDFs (se você tiver a permissão).</p>
+                <span class="tool-tag">PDF</span>
+            </div>
+            <div class="tool-card cat-pdf" data-category="pdf">
+                <div class="tool-icon"><i class="fas fa-image"></i></div>
+                <h3 class="tool-title">Imagens para PDF</h3>
+                <p class="tool-description">Converta JPG/PNG em PDF organizado.</p>
+                <span class="tool-tag">PDF</span>
+            </div>
+
+            <!-- ========= IMAGEM ========= -->
+            <div class="tool-card cat-img" data-category="img">
+                <div class="tool-icon"><i class="fas fa-exchange-alt"></i></div>
+                <h3 class="tool-title">Converter WebP para JPG</h3>
+                <p class="tool-description">Transforme WebP em JPG/PNG para usar em qualquer lugar.</p>
+                <span class="tool-tag">Imagem</span>
+            </div>
+            <div class="tool-card cat-img" data-category="img">
+                <div class="tool-icon"><i class="fas fa-magic"></i></div>
+                <h3 class="tool-title">Remover Fundo</h3>
+                <p class="tool-description">Use IA para apagar o fundo de imagens automaticamente.</p>
+                <span class="tool-tag">Imagem</span>
+            </div>
+            <div class="tool-card cat-img" data-category="img">
+                <div class="tool-icon"><i class="fas fa-crop-alt"></i></div>
+                <h3 class="tool-title">Cortar Imagem</h3>
+                <p class="tool-description">Selecione e corte qualquer imagem do jeito que precisar.</p>
+                <span class="tool-tag">Imagem</span>
+            </div>
+            <div class="tool-card cat-img" data-category="img">
+                <div class="tool-icon"><i class="fas fa-expand-arrows-alt"></i></div>
+                <h3 class="tool-title">Redimensionar Imagem</h3>
+                <p class="tool-description">Altere largura/altura mantendo a qualidade.</p>
+                <span class="tool-tag">Imagem</span>
+            </div>
+            <div class="tool-card cat-img" data-category="img">
+                <div class="tool-icon"><i class="fas fa-water"></i></div>
+                <h3 class="tool-title">Marca d'água</h3>
+                <p class="tool-description">Adicione texto ou logo sobre suas imagens.</p>
+                <span class="tool-tag">Imagem</span>
+            </div>
+            <div class="tool-card cat-img" data-category="img">
+                <div class="tool-icon"><i class="fas fa-eye-dropper"></i></div>
+                <h3 class="tool-title">Extrair Paleta de Cores</h3>
+                <p class="tool-description">Descubra as cores principais de uma foto (códigos HEX).</p>
+                <span class="tool-tag">Imagem</span>
+            </div>
+
+            <!-- ========= VÍDEO/ÁUDIO ========= -->
+            <div class="tool-card cat-video" data-category="video">
+                <div class="tool-icon"><i class="fas fa-cut"></i></div>
+                <h3 class="tool-title">Cortar Vídeo</h3>
+                <p class="tool-description">Selecione trechos de MP4, MOV e outros formatos.</p>
+                <span class="tool-tag">Vídeo</span>
+            </div>
+            <div class="tool-card cat-video" data-category="video">
+                <div class="tool-icon"><i class="fas fa-file-audio"></i></div>
+                <h3 class="tool-title">MP4 para MP3</h3>
+                <p class="tool-description">Extraia o áudio de vídeos e converta em MP3.</p>
+                <span class="tool-tag">Áudio</span>
+            </div>
+            <div class="tool-card cat-video" data-category="video">
+                <div class="tool-icon"><i class="fas fa-microphone-alt"></i></div>
+                <h3 class="tool-title">Transcrever Áudio</h3>
+                <p class="tool-description">Converta áudio em texto com IA (Whisper).</p>
+                <span class="tool-tag">Áudio</span>
+            </div>
+            <div class="tool-card cat-video" data-category="video">
+                <div class="tool-icon"><i class="fas fa-compress"></i></div>
+                <h3 class="tool-title">Compressor de Vídeo</h3>
+                <p class="tool-description">Reduza o tamanho do vídeo para enviar no WhatsApp.</p>
+                <span class="tool-tag">Vídeo</span>
+            </div>
+            <div class="tool-card cat-video" data-category="video">
+                <div class="tool-icon"><i class="fas fa-download"></i></div>
+                <h3 class="tool-title">Download de Vídeos</h3>
+                <p class="tool-description">Baixe vídeos do YouTube, Instagram (via link).</p>
+                <span class="tool-tag">Vídeo</span>
+            </div>
+
+            <!-- ========= DEV ========= -->
+            <div class="tool-card cat-dev" data-category="dev">
+                <div class="tool-icon"><i class="fas fa-code"></i></div>
+                <h3 class="tool-title">Formatar JSON</h3>
+                <p class="tool-description">Identação e validação de código JSON.</p>
+                <span class="tool-tag">Dev</span>
+            </div>
+            <div class="tool-card cat-dev" data-category="dev">
+                <div class="tool-icon"><i class="fas fa-qrcode"></i></div>
+                <h3 class="tool-title">Gerador de QR Code</h3>
+                <p class="tool-description">Crie QR Codes com logo e cores personalizadas.</p>
+                <span class="tool-tag">Dev</span>
+            </div>
+            <div class="tool-card cat-dev" data-category="dev">
+                <div class="tool-icon"><i class="fas fa-shield-alt"></i></div>
+                <h3 class="tool-title">Base64 Encode/Decode</h3>
+                <p class="tool-description">Codifique ou decodifique texto em Base64.</p>
+                <span class="tool-tag">Dev</span>
+            </div>
+            <div class="tool-card cat-dev" data-category="dev">
+                <div class="tool-icon"><i class="fas fa-clock"></i></div>
+                <h3 class="tool-title">Conversor de Timestamp</h3>
+                <p class="tool-description">Converta Unix timestamp em data legível e vice-versa.</p>
+                <span class="tool-tag">Dev</span>
+            </div>
+            <div class="tool-card cat-dev" data-category="dev">
+                <div class="tool-icon"><i class="fas fa-terminal"></i></div>
+                <h3 class="tool-title">cURL para código</h3>
+                <p class="tool-description">Transforme comandos cURL em Python, JS, Go.</p>
+                <span class="tool-tag">Dev</span>
+            </div>
+            <div class="tool-card cat-dev" data-category="dev">
+                <div class="tool-icon"><i class="fas fa-network-wired"></i></div>
+                <h3 class="tool-title">Calculadora de Sub-rede</h3>
+                <p class="tool-description">Calcule máscara, IPs, CIDR para redes.</p>
+                <span class="tool-tag">Dev</span>
+            </div>
+            <div class="tool-card cat-dev" data-category="dev">
+                <div class="tool-icon"><i class="fas fa-database"></i></div>
+                <h3 class="tool-title">Gerador de Dados Mock</h3>
+                <p class="tool-description">Crie nomes, CPFs, endereços falsos para testes.</p>
+                <span class="tool-tag">Dev</span>
+            </div>
+
+            <!-- ========= E-COMMERCE ========= -->
+            <div class="tool-card cat-ecom" data-category="ecom">
+                <div class="tool-icon"><i class="fas fa-calculator"></i></div>
+                <h3 class="tool-title">Calculadora de Taxas</h3>
+                <p class="tool-description">Simule lucro líquido descontando taxas da Shopee, ML, etc.</p>
+                <span class="tool-tag">E-commerce</span>
+            </div>
+            <div class="tool-card cat-ecom" data-category="ecom">
+                <div class="tool-icon"><i class="fab fa-whatsapp"></i></div>
+                <h3 class="tool-title">Gerador de Link WhatsApp</h3>
+                <p class="tool-description">Crie links diretos para WhatsApp com mensagem pronta.</p>
+                <span class="tool-tag">E-commerce</span>
+            </div>
+            <div class="tool-card cat-ecom" data-category="ecom">
+                <div class="tool-icon"><i class="fas fa-barcode"></i></div>
+                <h3 class="tool-title">Criar Código de Barras</h3>
+                <p class="tool-description">Gere EAN/UPC em alta resolução para produtos.</p>
+                <span class="tool-tag">E-commerce</span>
+            </div>
+            <div class="tool-card cat-ecom" data-category="ecom">
+                <div class="tool-icon"><i class="fas fa-map-marker-alt"></i></div>
+                <h3 class="tool-title">Busca por CEP</h3>
+                <p class="tool-description">Consulte endereço completo a partir do CEP.</p>
+                <span class="tool-tag">E-commerce</span>
+            </div>
+            <div class="tool-card cat-ecom" data-category="ecom">
+                <div class="tool-icon"><i class="fas fa-star"></i></div>
+                <h3 class="tool-title">Extrator de Avaliações</h3>
+                <p class="tool-description">Formate reviews de produtos para anúncios.</p>
+                <span class="tool-tag">E-commerce</span>
+            </div>
+            <div class="tool-card cat-ecom" data-category="ecom">
+                <div class="tool-icon"><i class="fas fa-robot"></i></div>
+                <h3 class="tool-title">Gerador de Descrição</h3>
+                <p class="tool-description">Crie descrições persuasivas com IA para seus produtos.</p>
+                <span class="tool-tag">E-commerce</span>
+            </div>
+
+            <!-- ========= FINANÇAS ========= -->
+            <div class="tool-card cat-fin" data-category="fin">
+                <div class="tool-icon"><i class="fas fa-chart-line"></i></div>
+                <h3 class="tool-title">Simulador de Juros Compostos</h3>
+                <p class="tool-description">Veja seu dinheiro crescer com aportes mensais.</p>
+                <span class="tool-tag">Finanças</span>
+            </div>
+            <div class="tool-card cat-fin" data-category="fin">
+                <div class="tool-icon"><i class="fas fa-building"></i></div>
+                <h3 class="tool-title">Simulador de FIIs</h3>
+                <p class="tool-description">Calcule quantas cotas para uma renda mensal desejada.</p>
+                <span class="tool-tag">Finanças</span>
+            </div>
+            <div class="tool-card cat-fin" data-category="fin">
+                <div class="tool-icon"><i class="fas fa-balance-scale"></i></div>
+                <h3 class="tool-title">Comparador de Renda Fixa</h3>
+                <p class="tool-description">Compare CDB, Poupança e Tesouro Selic.</p>
+                <span class="tool-tag">Finanças</span>
+            </div>
+            <div class="tool-card cat-fin" data-category="fin">
+                <div class="tool-icon"><i class="fas fa-wallet"></i></div>
+                <h3 class="tool-title">Calculadora Salário Líquido</h3>
+                <p class="tool-description">CLT vs PJ: descubra quanto sobra no bolso.</p>
+                <span class="tool-tag">Finanças</span>
+            </div>
+            <div class="tool-card cat-fin" data-category="fin">
+                <div class="tool-icon"><i class="fas fa-coins"></i></div>
+                <h3 class="tool-title">Preço Teto para Ações</h3>
+                <p class="tool-description">Baseado no dividend yield esperado.</p>
+                <span class="tool-tag">Finanças</span>
+            </div>
+            <div class="tool-card cat-fin" data-category="fin">
+                <div class="tool-icon"><i class="fas fa-users"></i></div>
+                <h3 class="tool-title">Divisor de Contas</h3>
+                <p class="tool-description">Racha a conta do rolê com justiça.</p>
+                <span class="tool-tag">Finanças</span>
+            </div>
+
+            <!-- ========= ESTUDOS ========= -->
+            <div class="tool-card cat-study" data-category="study">
+                <div class="tool-icon"><i class="fas fa-calendar-alt"></i></div>
+                <h3 class="tool-title">Cronograma de Estudos</h3>
+                <p class="tool-description">Gere um plano de estudos em PDF com suas matérias.</p>
+                <span class="tool-tag">Estudos</span>
+            </div>
+            <div class="tool-card cat-study" data-category="study">
+                <div class="tool-icon"><i class="fas fa-file-alt"></i></div>
+                <h3 class="tool-title">Resumidor de Texto</h3>
+                <p class="tool-description">Resuma artigos, editais ou PDFs com IA.</p>
+                <span class="tool-tag">Estudos</span>
+            </div>
+            <div class="tool-card cat-study" data-category="study">
+                <div class="tool-icon"><i class="fas fa-calculator"></i></div>
+                <h3 class="tool-title">Simulador de Notas</h3>
+                <p class="tool-description">Calcule sua nota final em concursos com pesos.</p>
+                <span class="tool-tag">Estudos</span>
+            </div>
+            <div class="tool-card cat-study" data-category="study">
+                <div class="tool-icon"><i class="fas fa-eraser"></i></div>
+                <h3 class="tool-title">Limpador de Editais</h3>
+                <p class="tool-description">Remova formatação estranha de textos do Diário Oficial.</p>
+                <span class="tool-tag">Estudos</span>
+            </div>
+            <div class="tool-card cat-study" data-category="study">
+                <div class="tool-icon"><i class="fas fa-layer-group"></i></div>
+                <h3 class="tool-title">Gerador de Flashcards</h3>
+                <p class="tool-description">Transforme texto em perguntas/respostas para Anki.</p>
+                <span class="tool-tag">Estudos</span>
+            </div>
+            <div class="tool-card cat-study" data-category="study">
+                <div class="tool-icon"><i class="fas fa-hourglass-half"></i></div>
+                <h3 class="tool-title">Timer Pomodoro</h3>
+                <p class="tool-description">Cronômetro inteligente para ciclos de estudo.</p>
+                <span class="tool-tag">Estudos</span>
+            </div>
+
+            <!-- ========= SAÚDE ========= -->
+            <div class="tool-card cat-health" data-category="health">
+                <div class="tool-icon"><i class="fas fa-dumbbell"></i></div>
+                <h3 class="tool-title">Calculadora de 1RM</h3>
+                <p class="tool-description">Descubra sua carga máxima no supino/agachamento.</p>
+                <span class="tool-tag">Saúde</span>
+            </div>
+            <div class="tool-card cat-health" data-category="health">
+                <div class="tool-icon"><i class="fas fa-apple-alt"></i></div>
+                <h3 class="tool-title">Calculadora de Macros</h3>
+                <p class="tool-description">Proteínas, carboidratos e gorduras para sua dieta.</p>
+                <span class="tool-tag">Saúde</span>
+            </div>
+            <div class="tool-card cat-health" data-category="health">
+                <div class="tool-icon"><i class="fas fa-heartbeat"></i></div>
+                <h3 class="tool-title">Taxa Metabólica Basal</h3>
+                <p class="tool-description">Calcule quantas calorias gasta em repouso.</p>
+                <span class="tool-tag">Saúde</span>
+            </div>
+            <div class="tool-card cat-health" data-category="health">
+                <div class="tool-icon"><i class="fas fa-tint"></i></div>
+                <h3 class="tool-title">Calculadora de Água</h3>
+                <p class="tool-description">Quantos litros de água beber por dia.</p>
+                <span class="tool-tag">Saúde</span>
+            </div>
+            <div class="tool-card cat-health" data-category="health">
+                <div class="tool-icon"><i class="fas fa-stopwatch"></i></div>
+                <h3 class="tool-title">Timer de Séries</h3>
+                <p class="tool-description">Controle o descanso entre exercícios.</p>
+                <span class="tool-tag">Saúde</span>
+            </div>
+            <div class="tool-card cat-health" data-category="health">
+                <div class="tool-icon"><i class="fas fa-soap"></i></div>
+                <h3 class="tool-title">Calculadora de Saponificação</h3>
+                <p class="tool-description">Para fazer sabão artesanal com segurança.</p>
+                <span class="tool-tag">Saúde</span>
+            </div>
+
+            <!-- ========= OUTROS ========= -->
+            <div class="tool-card cat-other" data-category="other">
+                <div class="tool-icon"><i class="fas fa-id-card"></i></div>
+                <h3 class="tool-title">Gerar CPF/CNPJ</h3>
+                <p class="tool-description">Crie números válidos para testes ou formatação.</p>
+                <span class="tool-tag">Utilidades</span>
+            </div>
+            <div class="tool-card cat-other" data-category="other">
+                <div class="tool-icon"><i class="fas fa-ruler-combined"></i></div>
+                <h3 class="tool-title">Conversor de Unidades</h3>
+                <p class="tool-description">Comprimento, peso, volume, temperatura.</p>
+                <span class="tool-tag">Utilidades</span>
+            </div>
+            <div class="tool-card cat-other" data-category="other">
+                <div class="tool-icon"><i class="fas fa-gamepad"></i></div>
+                <h3 class="tool-title">Calculadora de Drop Rate</h3>
+                <p class="tool-description">Probabilidade de itens em games.</p>
+                <span class="tool-tag">Games</span>
+            </div>
+            <div class="tool-card cat-other" data-category="other">
+                <div class="tool-icon"><i class="fas fa-clock"></i></div>
+                <h3 class="tool-title">Fuso Horário de Servidores</h3>
+                <p class="tool-description">Converta horários de respawn de bosses.</p>
+                <span class="tool-tag">Games</span>
+            </div>
+            <div class="tool-card cat-other" data-category="other">
+                <div class="tool-icon"><i class="fas fa-font"></i></div>
+                <h3 class="tool-title">Gerador de Nicknames</h3>
+                <p class="tool-description">Crie nomes para personagens e guildas.</p>
+                <span class="tool-tag">Games</span>
+            </div>
+        </div>
+
+        <footer>
+            <p>🚀 MVP thebox — Clique em qualquer card para acessar a ferramenta (links em breve).</p>
+            <p style="margin-top: 0.5rem;">Mais de 50 ferramentas organizadas por categorias. Versão 1.0</p>
+        </footer>
+    </div>
+
+    <!-- Script simples para filtrar por categoria -->
+    <script>
+        function filterTools(category) {
+            const cards = document.querySelectorAll('.tool-card');
+            cards.forEach(card => {
+                if (category === 'all') {
+                    card.style.display = 'flex';
+                } else {
+                    if (card.dataset.category === category) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                }
+            });
+        }
+    </script>
+    <!-- Efeito de mouse para o brilho (opcional) -->
+    <script>
+        document.querySelectorAll('.tool-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--x', x + 'px');
+                card.style.setProperty('--y', y + 'px');
+            });
+        });
+    </script>
+</body>
+</html>

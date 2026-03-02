@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>thebox · Gerador de Link WhatsApp</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Biblioteca QR Code -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+    <!-- jsPDF para gerar PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- CSS específico -->
+    <link rel="stylesheet" href="../../../css/pages/E_commerce/Gerador_Link_WhatsApp.css">
+</head>
+<body>
+    <div class="tool-container">
+        <div class="tool-header">
+            <a href="../../../index.html" class="back-link"><i class="fas fa-arrow-left"></i> Voltar</a>
+            <h1><i class="fab fa-whatsapp"></i> Gerador de Link WhatsApp</h1>
+            <p>Crie links personalizados para iniciar conversas no WhatsApp sem precisar salvar o contato.</p>
+        </div>
+
+        <div class="tool-form">
+            <div class="input-group">
+                <label for="phone">Número de telefone (com DDD e código do país)</label>
+                <div class="phone-input-wrapper">
+                    <span class="country-code">+55</span>
+                    <input type="text" id="phone" placeholder="(DDD) 9xxxx-xxxx" maxlength="15">
+                </div>
+                <small>Ex.: 11912345678 (apenas números)</small>
+            </div>
+
+            <div class="input-group">
+                <label for="message">Mensagem (opcional)</label>
+                <textarea id="message" rows="4" placeholder="Digite a mensagem que aparecerá pré-preenchida..."></textarea>
+                <small>Use <kbd>Shift+Enter</kbd> para pular linha.</small>
+            </div>
+
+            <div class="options">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="international" checked> 
+                    <span>Incluir código do Brasil (+55) automaticamente</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="cleanNumbers" checked> 
+                    <span>Remover caracteres especiais do número</span>
+                </label>
+            </div>
+
+            <button class="btn-generate" id="generateBtn"><i class="fas fa-link"></i> Gerar Link</button>
+
+            <div class="result-area" id="resultArea" style="display: none;">
+                <label>Link gerado:</label>
+                <div class="link-box">
+                    <input type="text" id="generatedLink" readonly>
+                    <button class="btn-copy" id="copyBtn"><i class="fas fa-copy"></i> Copiar</button>
+                </div>
+
+                <!-- Botões lado a lado -->
+                <div class="qr-actions">
+                    <button class="btn-qr" id="generateQrBtn"><i class="fas fa-qrcode"></i> Gerar QR Code</button>
+                    <button class="btn-pdf" id="downloadPdfBtn" style="display: none;"><i class="fas fa-file-pdf"></i> Baixar PDF</button>
+                </div>
+
+                <div id="qrContainer" style="display: none; text-align: center; margin: 1rem 0;">
+                    <canvas id="qrCanvas"></canvas>
+                    <p style="color: #94a3b8; font-size: 0.85rem;">Aponte a câmera do celular para o QR Code</p>
+                </div>
+
+                <div class="preview">
+                    <strong>Pré‑visualização:</strong>
+                    <p id="previewText"></p>
+                </div>
+                <a href="#" id="testLink" target="_blank" class="btn-test"><i class="fas fa-external-link-alt"></i> Testar link</a>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <h3><i class="fas fa-info-circle"></i> Como usar</h3>
+            <ol>
+                <li>Digite o número com DDD (ex.: 11987654321).</li>
+                <li>Escreva a mensagem desejada (opcional).</li>
+                <li>Clique em "Gerar Link".</li>
+                <li>Copie o link, compartilhe ou gere um QR Code e baixe o PDF para imprimir.</li>
+            </ol>
+        </div>
+    </div>
+
+    <script src="../../../js/pages/E_commerce/Gerador_Link_WhatsApp.js"></script>
+</body>
+</html>
