@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>thebox · Gerador de Descrição</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="../../../css/pages/E_commerce/Gerador_Descricao.css">
+</head>
+<body>
+    <div class="tool-container">
+        <div class="tool-header">
+            <a href="../../../index.html" class="back-link"><i class="fas fa-arrow-left"></i> Voltar</a>
+            <h1><i class="fas fa-robot"></i> Gerador de Descrição</h1>
+            <p>Crie descrições irresistíveis para seus produtos a partir de especificações simples.</p>
+        </div>
+
+        <div class="tool-form">
+            <div class="input-group">
+                <label for="productName">Nome do produto</label>
+                <input type="text" id="productName" placeholder="Ex.: Caixa de Papelão Reforçada" value="Caixa de Papelão">
+            </div>
+
+            <div class="input-group">
+                <label for="specs">Especificações (uma por linha)</label>
+                <textarea id="specs" rows="6" placeholder="Ex.:
+Material: Papelão ondulado de alta durabilidade
+Dimensões: 30x30x30 cm
+Cor: Amarela
+Quantidade: 5 caixas
+Garantia: 12 meses">Material: Alta durabilidade e resistência
+Dimensões: Projetado para máximo conforto
+Características: quadrada, 3/4, amarela, 5 caixas pelo preço de uma
+Garantia: 12 meses contra defeitos de fabricação</textarea>
+            </div>
+
+            <div class="input-row">
+                <div class="input-group">
+                    <label for="tone">Tom da descrição</label>
+                    <select id="tone">
+                        <option value="professional" selected>Profissional</option>
+                        <option value="casual">Casual / Descontraído</option>
+                        <option value="persuasive">Persuasivo / Vendas</option>
+                        <option value="funny">Engraçado / Criativo</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="keywords">Palavras‑chave (opcional, separadas por vírgula)</label>
+                    <input type="text" id="keywords" placeholder="Ex.: embalagem, resistente, oferta">
+                </div>
+            </div>
+
+            <div class="options">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="includeEmoji" checked> 
+                    <span>Incluir emojis</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="includeCta" checked> 
+                    <span>Incluir chamada para ação (CTA)</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="includeSeo" checked> 
+                    <span>Otimizar para SEO (títulos em negrito)</span>
+                </label>
+            </div>
+
+            <button class="btn-generate" id="generateBtn"><i class="fas fa-magic"></i> Gerar Descrição</button>
+
+            <div class="result-area" id="resultArea" style="display: none;">
+                <h3><i class="fas fa-file-alt"></i> Descrição gerada</h3>
+                <div class="description-output" id="descriptionOutput"></div>
+                <div class="action-buttons">
+                    <button class="btn-copy" id="copyBtn"><i class="fas fa-copy"></i> Copiar</button>
+                    <button class="btn-clear" id="clearBtn"><i class="fas fa-eraser"></i> Limpar</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <h3><i class="fas fa-lightbulb"></i> Dicas</h3>
+            <ul>
+                <li><strong>Nome do produto:</strong> seja claro e inclua palavras‑chave.</li>
+                <li><strong>Especificações:</strong> liste características principais (material, dimensões, cor, etc.).</li>
+                <li><strong>Tom:</strong> escolha o estilo que combina com sua marca.</li>
+                <li><strong>Palavras‑chave:</strong> ajudam a destacar termos importantes.</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="../../../js/pages/E_commerce/Gerador_Descricao.js"></script>
+</body>
+</html>
