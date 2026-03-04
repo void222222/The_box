@@ -1,0 +1,262 @@
+        
+        /* (mesmo estilo anterior, manter) */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+        body {
+            background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            padding: 1rem 1rem 2rem;
+            color: white;
+        }
+        header h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #c084fc, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        header p {
+            color: #cbd5e1;
+        }
+        .card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(8px);
+            border-radius: 32px;
+            padding: 2rem;
+            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 0 25px 40px -12px black;
+            position: relative;
+            overflow: hidden;
+        }
+        .card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(800px circle at var(--x, 50%) var(--y, 50%), rgba(255,255,255,0.06), transparent 40%);
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+        }
+        .card:hover::before {
+            opacity: 1;
+        }
+        .upload-area {
+            border: 2px dashed rgba(255,255,255,0.1);
+            border-radius: 30px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+            background: rgba(0,0,0,0.2);
+            margin-bottom: 1.5rem;
+        }
+        .upload-area:hover {
+            border-color: #ef4444;
+        }
+        .upload-area i {
+            font-size: 3rem;
+            color: #ef4444;
+        }
+        .upload-area p {
+            color: #94a3b8;
+        }
+        #videoFile {
+            display: none;
+        }
+        .video-wrapper {
+            margin-bottom: 2rem;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+        video {
+            width: 100%;
+            display: block;
+            background: black;
+        }
+        .timeline-container {
+            margin-top: 1.5rem;
+        }
+        .time-indicator {
+            display: flex;
+            justify-content: space-between;
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        .timeline-bar {
+            position: relative;
+            width: 100%;
+            height: 40px;
+            background: #1e293b;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-bottom: 1rem;
+        }
+        .timeline-fill {
+            position: absolute;
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            border-radius: 20px;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+        .playhead {
+            position: absolute;
+            width: 4px;
+            height: 100%;
+            background: white;
+            border-radius: 2px;
+            transform: translateX(-50%);
+            pointer-events: none;
+            box-shadow: 0 0 10px rgba(255,255,255,0.5);
+            z-index: 10;
+        }
+        .marker {
+            position: absolute;
+            width: 16px;
+            height: 100%;
+            background: transparent;
+            pointer-events: none;
+            z-index: 5;
+        }
+        .marker::before {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: #ef4444;
+            border: 2px solid white;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            cursor: grab;
+            pointer-events: auto;
+            box-shadow: 0 0 10px black;
+        }
+        .marker::after {
+            content: '';
+            position: absolute;
+            width: 2px;
+            height: 100%;
+            background: #ef4444;
+            left: 50%;
+            transform: translateX(-50%);
+            top: 0;
+            opacity: 0.5;
+        }
+        .marker.start {
+            left: 0%;
+        }
+        .marker.end {
+            left: 100%;
+        }
+        .marker span {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ef4444;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            white-space: nowrap;
+        }
+        .info-box {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            color: #cbd5e1;
+            margin: 1rem 0;
+        }
+        button {
+            background: linear-gradient(135deg, #ef4444, #f97316);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            width: 100%;
+            margin-top: 1rem;
+        }
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px #ef4444;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .progress-area {
+            margin-top: 1rem;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #1e293b;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #ef4444, #f97316);
+            transition: width 0.3s ease;
+        }
+        .status {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 0.95rem;
+            min-height: 2rem;
+        }
+        .download-link {
+            background: #10b981;
+            color: white;
+            text-decoration: none;
+            padding: 1rem 2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: 0.2s;
+            margin-top: 1rem;
+        }
+        .download-link:hover {
+            background: #059669;
+        }
+        .error-message {
+            background: rgba(239, 68, 68, 0.2);
+            border-left: 4px solid #ef4444;
+            padding: 1rem;
+            border-radius: 16px;
+            color: #fecaca;
+            margin: 1rem 0;
+        }
+        footer {
+            text-align: center;
+            padding: 2rem 1rem 0;
+            color: #64748b;
+        }
+    

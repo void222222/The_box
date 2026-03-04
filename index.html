@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>thebox · e‑commerce & dev</title>
-    <!-- Font Awesome 6 -->
-    
-     
+    <title>thebox · e‑commerce & vídeo/áudio</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -91,7 +89,6 @@
             padding: 1.8rem 1.2rem;
             box-shadow: 0 20px 35px -10px rgba(0,0,0,0.5);
             transition: transform 0.25s ease, box-shadow 0.3s, border-color 0.2s;
-            cursor: pointer;
             display: flex;
             flex-direction: column;
             align-items: flex-start;
@@ -131,9 +128,8 @@
             border: 1px solid rgba(255,255,255,0.05);
         }
 
-        /* cores por categoria */
         .cat-ecom .tool-icon { color: #60a5fa; }
-        .cat-dev .tool-icon { color: #c084fc; }
+        .cat-video .tool-icon { color: #ef4444; }
 
         .tool-title {
             font-size: 1.4rem;
@@ -175,14 +171,14 @@
     <div class="container">
         <header>
             <h1>📦 thebox</h1>
-            <p>Ferramentas gratuitas para vendas online e programação.</p>
+            <p>Ferramentas gratuitas para e‑commerce e edição de vídeo/áudio.</p>
         </header>
 
-        <!-- Filtros (apenas E‑commerce e Dev) -->
+        <!-- Filtros -->
         <div class="categories">
             <span class="category-filter" onclick="filterTools('all')">Todos</span>
             <span class="category-filter" onclick="filterTools('ecom')">E‑commerce</span>
-             
+            <span class="category-filter" onclick="filterTools('video')">Vídeo/Áudio</span>
         </div>
 
         <div class="tools-grid" id="toolsGrid">
@@ -224,13 +220,105 @@
                 <span class="tool-tag">E‑commerce</span>
             </a>
 
-             
-         
+            <!-- ========= VÍDEO/ÁUDIO ========= -->
+            <a href="tools/pages/Video_Audio/Cortar_Video.html" class="tool-card cat-video" data-category="video">
+                <div class="tool-icon"><i class="fas fa-cut"></i></div>
+                <h3 class="tool-title">Cortar Vídeo</h3>
+                <p class="tool-description">Selecione trechos de MP4, MOV e outros formatos.</p>
+                <span class="tool-tag">Vídeo</span>
+            </a>
+            <a href="tools/pages/Video_Audio/Conversor_Universal.html" class="tool-card cat-video" data-category="video">
+                <div class="tool-icon"><i class="fas fa-file-audio"></i></div>
+                <h3 class="tool-title">MP4 para MP3</h3>
+                <p class="tool-description">Extraia o áudio de vídeos e converta em MP3.</p>
+                <span class="tool-tag">Áudio</span>
+            </a>
+            <a href="tools/pages/Video_Audio/Transcrever_Audio.html" class="tool-card cat-video" data-category="video">
+                <div class="tool-icon"><i class="fas fa-microphone-alt"></i></div>
+                <h3 class="tool-title">Transcrever Áudio</h3>
+                <p class="tool-description">Converta áudio em texto com IA (Whisper).</p>
+                <span class="tool-tag">Áudio</span>
+            </a>
+            <a href="tools/pages/Video_Audio/Compressor_Video.html" class="tool-card cat-video" data-category="video">
+                <div class="tool-icon"><i class="fas fa-compress"></i></div>
+                <h3 class="tool-title">Compressor de Vídeo</h3>
+                <p class="tool-description">Reduza o tamanho do vídeo para enviar no WhatsApp.</p>
+                <span class="tool-tag">Vídeo</span>
+            </a>
+            <a href="tools/pages/Video_Audio/Conversor_Video_GIF.html" class="tool-card cat-video" data-category="video">
+                <div class="tool-icon"><i class="fas fa-file-image"></i></div>
+                <h3 class="tool-title">Vídeo para GIF</h3>
+                <p class="tool-description">Converta vídeos em GIF animado para demonstrar produtos.</p>
+                <span class="tool-tag">Vídeo</span>
+            </a>
+            <a href="tools/pages/Video_Audio/Otimizador_Video_Web.html" class="tool-card cat-video" data-category="video">
+                <div class="tool-icon"><i class="fas fa-rocket"></i></div>
+                <h3 class="tool-title">Otimizador de Vídeo</h3>
+                <p class="tool-description">Reduza o peso mantendo qualidade para sites rápidos.</p>
+                <span class="tool-tag">Vídeo</span>
+            </a>
+            <a href="tools/pages/Video_Audio/Extrator_Frames.html" class="tool-card cat-video" data-category="video">
+                <div class="tool-icon"><i class="fas fa-camera"></i></div>
+                <h3 class="tool-title">Extrator de Frames</h3>
+                <p class="tool-description">Salve prints de vídeos em alta resolução.</p>
+                <span class="tool-tag">Vídeo</span>
+            </a>
+            <a href="tools/pages/Video_Audio/Gerador_Legendas.html" class="tool-card cat-video" data-category="video">
+                <div class="tool-icon"><i class="fas fa-closed-captioning"></i></div>
+                <h3 class="tool-title">Gerador de Legendas</h3>
+                <p class="tool-description">Crie arquivos .srt a partir de um roteiro colado.</p>
+                <span class="tool-tag">Vídeo</span>
+            </a>
+            <a href="tools/pages/Video_Audio/Redimensionador_Video_Social.html" class="tool-card cat-video" data-category="video">
+                <div class="tool-icon"><i class="fas fa-crop"></i></div>
+                <h3 class="tool-title">Redimensionar para Redes</h3>
+                <p class="tool-description">Ajuste vídeos para Reels, TikTok ou feed quadrado.</p>
+                <span class="tool-tag">Vídeo</span>
+            </a>
+            <a href="tools/pages/Video_Audio/Conversor_WAV_MP3.html" class="tool-card cat-video" data-category="video">
+                <div class="tool-icon"><i class="fas fa-exchange-alt"></i></div>
+                <h3 class="tool-title">WAV para MP3</h3>
+                <p class="tool-description">Converta áudio WAV em MP3 compactado.</p>
+                <span class="tool-tag">Áudio</span>
+            </a>
+            <a href="tools/pages/Video_Audio/Gravador_Voz.html" class="tool-card cat-video" data-category="video">
+                <div class="tool-icon"><i class="fas fa-microphone"></i></div>
+                <h3 class="tool-title">Gravador de Voz</h3>
+                <p class="tool-description">Grave áudio diretamente do microfone e baixe.</p>
+                <span class="tool-tag">Áudio</span>
+            </a>
+            <a href="tools/pages/Video_Audio/Normalizador_Volume.html" class="tool-card cat-video" data-category="video">
+                <div class="tool-icon"><i class="fas fa-volume-up"></i></div>
+                <h3 class="tool-title">Normalizador de Volume</h3>
+                <p class="tool-description">Ajuste o áudio para um nível uniforme.</p>
+                <span class="tool-tag">Áudio</span>
+            </a>
+            <a href="tools/pages/Video_Audio/Removedor_Silencio.html" class="tool-card cat-video" data-category="video">
+                <div class="tool-icon"><i class="fas fa-eraser"></i></div>
+                <h3 class="tool-title">Removedor de Silêncio</h3>
+                <p class="tool-description">Corte silêncios no início e fim do áudio automaticamente.</p>
+                <span class="tool-tag">Áudio</span>
+            </a>
+            <a href="tools/pages/Video_Audio/Metronomo.html" class="tool-card cat-video" data-category="video">
+                <div class="tool-icon"><i class="fas fa-drum"></i></div>
+                <h3 class="tool-title">Metrônomo</h3>
+                <p class="tool-description">BPM ajustável para músicos e estudos.</p>
+                <span class="tool-tag">Áudio</span>
+            </a>
+            <a href="tools/pages/Video_Audio/Visualizador_Espectro.html" class="tool-card cat-video" data-category="video">
+                <div class="tool-icon"><i class="fas fa-chart-line"></i></div>
+                <h3 class="tool-title">Visualizador de Espectro</h3>
+                <p class="tool-description">Gere a forma de onda do áudio para posts.</p>
+                <span class="tool-tag">Áudio</span>
+            </a>
+        </div>
+
+        <footer>
+            <p>🚀 thebox — ferramentas gratuitas para e‑commerce e vídeo/áudio</p>
+        </footer>
     </div>
 
-    <!-- Script de filtro -->
     <script>
-        
         function filterTools(category) {
             const cards = document.querySelectorAll('.tool-card');
             cards.forEach(card => {
@@ -242,7 +330,6 @@
             });
         }
 
-        // Efeito de brilho no mouse
         document.querySelectorAll('.tool-card').forEach(card => {
             card.addEventListener('mousemove', (e) => {
                 const rect = card.getBoundingClientRect();
@@ -253,8 +340,7 @@
             });
         });
     </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8743588040099046"
-     crossorigin="anonymous"></script>
+
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8743588040099046" crossorigin="anonymous"></script>
 </body>
 </html>

@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversor Universal · thebox</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Headers de segurança (essenciais para o FFmpeg) -->
+    <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin">
+    <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 1rem 1rem 2rem;
+            color: white;
+        }
+
+        header h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #c084fc, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        header p {
+            color: #cbd5e1;
+        }
+
+        .card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(8px);
+            border-radius: 32px;
+            padding: 2rem;
+            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 0 25px 40px -12px black;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(800px circle at var(--x, 50%) var(--y, 50%), rgba(255,255,255,0.06), transparent 40%);
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .upload-area {
+            border: 2px dashed rgba(255,255,255,0.1);
+            border-radius: 30px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+            background: rgba(0,0,0,0.2);
+            margin-bottom: 1.5rem;
+        }
+
+        .upload-area:hover {
+            border-color: #ef4444;
+        }
+
+        .upload-area i {
+            font-size: 3rem;
+            color: #ef4444;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-area p {
+            color: #94a3b8;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .file-info {
+            background: rgba(0,0,0,0.2);
+            border-radius: 40px;
+            padding: 0.8rem 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .file-info i {
+            color: #ef4444;
+            font-size: 1.2rem;
+        }
+
+        .file-info span {
+            color: #cbd5e1;
+            font-size: 0.95rem;
+            word-break: break-all;
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.2rem;
+        }
+
+        .tab-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #94a3b8;
+            padding: 0.6rem 1.5rem;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .tab-btn.active {
+            background: #ef4444;
+            color: white;
+            border-color: #ef4444;
+        }
+
+        .format-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 0.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .format-item {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 40px;
+            padding: 0.6rem 0.5rem;
+            text-align: center;
+            color: #cbd5e1;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .format-item:hover {
+            border-color: #ef4444;
+            background: rgba(239,68,68,0.1);
+        }
+
+        .format-item.selected {
+            background: #ef4444;
+            color: white;
+            border-color: #ef4444;
+        }
+
+        .format-item.disabled {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        button {
+            background: linear-gradient(135deg, #ef4444, #f97316);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px #ef4444;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .progress-area {
+            margin-top: 1.5rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #1e293b;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #ef4444, #f97316);
+            transition: width 0.3s ease;
+        }
+
+        .status {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 0.95rem;
+            min-height: 2rem;
+        }
+
+        .download-link {
+            background: #10b981;
+            color: white;
+            text-decoration: none;
+            padding: 1rem 2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: 0.2s;
+            margin-top: 1.5rem;
+        }
+
+        .download-link:hover {
+            background: #059669;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem 1rem 0;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔄 Conversor Universal</h1>
+            <p>Converta vídeos, áudios e imagens para qualquer formato. 100% local.</p>
+        </header>
+
+        <div class="card" id="card">
+            <!-- Área de upload -->
+            <div class="upload-area" id="uploadArea">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p id="uploadText">Arraste ou clique para selecionar um arquivo</p>
+            </div>
+            <input type="file" id="fileInput" accept="video/*,audio/*,image/*">
+
+            <!-- Informações do arquivo (aparece após upload) -->
+            <div id="fileInfo" class="file-info" style="display: none;">
+                <i class="fas fa-file"></i>
+                <span id="fileName"></span>
+            </div>
+
+            <!-- Abas de categoria (aparecem após upload) -->
+            <div id="categoryTabs" class="category-tabs" style="display: none;"></div>
+
+            <!-- Grade de formatos (dinâmica) -->
+            <div id="formatGridContainer"></div>
+
+            <!-- Botão converter -->
+            <button id="convertBtn" disabled><i class="fas fa-sync-alt"></i> Converter</button>
+
+            <!-- Progresso -->
+            <div class="progress-area" id="progressArea" style="display: none;">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="status" id="status"></div>
+            </div>
+
+            <!-- Link de download -->
+            <a id="downloadLink" class="download-link"><i class="fas fa-download"></i> Baixar arquivo convertido</a>
+        </div>
+
+        <footer>
+            <p>🔧 Conversão inteligente — o formato de saída é escolhido por você.</p>
+        </footer>
+    </div>
+
+    <!-- FFmpeg (via jsDelivr) -->
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.min.js"></script>
+
+    <script>
+        (function() {
+            // ========== ELEMENTOS ==========
+            const card = document.getElementById('card');
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+            const fileInfo = document.getElementById('fileInfo');
+            const fileNameSpan = document.getElementById('fileName');
+            const categoryTabs = document.getElementById('categoryTabs');
+            const formatGridContainer = document.getElementById('formatGridContainer');
+            const convertBtn = document.getElementById('convertBtn');
+            const progressArea = document.getElementById('progressArea');
+            const progressFill = document.getElementById('progressFill');
+            const statusDiv = document.getElementById('status');
+            const downloadLink = document.getElementById('downloadLink');
+
+            // ========== ESTADO ==========
+            let currentFile = null;
+            let fileType = ''; // 'video', 'audio', 'image'
+            let selectedFormat = ''; // formato de saída (ex: 'mp3', 'mp4', 'gif')
+            let ffmpeg = null;
+
+            // Formatos disponíveis por categoria
+            const formats = {
+                video: ['mp4', 'avi', 'mov', 'webm', 'mkv', 'gif', 'flv'],
+                audio: ['mp3', 'wav', 'ogg', 'm4a', 'flac', 'aac'],
+                image: ['jpg', 'png', 'webp', 'gif']
+            };
+
+            // Mapeamento de MIME types para categoria
+            const mimeToCategory = {
+                'video': 'video',
+                'audio': 'audio',
+                'image': 'image'
+            };
+
+            // ========== EFEITO DE BRILHO ==========
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                card.style.setProperty('--x', e.clientX - rect.left + 'px');
+                card.style.setProperty('--y', e.clientY - rect.top + 'px');
+            });
+
+            // ========== UPLOAD ==========
+            uploadArea.addEventListener('click', () => fileInput.click());
+
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = '#ef4444';
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.style.borderColor = 'rgba(255,255,255,0.1)';
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = 'rgba(255,255,255,0.1)';
+                const file = e.dataTransfer.files[0];
+                if (file) handleFile(file);
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) handleFile(file);
+            });
+
+            function handleFile(file) {
+                currentFile = file;
+                fileNameSpan.innerText = file.name;
+                fileInfo.style.display = 'flex';
+                downloadLink.style.display = 'none';
+                progressArea.style.display = 'none';
+                selectedFormat = '';
+                convertBtn.disabled = true;
+
+                // Determinar categoria baseada no tipo MIME
+                const mime = file.type;
+                if (mime.startsWith('video/')) fileType = 'video';
+                else if (mime.startsWith('audio/')) fileType = 'audio';
+                else if (mime.startsWith('image/')) fileType = 'image';
+                else {
+                    alert('Tipo de arquivo não suportado.');
+                    return;
+                }
+
+                // Criar abas (apenas categorias compatíveis com o arquivo)
+                buildTabs();
+                // Exibir grade da primeira categoria
+                showCategory(fileType);
+            }
+
+            function buildTabs() {
+                categoryTabs.style.display = 'flex';
+                categoryTabs.innerHTML = '';
+
+                const categories = ['video', 'audio', 'image'];
+                categories.forEach(cat => {
+                    // Se a categoria for a mesma do arquivo, ou se for conversão possível (ex: vídeo pode gerar áudio)
+                    // Mas vamos mostrar todas, pois o FFmpeg pode converter entre muitas coisas.
+                    const btn = document.createElement('span');
+                    btn.className = 'tab-btn' + (cat === fileType ? ' active' : '');
+                    btn.innerText = cat === 'video' ? '🎬 Vídeo' : cat === 'audio' ? '🎵 Áudio' : '🖼️ Imagem';
+                    btn.onclick = () => showCategory(cat);
+                    categoryTabs.appendChild(btn);
+                });
+            }
+
+            function showCategory(cat) {
+                // Atualizar abas
+                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                event.target.classList.add('active');
+
+                // Gerar grade de formatos
+                let html = '<div class="format-grid">';
+                formats[cat].forEach(fmt => {
+                    const disabled = (cat === fileType && fmt === getExtension(currentFile.name)) ? ' disabled' : '';
+                    html += `<div class="format-item${disabled}" data-format="${fmt}" onclick="window.selectFormat('${fmt}', this)">${fmt.toUpperCase()}</div>`;
+                });
+                html += '</div>';
+                formatGridContainer.innerHTML = html;
+            }
+
+            // Função global para selecionar formato
+            window.selectFormat = (fmt, el) => {
+                document.querySelectorAll('.format-item').forEach(i => i.classList.remove('selected'));
+                el.classList.add('selected');
+                selectedFormat = fmt;
+                convertBtn.disabled = false;
+            };
+
+            function getExtension(filename) {
+                return filename.split('.').pop().toLowerCase();
+            }
+
+            // ========== CONVERSÃO ==========
+            convertBtn.addEventListener('click', async () => {
+                if (!currentFile || !selectedFormat) return;
+
+                convertBtn.disabled = true;
+                progressArea.style.display = 'block';
+                statusDiv.innerText = 'Preparando...';
+                progressFill.style.width = '0%';
+
+                try {
+                    if (!ffmpeg) {
+                        if (typeof FFmpegWASM === 'undefined') throw new Error('FFmpeg não carregado.');
+                        ffmpeg = new FFmpegWASM.FFmpeg();
+
+                        ffmpeg.on('progress', ({ progress }) => {
+                            const percent = Math.round(progress * 100);
+                            progressFill.style.width = percent + '%';
+                            statusDiv.innerText = `Convertendo... ${percent}%`;
+                        });
+
+                        statusDiv.innerText = 'Carregando FFmpeg...';
+                        await ffmpeg.load({
+                            coreURL: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js'
+                        });
+                    }
+
+                    statusDiv.innerText = 'Processando...';
+
+                    // Escrever arquivo de entrada
+                    const inputExt = getExtension(currentFile.name);
+                    const inputFileName = 'input.' + inputExt;
+                    const fileData = new Uint8Array(await currentFile.arrayBuffer());
+                    await ffmpeg.writeFile(inputFileName, fileData);
+
+                    // Comando de conversão (ex: -i input.mp4 output.mp3)
+                    const outputFileName = 'output.' + selectedFormat;
+                    await ffmpeg.exec(['-i', inputFileName, outputFileName]);
+
+                    statusDiv.innerText = 'Finalizando...';
+
+                    // Ler resultado
+                    const data = await ffmpeg.readFile(outputFileName);
+                    const blob = new Blob([data.buffer], { type: 'application/octet-stream' });
+                    const url = URL.createObjectURL(blob);
+
+                    // Link de download
+                    downloadLink.href = url;
+                    downloadLink.download = `convertido.${selectedFormat}`;
+                    downloadLink.style.display = 'flex';
+                    statusDiv.innerText = 'Pronto! Clique no link para baixar.';
+
+                    // Limpeza
+                    await ffmpeg.deleteFile(inputFileName);
+                    await ffmpeg.deleteFile(outputFileName);
+
+                } catch (error) {
+                    console.error(error);
+                    statusDiv.innerText = 'Erro: ' + error.message;
+                } finally {
+                    convertBtn.disabled = false;
+                }
+            });
+
+        })();
+    </script>
+</body>
+</html>
