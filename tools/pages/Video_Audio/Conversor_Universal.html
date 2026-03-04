@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Conversor Universal · thebox</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Headers de segurança (essenciais para o FFmpeg) -->
-    <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin">
-    <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp">
     <style>
         * {
             margin: 0;
@@ -232,6 +229,7 @@
             color: #94a3b8;
             font-size: 0.95rem;
             min-height: 2rem;
+            margin-top: 0.5rem;
         }
 
         .download-link {
@@ -269,29 +267,23 @@
         </header>
 
         <div class="card" id="card">
-            <!-- Área de upload -->
             <div class="upload-area" id="uploadArea">
                 <i class="fas fa-cloud-upload-alt"></i>
                 <p id="uploadText">Arraste ou clique para selecionar um arquivo</p>
             </div>
             <input type="file" id="fileInput" accept="video/*,audio/*,image/*">
 
-            <!-- Informações do arquivo (aparece após upload) -->
             <div id="fileInfo" class="file-info" style="display: none;">
                 <i class="fas fa-file"></i>
                 <span id="fileName"></span>
             </div>
 
-            <!-- Abas de categoria (aparecem após upload) -->
             <div id="categoryTabs" class="category-tabs" style="display: none;"></div>
 
-            <!-- Grade de formatos (dinâmica) -->
             <div id="formatGridContainer"></div>
 
-            <!-- Botão converter -->
             <button id="convertBtn" disabled><i class="fas fa-sync-alt"></i> Converter</button>
 
-            <!-- Progresso -->
             <div class="progress-area" id="progressArea" style="display: none;">
                 <div class="progress-bar">
                     <div class="progress-fill" id="progressFill"></div>
@@ -299,7 +291,6 @@
                 <div class="status" id="status"></div>
             </div>
 
-            <!-- Link de download -->
             <a id="downloadLink" class="download-link"><i class="fas fa-download"></i> Baixar arquivo convertido</a>
         </div>
 
@@ -308,12 +299,11 @@
         </footer>
     </div>
 
-    <!-- FFmpeg (via jsDelivr) -->
-    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.min.js"></script>
+    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"></script>
+    <script src="https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js"></script>
 
     <script>
         (function() {
-            // ========== ELEMENTOS ==========
             const card = document.getElementById('card');
             const uploadArea = document.getElementById('uploadArea');
             const fileInput = document.getElementById('fileInput');
@@ -327,34 +317,23 @@
             const statusDiv = document.getElementById('status');
             const downloadLink = document.getElementById('downloadLink');
 
-            // ========== ESTADO ==========
             let currentFile = null;
-            let fileType = ''; // 'video', 'audio', 'image'
-            let selectedFormat = ''; // formato de saída (ex: 'mp3', 'mp4', 'gif')
+            let fileType = ''; 
+            let selectedFormat = ''; 
             let ffmpeg = null;
 
-            // Formatos disponíveis por categoria
             const formats = {
                 video: ['mp4', 'avi', 'mov', 'webm', 'mkv', 'gif', 'flv'],
                 audio: ['mp3', 'wav', 'ogg', 'm4a', 'flac', 'aac'],
                 image: ['jpg', 'png', 'webp', 'gif']
             };
 
-            // Mapeamento de MIME types para categoria
-            const mimeToCategory = {
-                'video': 'video',
-                'audio': 'audio',
-                'image': 'image'
-            };
-
-            // ========== EFEITO DE BRILHO ==========
             card.addEventListener('mousemove', (e) => {
                 const rect = card.getBoundingClientRect();
                 card.style.setProperty('--x', e.clientX - rect.left + 'px');
                 card.style.setProperty('--y', e.clientY - rect.top + 'px');
             });
 
-            // ========== UPLOAD ==========
             uploadArea.addEventListener('click', () => fileInput.click());
 
             uploadArea.addEventListener('dragover', (e) => {
@@ -387,7 +366,6 @@
                 selectedFormat = '';
                 convertBtn.disabled = true;
 
-                // Determinar categoria baseada no tipo MIME
                 const mime = file.type;
                 if (mime.startsWith('video/')) fileType = 'video';
                 else if (mime.startsWith('audio/')) fileType = 'audio';
@@ -397,9 +375,7 @@
                     return;
                 }
 
-                // Criar abas (apenas categorias compatíveis com o arquivo)
                 buildTabs();
-                // Exibir grade da primeira categoria
                 showCategory(fileType);
             }
 
@@ -409,22 +385,19 @@
 
                 const categories = ['video', 'audio', 'image'];
                 categories.forEach(cat => {
-                    // Se a categoria for a mesma do arquivo, ou se for conversão possível (ex: vídeo pode gerar áudio)
-                    // Mas vamos mostrar todas, pois o FFmpeg pode converter entre muitas coisas.
                     const btn = document.createElement('span');
                     btn.className = 'tab-btn' + (cat === fileType ? ' active' : '');
                     btn.innerText = cat === 'video' ? '🎬 Vídeo' : cat === 'audio' ? '🎵 Áudio' : '🖼️ Imagem';
-                    btn.onclick = () => showCategory(cat);
+                    btn.onclick = (e) => {
+                        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        showCategory(cat);
+                    };
                     categoryTabs.appendChild(btn);
                 });
             }
 
             function showCategory(cat) {
-                // Atualizar abas
-                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-                event.target.classList.add('active');
-
-                // Gerar grade de formatos
                 let html = '<div class="format-grid">';
                 formats[cat].forEach(fmt => {
                     const disabled = (cat === fileType && fmt === getExtension(currentFile.name)) ? ' disabled' : '';
@@ -434,7 +407,6 @@
                 formatGridContainer.innerHTML = html;
             }
 
-            // Função global para selecionar formato
             window.selectFormat = (fmt, el) => {
                 document.querySelectorAll('.format-item').forEach(i => i.classList.remove('selected'));
                 el.classList.add('selected');
@@ -446,19 +418,22 @@
                 return filename.split('.').pop().toLowerCase();
             }
 
-            // ========== CONVERSÃO ==========
             convertBtn.addEventListener('click', async () => {
                 if (!currentFile || !selectedFormat) return;
 
                 convertBtn.disabled = true;
                 progressArea.style.display = 'block';
-                statusDiv.innerText = 'Preparando...';
+                statusDiv.innerText = 'Preparando os motores mágicos...';
                 progressFill.style.width = '0%';
 
                 try {
                     if (!ffmpeg) {
-                        if (typeof FFmpegWASM === 'undefined') throw new Error('FFmpeg não carregado.');
-                        ffmpeg = new FFmpegWASM.FFmpeg();
+                        if (typeof FFmpegWASM === 'undefined') throw new Error('FFmpeg não carregado pela CDN.');
+                        
+                        const { FFmpeg } = FFmpegWASM;
+                        const { toBlobURL } = FFmpegUtil;
+                        
+                        ffmpeg = new FFmpeg();
 
                         ffmpeg.on('progress', ({ progress }) => {
                             const percent = Math.round(progress * 100);
@@ -466,38 +441,37 @@
                             statusDiv.innerText = `Convertendo... ${percent}%`;
                         });
 
-                        statusDiv.innerText = 'Carregando FFmpeg...';
+                        statusDiv.innerText = 'Carregando arquivos principais (apenas na primeira vez)...';
+                        
+                        const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
                         await ffmpeg.load({
-                            coreURL: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js'
+                            coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+                            wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
                         });
                     }
 
-                    statusDiv.innerText = 'Processando...';
+                    statusDiv.innerText = 'Processando arquivo...';
 
-                    // Escrever arquivo de entrada
                     const inputExt = getExtension(currentFile.name);
                     const inputFileName = 'input.' + inputExt;
                     const fileData = new Uint8Array(await currentFile.arrayBuffer());
+                    
                     await ffmpeg.writeFile(inputFileName, fileData);
 
-                    // Comando de conversão (ex: -i input.mp4 output.mp3)
                     const outputFileName = 'output.' + selectedFormat;
                     await ffmpeg.exec(['-i', inputFileName, outputFileName]);
 
                     statusDiv.innerText = 'Finalizando...';
 
-                    // Ler resultado
                     const data = await ffmpeg.readFile(outputFileName);
                     const blob = new Blob([data.buffer], { type: 'application/octet-stream' });
                     const url = URL.createObjectURL(blob);
 
-                    // Link de download
                     downloadLink.href = url;
                     downloadLink.download = `convertido.${selectedFormat}`;
                     downloadLink.style.display = 'flex';
-                    statusDiv.innerText = 'Pronto! Clique no link para baixar.';
+                    statusDiv.innerText = 'Pronto! Clique no botão abaixo para baixar.';
 
-                    // Limpeza
                     await ffmpeg.deleteFile(inputFileName);
                     await ffmpeg.deleteFile(outputFileName);
 
@@ -508,7 +482,6 @@
                     convertBtn.disabled = false;
                 }
             });
-
         })();
     </script>
 </body>

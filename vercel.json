@@ -1,15 +1,21 @@
 {
   "cleanUrls": true,
+  "rewrites": [
+    { "source": "/ads.txt", "destination": "/ads.txt" }
+  ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "Cross-Origin-Embedder-Policy", "value": "require-corp" },
-        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" }
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin"
+        },
+        {
+          "key": "Cross-Origin-Embedder-Policy",
+          "value": "require-corp"
+        }
       ]
     }
-  ],
-  "rewrites": [
-    { "source": "/ads.txt", "destination": "/ads.txt" }
   ]
 }
