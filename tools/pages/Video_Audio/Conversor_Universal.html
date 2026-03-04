@@ -6,6 +6,7 @@
     <title>Conversor Universal · thebox</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        /* (mesmo CSS de antes – mantido) */
         * {
             margin: 0;
             padding: 0;
@@ -262,7 +263,7 @@
 <body>
     <div class="container">
         <header>
-            <h1>🔄 Conversor Universal23423423423</h1>
+            <h1>🔄 Conversor Universal</h1>
             <p>Converta vídeos, áudios e imagens para qualquer formato. 100% local.</p>
         </header>
 
@@ -445,12 +446,11 @@
                         
                         const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
                         
-                        // Converter TODOS os arquivos para Blob URLs (incluindo o worker)
+                        // 🟢 Carrega apenas os arquivos necessários (sem workerURL)
                         const coreURL = await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript');
                         const wasmURL = await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm');
-                        const workerURL = await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, 'text/javascript');
                         
-                        await ffmpeg.load({ coreURL, wasmURL, workerURL });
+                        await ffmpeg.load({ coreURL, wasmURL });
                     }
 
                     statusDiv.innerText = 'Processando arquivo...';
