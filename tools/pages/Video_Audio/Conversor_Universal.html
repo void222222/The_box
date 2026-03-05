@@ -6,6 +6,7 @@
     <title>Conversor Universal · thebox</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        /* (mesmo estilo que você já tem – mantido para não poluir) */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, system-ui, sans-serif; }
         body { background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%); min-height: 100vh; padding: 2rem 1rem; }
         .container { max-width: 900px; margin: 0 auto; }
@@ -13,8 +14,6 @@
         header h1 { font-size: 2.8rem; font-weight: 700; background: linear-gradient(135deg, #c084fc, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
         header p { color: #cbd5e1; }
         .card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(8px); border-radius: 32px; padding: 2rem; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 25px 40px -12px black; position: relative; overflow: hidden; }
-        .card::before { content: ''; position: absolute; inset: 0; background: radial-gradient(800px circle at var(--x, 50%) var(--y, 50%), rgba(255,255,255,0.06), transparent 40%); opacity: 0; transition: opacity 0.2s; pointer-events: none; }
-        .card:hover::before { opacity: 1; }
         .upload-area { border: 2px dashed rgba(255,255,255,0.1); border-radius: 30px; padding: 2rem; text-align: center; cursor: pointer; transition: 0.2s; background: rgba(0,0,0,0.2); margin-bottom: 1.5rem; }
         .upload-area:hover { border-color: #ef4444; }
         .upload-area i { font-size: 3rem; color: #ef4444; margin-bottom: 0.5rem; }
@@ -76,18 +75,13 @@
 
             <a id="downloadLink" class="download-link"><i class="fas fa-download"></i> Baixar arquivo convertido</a>
         </div>
-
-        <footer>
-            <p>🔧 Conversão inteligente — o formato de saída é escolhido por você.</p>
-        </footer>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.7/dist/umd/ffmpeg.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/umd/index.min.js"></script>
+    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
 
     <script>
         (function() {
-            const card = document.getElementById('card');
+            // Elementos DOM
             const uploadArea = document.getElementById('uploadArea');
             const fileInput = document.getElementById('fileInput');
             const fileInfo = document.getElementById('fileInfo');
@@ -100,23 +94,34 @@
             const statusDiv = document.getElementById('status');
             const downloadLink = document.getElementById('downloadLink');
 
+            // Variáveis de estado
             let currentFile = null;
-            let fileType = ''; 
-            let selectedFormat = ''; 
-            let ffmpeg = null;
+            let fileType = '';          // 'video', 'audio', 'image'
+            let selectedFormat = '';     // formato de saída selecionado (ex: 'mp4')
+            let ffmpeg = null;           // instância do FFmpeg
+            let ffmpegLoaded = false;     // indica se o FFmpeg foi carregado com sucesso
 
+            // URLs alternativas para o core (fallback)
+            const CORE_URLS = [
+                'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js',
+                'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js'
+            ];
+
+            // Formatos disponíveis por categoria
             const formats = {
                 video: ['mp4', 'avi', 'mov', 'webm', 'mkv', 'gif', 'flv'],
                 audio: ['mp3', 'wav', 'ogg', 'm4a', 'flac', 'aac'],
                 image: ['jpg', 'png', 'webp', 'gif']
             };
 
-            card.addEventListener('mousemove', (e) => {
-                const rect = card.getBoundingClientRect();
-                card.style.setProperty('--x', e.clientX - rect.left + 'px');
-                card.style.setProperty('--y', e.clientY - rect.top + 'px');
-            });
+            // Verificação inicial do SharedArrayBuffer
+            if (typeof SharedArrayBuffer === 'undefined') {
+                statusDiv.innerText = '❌ Erro: SharedArrayBuffer não suportado. O servidor precisa enviar os cabeçalhos COOP/COEP.';
+                convertBtn.disabled = true;
+                console.error('SharedArrayBuffer is not defined. Verifique os headers do servidor.');
+            }
 
+            // Eventos de upload
             uploadArea.addEventListener('click', () => fileInput.click());
             uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.style.borderColor = '#ef4444'; });
             uploadArea.addEventListener('dragleave', () => { uploadArea.style.borderColor = 'rgba(255,255,255,0.1)'; });
@@ -139,9 +144,10 @@
                 fileInfo.style.display = 'flex';
                 downloadLink.style.display = 'none';
                 progressArea.style.display = 'none';
-                selectedFormat = '';
-                convertBtn.disabled = true;
+                selectedFormat = '';               // limpa formato selecionado
+                convertBtn.disabled = true;         // desabilita até selecionar formato
 
+                // Detectar tipo pelo MIME
                 const mime = file.type;
                 if (mime.startsWith('video/')) fileType = 'video';
                 else if (mime.startsWith('audio/')) fileType = 'audio';
@@ -155,6 +161,7 @@
                 showCategory(fileType);
             }
 
+            // Cria as abas (vídeo, áudio, imagem)
             function buildTabs() {
                 categoryTabs.style.display = 'flex';
                 categoryTabs.innerHTML = '';
@@ -164,98 +171,166 @@
                     btn.className = 'tab-btn' + (cat === fileType ? ' active' : '');
                     btn.innerText = cat === 'video' ? '🎬 Vídeo' : cat === 'audio' ? '🎵 Áudio' : '🖼️ Imagem';
                     btn.onclick = (e) => {
+                        // Atualiza aba ativa
                         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                         e.target.classList.add('active');
+                        // Mostra grade da categoria escolhida
                         showCategory(cat);
+                        // Reseta seleção de formato
+                        selectedFormat = '';
+                        convertBtn.disabled = true;
                     };
                     categoryTabs.appendChild(btn);
                 });
             }
 
+            // Exibe a grade de formatos para a categoria 'cat'
             function showCategory(cat) {
                 let html = '<div class="format-grid">';
+                const originalExt = currentFile ? getExtension(currentFile.name).toLowerCase() : '';
                 formats[cat].forEach(fmt => {
-                    const disabled = (cat === fileType && fmt === getExtension(currentFile.name)) ? ' disabled' : '';
+                    // Desabilita se for exatamente o mesmo formato do arquivo original (conversão desnecessária)
+                    const disabled = (cat === fileType && fmt === originalExt) ? ' disabled' : '';
                     html += `<div class="format-item${disabled}" data-format="${fmt}" onclick="window.selectFormat('${fmt}', this)">${fmt.toUpperCase()}</div>`;
                 });
                 html += '</div>';
                 formatGridContainer.innerHTML = html;
             }
 
+            // Função global chamada ao clicar num formato
             window.selectFormat = (fmt, el) => {
+                // Remove seleção anterior
                 document.querySelectorAll('.format-item').forEach(i => i.classList.remove('selected'));
                 el.classList.add('selected');
                 selectedFormat = fmt;
                 convertBtn.disabled = false;
             };
 
-            function getExtension(filename) { return filename.split('.').pop().toLowerCase(); }
+            function getExtension(filename) {
+                return filename.split('.').pop().toLowerCase();
+            }
 
+            // Função para carregar o FFmpeg com tentativas em múltiplas URLs
+            async function loadFFmpeg() {
+                if (ffmpegLoaded) return true;
+
+                // Reforça a verificação do SharedArrayBuffer
+                if (typeof SharedArrayBuffer === 'undefined') {
+                    throw new Error('SharedArrayBuffer não suportado. Verifique a configuração do servidor (headers COOP/COEP).');
+                }
+
+                statusDiv.innerText = 'Carregando FFmpeg... (pode levar alguns segundos)';
+                progressArea.style.display = 'block';
+                progressFill.style.width = '0%';
+
+                const { createFFmpeg, fetchFile } = FFmpeg;
+
+                for (let i = 0; i < CORE_URLS.length; i++) {
+                    const coreUrl = CORE_URLS[i];
+                    try {
+                        ffmpeg = createFFmpeg({
+                            corePath: coreUrl,
+                            log: false
+                        });
+
+                        ffmpeg.setProgress(({ ratio }) => {
+                            const percent = Math.max(0, Math.min(100, Math.round(ratio * 100)));
+                            progressFill.style.width = percent + '%';
+                            statusDiv.innerText = `Carregando... ${percent}%`;
+                        });
+
+                        await ffmpeg.load();
+                        ffmpegLoaded = true;
+                        statusDiv.innerText = 'FFmpeg pronto!';
+                        progressArea.style.display = 'none';
+                        return true;
+                    } catch (error) {
+                        console.warn(`Falha ao carregar core de ${coreUrl}:`, error);
+                        // Se for a última tentativa, lança o erro
+                        if (i === CORE_URLS.length - 1) {
+                            throw new Error('Não foi possível carregar o FFmpeg. Verifique sua conexão ou tente mais tarde.');
+                        }
+                    }
+                }
+                return false;
+            }
+
+            // Evento de conversão
             convertBtn.addEventListener('click', async () => {
                 if (!currentFile || !selectedFormat) return;
 
+                // Desabilita botão durante o processo
                 convertBtn.disabled = true;
                 progressArea.style.display = 'block';
-                statusDiv.innerText = 'Preparando os motores mágicos...';
+                statusDiv.innerText = 'Preparando...';
                 progressFill.style.width = '0%';
+                downloadLink.style.display = 'none';
 
                 try {
-                    if (!ffmpeg) {
-                        if (typeof FFmpegWASM === 'undefined') throw new Error('FFmpeg não carregado pela CDN.');
-                        
-                        const { FFmpeg } = FFmpegWASM;
-                        ffmpeg = new FFmpeg();
+                    // Verifica se a biblioteca FFmpeg foi carregada
+                    if (typeof FFmpeg === 'undefined') {
+                        throw new Error('Biblioteca FFmpeg não carregada. Verifique sua conexão.');
+                    }
 
-                        ffmpeg.on('progress', ({ progress }) => {
-                            const percent = Math.round(progress * 100);
-                            progressFill.style.width = percent + '%';
-                            statusDiv.innerText = `Convertendo... ${percent}%`;
-                        });
-
-                        statusDiv.innerText = 'Carregando núcleo (apenas na primeira vez)...';
-                        
-                        // MUDANÇA ABSOLUTA AQUI: Carregando direto do jsdelivr sem toBlobURL e sem workers de unpkg
-                        const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd';
-                        
-                        await ffmpeg.load({
-                            coreURL: `${baseURL}/ffmpeg-core.js`,
-                            wasmURL: `${baseURL}/ffmpeg-core.wasm`
-                        });
+                    // Carrega o FFmpeg (se ainda não carregado)
+                    if (!ffmpegLoaded) {
+                        await loadFFmpeg();
                     }
 
                     statusDiv.innerText = 'Processando arquivo...';
 
+                    // Nomes dos arquivos no sistema de arquivos virtual
                     const inputExt = getExtension(currentFile.name);
+                    const outputExt = selectedFormat;
                     const inputFileName = 'input.' + inputExt;
-                    const fileData = new Uint8Array(await currentFile.arrayBuffer());
-                    
-                    await ffmpeg.writeFile(inputFileName, fileData);
-                    const outputFileName = 'output.' + selectedFormat;
-                    
-                    await ffmpeg.exec(['-i', inputFileName, outputFileName]);
+                    const outputFileName = 'output.' + outputExt;
+
+                    // Escreve o arquivo original na memória
+                    const { fetchFile } = FFmpeg;
+                    ffmpeg.FS('writeFile', inputFileName, await fetchFile(currentFile));
+
+                    // Monta comando de conversão (alguns formatos precisam de parâmetros extras)
+                    let args = ['-i', inputFileName];
+
+                    // Ajustes específicos para melhor compatibilidade
+                    if (outputExt === 'gif' && fileType === 'video') {
+                        // Para GIF, é recomendado gerar uma paleta primeiro (aqui simplificado)
+                        args = ['-i', inputFileName, '-vf', 'fps=10,scale=320:-1:flags=lanczos', '-c:v', 'gif', outputFileName];
+                    } else {
+                        // Conversão padrão: deixa o FFmpeg escolher os codecs adequados
+                        args.push(outputFileName);
+                    }
+
+                    // Executa a conversão
+                    await ffmpeg.run(...args);
 
                     statusDiv.innerText = 'Finalizando...';
 
-                    const data = await ffmpeg.readFile(outputFileName);
+                    // Lê o arquivo de saída
+                    const data = ffmpeg.FS('readFile', outputFileName);
                     const blob = new Blob([data.buffer], { type: 'application/octet-stream' });
                     const url = URL.createObjectURL(blob);
 
+                    // Gera nome do arquivo para download (nome original + extensão nova)
+                    const originalName = currentFile.name.replace(/\.[^/.]+$/, ''); // remove extensão
                     downloadLink.href = url;
-                    downloadLink.download = `convertido.${selectedFormat}`;
+                    downloadLink.download = `${originalName}_convertido.${outputExt}`;
                     downloadLink.style.display = 'flex';
                     statusDiv.innerText = 'Pronto! Clique no botão abaixo para baixar.';
 
-                    await ffmpeg.deleteFile(inputFileName);
-                    await ffmpeg.deleteFile(outputFileName);
+                    // Limpeza: remove arquivos temporários do sistema de arquivos virtual
+                    ffmpeg.FS('unlink', inputFileName);
+                    ffmpeg.FS('unlink', outputFileName);
 
                 } catch (error) {
                     console.error(error);
                     statusDiv.innerText = 'Erro: ' + error.message;
                 } finally {
+                    // Reabilita o botão (a menos que queiramos mantê-lo desabilitado após sucesso? Deixamos habilitado)
                     convertBtn.disabled = false;
                 }
             });
         })();
     </script>
 </body>
-</html>
+</html>ss
