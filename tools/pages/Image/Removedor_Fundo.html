@@ -6,224 +6,34 @@
     <title>Removedor de Fundo | thebox</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
-        }
-
-        body {
-            background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
-            min-height: 100vh;
-            padding: 2rem 1rem;
-            color: #f1f5f9;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .top-bar {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .back-link {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: #e2e8f0;
-            padding: 0.5rem 1.2rem;
-            border-radius: 40px;
-            text-decoration: none;
-            font-size: 0.95rem;
-            font-weight: 500;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .back-link:hover {
-            background: rgba(255,255,255,0.15);
-            border-color: #60a5fa;
-            color: white;
-        }
-
-        h1 {
-            font-size: 2.2rem;
-            font-weight: 600;
-            background: linear-gradient(135deg, #c084fc, #60a5fa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .subtitle {
-            color: #94a3b8;
-            margin-bottom: 2rem;
-            font-size: 1.1rem;
-        }
-
-        .upload-area {
-            background: rgba(30, 41, 59, 0.5);
-            backdrop-filter: blur(8px);
-            border: 2px dashed rgba(255,255,255,0.1);
-            border-radius: 40px;
-            padding: 3rem 2rem;
-            text-align: center;
-            cursor: pointer;
-            transition: border-color 0.3s, background 0.3s;
-            margin-bottom: 2rem;
-        }
-
-        .upload-area:hover {
-            border-color: #a855f7;
-            background: rgba(30, 41, 59, 0.8);
-        }
-
-        .upload-area i {
-            font-size: 4rem;
-            color: #60a5fa;
-            margin-bottom: 1rem;
-        }
-
-        .upload-area p {
-            font-size: 1.2rem;
-            color: #cbd5e1;
-        }
-
-        .upload-area small {
-            color: #64748b;
-            display: block;
-            margin-top: 0.5rem;
-        }
-
-        .file-input {
-            display: none;
-        }
-
-        .preview-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 2rem;
-            margin: 2rem 0;
-            justify-content: center;
-        }
-
-        .preview-box {
-            flex: 1 1 300px;
-            background: rgba(15, 23, 42, 0.6);
-            border-radius: 32px;
-            padding: 1.5rem;
-            border: 1px solid rgba(255,255,255,0.05);
-            backdrop-filter: blur(4px);
-            text-align: center;
-        }
-
-        .preview-box h3 {
-            color: #e2e8f0;
-            font-weight: 500;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-
-        .image-wrapper {
-            min-height: 250px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(0,0,0,0.3);
-            border-radius: 24px;
-            padding: 1rem;
-        }
-
-        .image-wrapper img {
-            max-width: 100%;
-            max-height: 300px;
-            border-radius: 16px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-            object-fit: contain;
-        }
-
-        .placeholder-icon {
-            font-size: 3rem;
-            color: #475569;
-        }
-
-        .action-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            justify-content: center;
-            margin: 2rem 0;
-        }
-
-        .btn {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: white;
-            padding: 0.9rem 2.5rem;
-            border-radius: 40px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.8rem;
-            backdrop-filter: blur(4px);
-        }
-
-        .btn-primary {
-            background: #a855f7;
-            border-color: #a855f7;
-            color: white;
-            box-shadow: 0 5px 15px rgba(168, 85, 247, 0.4);
-        }
-
-        .btn-primary:hover {
-            background: #9333ea;
-            border-color: #9333ea;
-            transform: scale(1.02);
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            pointer-events: none;
-        }
-
-        .btn:not(:disabled):hover {
-            background: rgba(255,255,255,0.15);
-            border-color: #60a5fa;
-        }
-
-        .loader {
-            width: 24px;
-            height: 24px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .footer-note {
-            text-align: center;
-            color: #64748b;
-            margin-top: 3rem;
-            font-size: 0.9rem;
-        }
+        /* (mesmo estilo de antes – mantenha igual) */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, system-ui, sans-serif; }
+        body { background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%); min-height: 100vh; padding: 2rem 1rem; color: #f1f5f9; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .top-bar { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; }
+        .back-link { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #e2e8f0; padding: 0.5rem 1.2rem; border-radius: 40px; text-decoration: none; font-size: 0.95rem; font-weight: 500; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .back-link:hover { background: rgba(255,255,255,0.15); border-color: #60a5fa; color: white; }
+        h1 { font-size: 2.2rem; font-weight: 600; background: linear-gradient(135deg, #c084fc, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .subtitle { color: #94a3b8; margin-bottom: 2rem; font-size: 1.1rem; }
+        .upload-area { background: rgba(30, 41, 59, 0.5); backdrop-filter: blur(8px); border: 2px dashed rgba(255,255,255,0.1); border-radius: 40px; padding: 3rem 2rem; text-align: center; cursor: pointer; transition: border-color 0.3s, background 0.3s; margin-bottom: 2rem; }
+        .upload-area:hover { border-color: #a855f7; background: rgba(30, 41, 59, 0.8); }
+        .upload-area i { font-size: 4rem; color: #60a5fa; margin-bottom: 1rem; }
+        .upload-area p { font-size: 1.2rem; color: #cbd5e1; }
+        .upload-area small { color: #64748b; display: block; margin-top: 0.5rem; }
+        .file-input { display: none; }
+        .preview-container { display: flex; flex-wrap: wrap; gap: 2rem; margin: 2rem 0; justify-content: center; }
+        .preview-box { flex: 1 1 300px; background: rgba(15, 23, 42, 0.6); border-radius: 32px; padding: 1.5rem; border: 1px solid rgba(255,255,255,0.05); backdrop-filter: blur(4px); text-align: center; }
+        .preview-box h3 { color: #e2e8f0; font-weight: 500; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .image-wrapper { min-height: 250px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); border-radius: 24px; padding: 1rem; }
+        .image-wrapper img { max-width: 100%; max-height: 300px; border-radius: 16px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); object-fit: contain; }
+        .action-buttons { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; margin: 2rem 0; }
+        .btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 0.9rem 2.5rem; border-radius: 40px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.8rem; backdrop-filter: blur(4px); }
+        .btn-primary { background: #a855f7; border-color: #a855f7; color: white; box-shadow: 0 5px 15px rgba(168, 85, 247, 0.4); }
+        .btn-primary:hover { background: #9333ea; border-color: #9333ea; transform: scale(1.02); }
+        .btn:disabled { opacity: 0.5; pointer-events: none; }
+        .loader { width: 24px; height: 24px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 1s linear infinite; display: inline-block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .footer-note { text-align: center; color: #64748b; margin-top: 3rem; font-size: 0.9rem; }
     </style>
 </head>
 <body>
@@ -244,14 +54,14 @@
         <div class="preview-container" id="previewContainer" style="display: none;">
             <div class="preview-box">
                 <h3><i class="fas fa-image" style="color:#60a5fa;"></i> Original</h3>
-                <div class="image-wrapper" id="originalWrapper">
-                    <img id="originalImg" src="" alt="Original">
+                <div class="image-wrapper">
+                    <img id="originalImg" src="" alt="Original" crossorigin="anonymous">
                 </div>
             </div>
             <div class="preview-box">
                 <h3><i class="fas fa-magic" style="color:#a855f7;"></i> Sem fundo</h3>
-                <div class="image-wrapper" id="resultWrapper">
-                    <img id="resultImg" src="" alt="Resultado">
+                <div class="image-wrapper">
+                    <img id="resultImg" src="" alt="Resultado" crossorigin="anonymous">
                 </div>
             </div>
         </div>
@@ -266,19 +76,8 @@
         </div>
     </div>
 
-  <!-- Carregar a biblioteca de remoção de fundo do jsdelivr (mais estável) -->
-<script src="https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/background-removal.js"></script>
-    <script>
-        // Fallback: se após 3 segundos a biblioteca não estiver disponível, tenta outro CDN
-        setTimeout(function() {
-            if (typeof backgroundRemoval === 'undefined' || typeof backgroundRemoval.removeBackground !== 'function') {
-                console.warn('Falha no primeiro CDN. Tentando fallback...');
-                var fallbackScript = document.createElement('script');
-                fallbackScript.src = 'https://unpkg.com/@imgly/background-removal@1.4.5/dist/background-removal.umd.js';
-                document.head.appendChild(fallbackScript);
-            }
-        }, 3000);
-    </script>
+    <!-- Carregar a biblioteca (versão 1.5.0) com crossorigin para evitar bloqueios CORS/COEP -->
+    <script src="https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.5.0/dist/background-removal.umd.js" crossorigin="anonymous"></script>
 
     <script>
         (function() {
@@ -294,54 +93,57 @@
             let resultBlob = null;
             let originalObjectURL = null;
 
-            // Função para verificar se a biblioteca carregou
+            // =============================================================
+            // IMPORTANTE: O servidor oficial de modelos (staticimgly.com)
+            // está fora do ar. Para que a ferramenta funcione, você precisa
+            // hospedar os arquivos do modelo no seu próprio servidor.
+            //
+            // 1. Baixe os arquivos do modelo (pasta 'models') de um mirror:
+            //    https://github.com/imgly/background-removal-js/releases
+            //    (procure pelos assets da versão 1.5.0)
+            // 2. Faça upload para uma pasta no seu site, ex: /models/
+            // 3. Configure o caminho na opção 'publicPath' abaixo.
+            // =============================================================
+            const MODEL_PATH = '/models/'; // ALTERE para o caminho real (ex: 'https://seusite.com/models/')
+
             function isLibraryReady() {
                 return typeof backgroundRemoval !== 'undefined' && typeof backgroundRemoval.removeBackground === 'function';
             }
 
-            // Aguarda a biblioteca ficar pronta (com timeout)
             function waitForLibrary(callback) {
-                if (isLibraryReady()) {
-                    callback(true);
-                    return;
-                }
+                if (isLibraryReady()) { callback(true); return; }
                 let attempts = 0;
                 const interval = setInterval(() => {
                     attempts++;
                     if (isLibraryReady()) {
                         clearInterval(interval);
                         callback(true);
-                    } else if (attempts > 30) { // 30 * 500ms = 15s
+                    } else if (attempts > 30) { // 15s
                         clearInterval(interval);
                         callback(false);
                     }
                 }, 500);
             }
 
-            // Habilita/desabilita botões conforme status da biblioteca
-            function updateButtonState() {
-                if (isLibraryReady()) {
-                    removeBtn.disabled = false;
+            // Mensagem de carregamento da biblioteca
+            function updateLibraryMessage() {
+                if (!isLibraryReady() && !document.getElementById('libMessage')) {
+                    const msg = document.createElement('p');
+                    msg.id = 'libMessage';
+                    msg.style.color = '#fbbf24';
+                    msg.style.textAlign = 'center';
+                    msg.style.marginTop = '1rem';
+                    msg.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Carregando biblioteca de IA... (pode levar alguns segundos)';
+                    document.querySelector('.container').appendChild(msg);
+                } else if (isLibraryReady()) {
                     const msg = document.getElementById('libMessage');
                     if (msg) msg.remove();
-                } else {
-                    removeBtn.disabled = true;
-                    if (!document.getElementById('libMessage')) {
-                        const msg = document.createElement('p');
-                        msg.id = 'libMessage';
-                        msg.style.color = '#fbbf24';
-                        msg.style.textAlign = 'center';
-                        msg.style.marginTop = '1rem';
-                        msg.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Carregando biblioteca de IA... (pode levar alguns segundos na primeira vez)';
-                        document.querySelector('.container').appendChild(msg);
-                    }
                 }
             }
+            setInterval(updateLibraryMessage, 1000);
+            updateLibraryMessage();
 
-            // Verifica a cada segundo
-            setInterval(updateButtonState, 1000);
-            updateButtonState(); // chamada inicial
-
+            // Upload
             uploadArea.addEventListener('click', () => fileInput.click());
 
             uploadArea.addEventListener('dragover', (e) => {
@@ -380,13 +182,13 @@
                 originalObjectURL = URL.createObjectURL(file);
                 originalImg.src = originalObjectURL;
                 previewContainer.style.display = 'flex';
-                updateButtonState(); // atualiza estado do botão
+                // Habilita remover se a biblioteca estiver pronta
+                removeBtn.disabled = !isLibraryReady();
             }
 
+            // Remover fundo
             removeBtn.addEventListener('click', async () => {
                 if (!currentFile) return;
-
-                // Verifica se a biblioteca está pronta
                 if (!isLibraryReady()) {
                     alert('A biblioteca ainda não terminou de carregar. Aguarde alguns segundos.');
                     return;
@@ -397,8 +199,8 @@
                 removeBtn.innerHTML = '<span class="loader"></span> Preparando modelo...';
 
                 try {
-                    // Aguarda o carregamento completo do modelo (se necessário)
-                    const resultBlobRaw = await backgroundRemoval.removeBackground(currentFile, {
+                    // Configuração para usar modelos locais (se MODEL_PATH estiver definido)
+                    const config = {
                         progress: (key, current, total) => {
                             if (key === 'compute') {
                                 const percent = total ? Math.round((current / total) * 100) : 0;
@@ -407,20 +209,30 @@
                                 removeBtn.innerHTML = `<span class="loader"></span> ${key}...`;
                             }
                         }
-                    });
+                    };
+
+                    // Se você hospedou os modelos, adicione a opção publicPath
+                    if (MODEL_PATH && MODEL_PATH !== '/models/') {
+                        config.publicPath = MODEL_PATH;
+                    } else {
+                        console.warn('Modelos não configurados. A biblioteca tentará baixar do servidor oficial (offline).');
+                    }
+
+                    const resultBlobRaw = await backgroundRemoval.removeBackground(currentFile, config);
                     resultBlob = resultBlobRaw;
                     const resultUrl = URL.createObjectURL(resultBlob);
                     resultImg.src = resultUrl;
                     downloadBtn.disabled = false;
                 } catch (error) {
                     console.error('Erro ao remover fundo:', error);
-                    alert('Erro ao processar a imagem: ' + (error.message || 'Erro desconhecido'));
+                    alert('Erro ao processar a imagem. Verifique se os arquivos do modelo estão disponíveis. Detalhes no console (F12).');
                 } finally {
                     removeBtn.disabled = false;
                     removeBtn.innerHTML = '<i class="fas fa-eraser"></i> Remover fundo';
                 }
             });
 
+            // Download
             downloadBtn.addEventListener('click', () => {
                 if (!resultBlob) return;
                 const url = URL.createObjectURL(resultBlob);
@@ -433,6 +245,7 @@
                 URL.revokeObjectURL(url);
             });
 
+            // Limpeza
             window.addEventListener('beforeunload', () => {
                 if (originalObjectURL) URL.revokeObjectURL(originalObjectURL);
                 if (resultImg.src) URL.revokeObjectURL(resultImg.src);
