@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>thebox · e‑commerce & vídeo/áudio</title>
+    <title>thebox</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="icon" type="image/png" href="logo_the_box_luz_e_sombra_sem_fundo-removebg-preview.png">
     <style>
         * {
             margin: 0;
@@ -24,10 +25,29 @@
             margin: 0 auto;
         }
 
+        /* ===== HEADER COM LOGO ===== */
         header {
             text-align: center;
             padding: 2rem 1rem 3rem;
             color: white;
+        }
+
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 0.1rem;
+        }
+
+        /* Estilo para a imagem da logo */
+        .logo-img {
+            width: 120px;           /* Ajuste o tamanho conforme sua preferência */
+            height: 120px;
+            border-radius: 24px;    /* Cantos arredondados (opcional) */
+            object-fit: cover;       /* Garante que a imagem se ajuste sem distorcer */
+            border: 4px solid #a855f7;  /* Borda roxa combinando com o tema */
+            box-shadow: 0 0 25px rgba(168, 85, 247, 0.6);
+            background-color: #2d1b4e; /* Cor de fundo roxa escura caso a imagem tenha transparência */
         }
 
         header h1 {
@@ -47,6 +67,7 @@
             max-width: 700px;
             margin: 0 auto;
         }
+        /* ========================== */
 
         .categories {
             display: flex;
@@ -169,10 +190,19 @@
 </head>
 <body>
     <div class="container">
+        <!-- ===== HEADER COM IMAGEM (LOGO) ===== -->
         <header>
-            <h1>📦 thebox</h1>
-            <p>Ferramentas gratuitas para e‑commerce e edição de vídeo/áudio.</p>
+            <!-- CONTAINER DA LOGO: COLOQUE SUA IMAGEM AQUI -->
+            <div class="logo-container">
+                <!-- ALTERE AQUI: Substitua "caminho/para/sua-logo.png" pelo caminho correto da sua imagem -->
+                <img src="logo_the_box_luz_e_sombra_sem_fundo-removebg-preview.png" alt="thebox logo"  >
+                <!-- Se preferir usar um ícone do Font Awesome no lugar da imagem (ex: caixa roxa), descomente a linha abaixo e comente a linha acima -->
+                <!-- <div class="logo-placeholder"><i class="fas fa-cube" style="font-size: 4rem; color: white; background: #a855f7; padding: 1rem; border-radius: 24px;"></i></div> -->
+            </div>
+            <h1>thebox</h1>
+            <p>Ferramentas gratuitas</p>
         </header>
+        <!-- ===================================== -->
 
         <!-- Filtros -->
         <div class="categories">
