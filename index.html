@@ -151,6 +151,7 @@
 
         .cat-ecom .tool-icon { color: #60a5fa; }
         .cat-video .tool-icon { color: #ef4444; }
+        .cat-image .tool-icon { color: #a855f7; } /* Roxo para a categoria Imagem */
 
         .tool-title {
             font-size: 1.4rem;
@@ -195,7 +196,7 @@
             <!-- CONTAINER DA LOGO: COLOQUE SUA IMAGEM AQUI -->
             <div class="logo-container">
                 <!-- ALTERE AQUI: Substitua "caminho/para/sua-logo.png" pelo caminho correto da sua imagem -->
-                <img src="logo_the_box_luz_e_sombra_sem_fundo-removebg-preview.png" alt="thebox logo"  >
+                <img src="logo_the_box_luz_e_sombra_sem_fundo-removebg-preview.png" alt="thebox logo">
                 <!-- Se preferir usar um ícone do Font Awesome no lugar da imagem (ex: caixa roxa), descomente a linha abaixo e comente a linha acima -->
                 <!-- <div class="logo-placeholder"><i class="fas fa-cube" style="font-size: 4rem; color: white; background: #a855f7; padding: 1rem; border-radius: 24px;"></i></div> -->
             </div>
@@ -209,6 +210,7 @@
             <span class="category-filter" onclick="filterTools('all')">Todos</span>
             <span class="category-filter" onclick="filterTools('ecom')">E‑commerce</span>
             <span class="category-filter" onclick="filterTools('video')">Vídeo/Áudio</span>
+            <span class="category-filter" onclick="filterTools('image')">Imagem</span> <!-- NOVA CATEGORIA -->
         </div>
 
         <div class="tools-grid" id="toolsGrid">
@@ -341,10 +343,18 @@
                 <p class="tool-description">Gere a forma de onda do áudio para posts.</p>
                 <span class="tool-tag">Áudio</span>
             </a>
+
+            <!-- ========= NOVA FERRAMENTA: IMAGEM ========= -->
+            <a href="tools/pages/Image/Removedor_Fundo.html" class="tool-card cat-image" data-category="image">
+                <div class="tool-icon"><i class="fas fa-magic"></i></div>
+                <h3 class="tool-title">Removedor de Fundo</h3>
+                <p class="tool-description">Remova o fundo de qualquer imagem automaticamente com IA. 100% gratuito e privado (roda no seu navegador).</p>
+                <span class="tool-tag">Imagem</span>
+            </a>
         </div>
 
         <footer>
-            <p>🚀 thebox — ferramentas gratuitas para e‑commerce e vídeo/áudio</p>
+            <p>🚀 thebox — ferramentas gratuitas para e‑commerce, vídeo/áudio e imagem</p>
         </footer>
     </div>
 
