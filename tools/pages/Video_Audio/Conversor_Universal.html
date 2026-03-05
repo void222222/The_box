@@ -6,7 +6,6 @@
     <title>Conversor Universal · thebox</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* (mesmo estilo que você já tem – mantido para não poluir) */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, system-ui, sans-serif; }
         body { background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%); min-height: 100vh; padding: 2rem 1rem; }
         .container { max-width: 900px; margin: 0 auto; }
@@ -30,6 +29,50 @@
         .format-item:hover { border-color: #ef4444; background: rgba(239,68,68,0.1); }
         .format-item.selected { background: #ef4444; color: white; border-color: #ef4444; }
         .format-item.disabled { opacity: 0.3; pointer-events: none; }
+        
+        /* Estilo para os botões de modo */
+        .mode-selector {
+            display: flex;
+            gap: 1rem;
+            margin: 1.5rem 0;
+            justify-content: center;
+        }
+        .mode-btn {
+            flex: 1;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #cbd5e1;
+            padding: 1rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .mode-btn.active {
+            background: #ef4444;
+            color: white;
+            border-color: #ef4444;
+        }
+        .mode-btn small {
+            font-size: 0.8rem;
+            font-weight: 400;
+            opacity: 0.9;
+        }
+        .mode-desc {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin: 0.5rem 0 1rem;
+            padding: 0.5rem;
+            background: rgba(0,0,0,0.2);
+            border-radius: 20px;
+        }
+        
         button { background: linear-gradient(135deg, #ef4444, #f97316); color: white; border: none; padding: 1rem 2rem; border-radius: 40px; font-weight: 600; font-size: 1.1rem; cursor: pointer; transition: 0.2s; width: 100%; margin-top: 1rem; }
         button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 20px -5px #ef4444; }
         button:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -64,6 +107,21 @@
             <div id="categoryTabs" class="category-tabs" style="display: none;"></div>
             <div id="formatGridContainer"></div>
 
+            <!-- Seletor de modo: Qualidade vs Rápido -->
+            <div class="mode-selector">
+                <div class="mode-btn" id="modeQuality" onclick="setMode('quality')">
+                    <span>🌟 Modo Qualidade</span>
+                    <small>Melhor resultado, mais demorado</small>
+                </div>
+                <div class="mode-btn" id="modeFast" onclick="setMode('fast')">
+                    <span>⚡ Modo Rápido</span>
+                    <small>Conversão veloz, qualidade reduzida</small>
+                </div>
+            </div>
+            <div class="mode-desc" id="modeDesc">
+                🌟 Modo Qualidade: prioriza a melhor qualidade possível, ideal para arquivos finais. Pode ser mais lento em dispositivos móveis.
+            </div>
+
             <button id="convertBtn" disabled><i class="fas fa-sync-alt"></i> Converter</button>
 
             <div class="progress-area" id="progressArea" style="display: none;">
@@ -93,6 +151,9 @@
             const progressFill = document.getElementById('progressFill');
             const statusDiv = document.getElementById('status');
             const downloadLink = document.getElementById('downloadLink');
+            const modeQuality = document.getElementById('modeQuality');
+            const modeFast = document.getElementById('modeFast');
+            const modeDesc = document.getElementById('modeDesc');
 
             // Variáveis de estado
             let currentFile = null;
@@ -100,6 +161,7 @@
             let selectedFormat = '';     // formato de saída selecionado (ex: 'mp4')
             let ffmpeg = null;           // instância do FFmpeg
             let ffmpegLoaded = false;     // indica se o FFmpeg foi carregado com sucesso
+            let currentMode = 'quality';  // 'quality' ou 'fast'
 
             // URLs alternativas para o core (fallback)
             const CORE_URLS = [
@@ -120,6 +182,20 @@
                 convertBtn.disabled = true;
                 console.error('SharedArrayBuffer is not defined. Verifique os headers do servidor.');
             }
+
+            // Função para alternar modo (chamada pelos botões)
+            window.setMode = function(mode) {
+                currentMode = mode;
+                if (mode === 'quality') {
+                    modeQuality.classList.add('active');
+                    modeFast.classList.remove('active');
+                    modeDesc.innerHTML = '🌟 Modo Qualidade: prioriza a melhor qualidade possível, ideal para arquivos finais. Pode ser mais lento em dispositivos móveis.';
+                } else {
+                    modeFast.classList.add('active');
+                    modeQuality.classList.remove('active');
+                    modeDesc.innerHTML = '⚡ Modo Rápido: prioriza a velocidade de conversão, usando configurações que reduzem a qualidade. Recomendado para testes ou quando a pressa é maior.';
+                }
+            };
 
             // Eventos de upload
             uploadArea.addEventListener('click', () => fileInput.click());
@@ -289,15 +365,36 @@
                     const { fetchFile } = FFmpeg;
                     ffmpeg.FS('writeFile', inputFileName, await fetchFile(currentFile));
 
-                    // Monta comando de conversão (alguns formatos precisam de parâmetros extras)
+                    // Monta comando de conversão base
                     let args = ['-i', inputFileName];
 
-                    // Ajustes específicos para melhor compatibilidade
+                    // Aplica parâmetros de acordo com o modo selecionado
+                    if (currentMode === 'fast') {
+                        // Modo rápido: parâmetros que priorizam velocidade
+                        if (fileType === 'video') {
+                            // Preset ultrafast e CRF alto (qualidade baixa)
+                            args.push('-preset', 'ultrafast', '-crf', '35');
+                        } else if (fileType === 'audio') {
+                            // Qualidade de áudio baixa (escala 0-9, onde 9 é pior)
+                            args.push('-q:a', '9');
+                        }
+                        // Para imagens, não há parâmetros significativos de velocidade
+                    } else {
+                        // Modo qualidade: usa configurações padrão (boa qualidade)
+                        if (fileType === 'video') {
+                            // Preset medium (padrão) e CRF 23 (qualidade padrão)
+                            args.push('-preset', 'medium', '-crf', '23');
+                        } else if (fileType === 'audio') {
+                            // Qualidade de áudio boa (q:a 2)
+                            args.push('-q:a', '2');
+                        }
+                    }
+
+                    // Ajustes específicos para GIF
                     if (outputExt === 'gif' && fileType === 'video') {
-                        // Para GIF, é recomendado gerar uma paleta primeiro (aqui simplificado)
+                        // Para GIF, usamos filtros específicos; os parâmetros acima podem atrapalhar
                         args = ['-i', inputFileName, '-vf', 'fps=10,scale=320:-1:flags=lanczos', '-c:v', 'gif', outputFileName];
                     } else {
-                        // Conversão padrão: deixa o FFmpeg escolher os codecs adequados
                         args.push(outputFileName);
                     }
 
@@ -326,11 +423,14 @@
                     console.error(error);
                     statusDiv.innerText = 'Erro: ' + error.message;
                 } finally {
-                    // Reabilita o botão (a menos que queiramos mantê-lo desabilitado após sucesso? Deixamos habilitado)
+                    // Reabilita o botão
                     convertBtn.disabled = false;
                 }
             });
+
+            // Inicializa com modo qualidade ativo
+            setMode('quality');
         })();
     </script>
 </body>
-</html>ss
+</html>
