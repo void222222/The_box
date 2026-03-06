@@ -1,404 +1,218 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>thebox · Removedor de Fundo</title>
+    <title>Removedor de Fundo · thebox</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="icon" type="image/png" href="../../../logo_the_box_luz_e_sombra_sem_fundo-removebg-preview.png">
     <style>
-        /* (mesmo estilo, sem alterações) */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
-        }
-
-        body {
-            background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 2rem 1rem;
-        }
-
-        .container {
-            max-width: 1200px;
-            width: 100%;
-        }
-
-        .tool-header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-
-        .logo-link {
-            display: inline-block;
-            margin-bottom: 0.5rem;
-        }
-
-        .logo-img {
-            width: 80px;
-            height: 80px;
-            border-radius: 20px;
-            object-fit: cover;
-            border: 3px solid #a855f7;
-            box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
-        }
-
-        .tool-header h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #c084fc, #60a5fa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 0.5rem;
-        }
-
-        .tool-header p {
-            color: #94a3b8;
-            font-size: 1.1rem;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .privacy-note {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 40px;
-            padding: 0.5rem 1.5rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: #a78bfa;
-            border: 1px solid #334155;
-            font-size: 0.9rem;
-            margin-top: 1rem;
-        }
-
-        .tool-card {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 40px;
-            padding: 2.5rem 2rem;
-            box-shadow: 0 25px 40px -15px black;
-        }
-
-        .upload-area {
-            border: 2px dashed #334155;
-            border-radius: 30px;
-            padding: 3rem 2rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-bottom: 2rem;
-        }
-
-        .upload-area:hover {
-            border-color: #a855f7;
-            background: rgba(168, 85, 247, 0.05);
-        }
-
-        .upload-area i {
-            font-size: 3.5rem;
-            color: #60a5fa;
-            margin-bottom: 1rem;
-        }
-
-        .upload-area p {
-            color: #cbd5e1;
-            font-size: 1.2rem;
-        }
-
-        .upload-area small {
-            color: #64748b;
-            display: block;
-            margin-top: 0.8rem;
-        }
-
-        .preview-area {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 2rem;
-            justify-content: center;
-            margin: 2rem 0;
-        }
-
-        .preview-box {
-            flex: 1 1 250px;
-            background: rgba(15, 23, 42, 0.6);
-            border-radius: 24px;
-            padding: 1.5rem;
-            text-align: center;
-            border: 1px solid #334155;
-        }
-
-        .preview-box h3 {
-            color: #e2e8f0;
-            font-weight: 500;
-            margin-bottom: 1rem;
-            font-size: 1.2rem;
-        }
-
-        .image-container {
-            min-height: 200px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: repeating-conic-gradient(#1e293b 0% 25%, #0f172a 0% 50%) 50% / 20px 20px;
-            border-radius: 16px;
-            overflow: hidden;
-            padding: 0.5rem;
-        }
-
-        .image-container img {
-            max-width: 100%;
-            max-height: 300px;
-            border-radius: 12px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            margin: 1.5rem 0;
-        }
-
-        .loading .spinner {
-            border: 4px solid rgba(255,255,255,0.1);
-            border-left-color: #a855f7;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 0.8rem;
-        }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        .loading p {
-            color: #94a3b8;
-        }
-
-        .download-btn {
-            background: linear-gradient(135deg, #a855f7, #60a5fa);
-            border: none;
-            color: white;
-            padding: 1rem 3rem;
-            border-radius: 60px;
-            font-size: 1.2rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 10px 20px -5px rgba(168, 85, 247, 0.5);
-            border: 1px solid rgba(255,255,255,0.2);
-            margin-top: 1rem;
-            width: fit-content;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .download-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
-
-        .download-btn:not(:disabled):hover {
-            transform: translateY(-3px);
-            box-shadow: 0 20px 25px -5px #a855f7;
-        }
-
-        .footer-note {
-            text-align: center;
-            color: #475569;
-            margin-top: 3rem;
-            font-size: 0.9rem;
-        }
-
-        .error-message {
-            background: rgba(239, 68, 68, 0.2);
-            border: 1px solid #ef4444;
-            color: #fecaca;
-            padding: 1rem;
-            border-radius: 30px;
-            text-align: center;
-            margin: 1rem 0;
-            display: none;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, system-ui, sans-serif; }
+        body { background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%); min-height: 100vh; padding: 2rem 1rem; }
+        .container { max-width: 900px; margin: 0 auto; }
+        header { text-align: center; padding: 1rem 1rem 2rem; color: white; }
+        header h1 { font-size: 2.8rem; font-weight: 700; background: linear-gradient(135deg, #c084fc, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        header p { color: #cbd5e1; }
+        .card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(8px); border-radius: 32px; padding: 2rem; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 25px 40px -12px black; }
+        .upload-area { border: 2px dashed rgba(255,255,255,0.1); border-radius: 30px; padding: 2rem; text-align: center; cursor: pointer; transition: 0.2s; background: rgba(0,0,0,0.2); margin-bottom: 1.5rem; }
+        .upload-area:hover { border-color: #a855f7; }
+        .upload-area i { font-size: 3rem; color: #a855f7; margin-bottom: 0.5rem; }
+        .upload-area p { color: #94a3b8; }
+        #fileInput { display: none; }
+        .file-info { background: rgba(0,0,0,0.2); border-radius: 40px; padding: 0.8rem 1.5rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.8rem; border: 1px solid rgba(255,255,255,0.1); }
+        .file-info i { color: #a855f7; font-size: 1.2rem; }
+        .file-info span { color: #cbd5e1; font-size: 0.95rem; word-break: break-all; }
+        .options { display: flex; gap: 1rem; margin: 1.5rem 0; }
+        .options select, .options button { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #cbd5e1; padding: 0.8rem 1rem; border-radius: 40px; font-size: 0.95rem; flex: 1; }
+        .options button { background: #a855f7; color: white; font-weight: 600; cursor: pointer; transition: 0.2s; border: none; }
+        .options button:hover { background: #9333ea; }
+        .options button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .progress-area { margin-top: 1.5rem; }
+        .progress-bar { width: 100%; height: 8px; background: #1e293b; border-radius: 10px; overflow: hidden; margin-bottom: 0.5rem; }
+        .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #a855f7, #d946ef); transition: width 0.3s ease; }
+        .status { text-align: center; color: #94a3b8; font-size: 0.95rem; min-height: 2rem; margin-top: 0.5rem; }
+        .result-area { margin-top: 2rem; display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+        #preview { max-width: 100%; max-height: 400px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); background-image: linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px; display: none; }
+        .download-link { background: #10b981; color: white; text-decoration: none; padding: 1rem 2rem; border-radius: 40px; font-weight: 600; font-size: 1.1rem; display: none; align-items: center; justify-content: center; gap: 0.5rem; transition: 0.2s; margin-top: 1rem; }
+        .download-link:hover { background: #059669; }
+        footer { text-align: center; padding: 2rem 1rem 0; color: #64748b; }
+        .note { font-size: 0.85rem; color: #94a3b8; margin-top: 1rem; text-align: center; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="tool-header">
-            <a href="../../../index.html" class="logo-link">
-                <img src="../../../logo_the_box_luz_e_sombra_sem_fundo-removebg-preview.png" alt="thebox" class="logo-img">
-            </a>
-            <h1>🧹 Removedor de Fundo</h1>
-            <p>Apague o fundo de qualquer imagem com IA. Tudo roda no seu navegador — nada é enviado para servidores.</p>
-            <div class="privacy-note">
-                <i class="fas fa-lock"></i> 100% privado · processamento local
-            </div>
-        </div>
+        <header>
+            <h1>🪄 Removedor de Fundo</h1>
+            <p>Remova o fundo de qualquer imagem automaticamente com IA. Tudo no seu navegador, 100% gratuito.</p>
+        </header>
 
-        <div class="tool-card">
+        <div class="card">
             <div class="upload-area" id="uploadArea">
                 <i class="fas fa-cloud-upload-alt"></i>
-                <p>Clique ou arraste uma imagem aqui</p>
-                <small>JPG, PNG, WebP (até 20MB)</small>
-                <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                <p id="uploadText">Arraste ou clique para selecionar uma imagem</p>
+            </div>
+            <input type="file" id="fileInput" accept="image/*">
+
+            <div id="fileInfo" class="file-info" style="display: none;">
+                <i class="fas fa-file-image"></i>
+                <span id="fileName"></span>
             </div>
 
-            <div class="preview-area" id="previewArea" style="display: none;">
-                <div class="preview-box">
-                    <h3><i class="fas fa-image" style="color: #60a5fa;"></i> Original</h3>
-                    <div class="image-container" id="originalContainer"></div>
+            <div class="options">
+                <select id="formatSelect">
+                    <option value="png">PNG (transparente)</option>
+                    <option value="jpg">JPG (fundo branco)</option>
+                </select>
+                <button id="processBtn" disabled><i class="fas fa-magic"></i> Remover Fundo</button>
+            </div>
+
+            <div class="progress-area" id="progressArea" style="display: none;">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
                 </div>
-                <div class="preview-box">
-                    <h3><i class="fas fa-magic" style="color: #a855f7;"></i> Sem fundo</h3>
-                    <div class="image-container" id="resultContainer"></div>
-                </div>
+                <div class="status" id="status"></div>
             </div>
 
-            <div class="loading" id="loadingIndicator">
-                <div class="spinner"></div>
-                <p>Baixando modelo de IA (primeira vez pode levar alguns segundos)...</p>
-                <small style="color: #475569;">A próxima vez será mais rápida</small>
+            <div class="result-area">
+                <img id="preview" alt="Resultado">
+                <a id="downloadLink" class="download-link"><i class="fas fa-download"></i> Baixar imagem</a>
             </div>
 
-            <div class="error-message" id="errorMessage"></div>
-
-            <div style="text-align: center;">
-                <button class="download-btn" id="downloadBtn" disabled style="display: none;">
-                    <i class="fas fa-download"></i> Baixar PNG transparente
-                </button>
+            <div class="note">
+                ⚡ A primeira execução baixa o modelo de IA (~40MB). Pode demorar um pouco, mas será armazenado em cache.
+                <br>🔒 Sua imagem não é enviada para nenhum servidor.
             </div>
-        </div>
-
-        <div class="footer-note">
-            ⚡ Tecnologia IMG.LY · modelo ISNet · GPU acelerada se disponível
         </div>
     </div>
 
-    <!-- Biblioteca de remoção de fundo via CDN (versão correta) -->
-    <script src="https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.5.0/dist/background-removal.js"></script>
-    <script>
-        (function() {
-            const uploadArea = document.getElementById('uploadArea');
-            const fileInput = document.getElementById('fileInput');
-            const previewArea = document.getElementById('previewArea');
-            const originalContainer = document.getElementById('originalContainer');
-            const resultContainer = document.getElementById('resultContainer');
-            const loadingIndicator = document.getElementById('loadingIndicator');
-            const downloadBtn = document.getElementById('downloadBtn');
-            const errorMessage = document.getElementById('errorMessage');
+    <script type="module">
+        // Importa a biblioteca diretamente do CDN (versão ES Module)
+        import removeBackground from 'https://unpkg.com/@imgly/background-removal@1.4.3/dist/index.mjs';
 
-            let originalImageUrl = null;
-            let resultBlob = null;
+        // Elementos DOM
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileNameSpan = document.getElementById('fileName');
+        const processBtn = document.getElementById('processBtn');
+        const progressArea = document.getElementById('progressArea');
+        const progressFill = document.getElementById('progressFill');
+        const statusDiv = document.getElementById('status');
+        const preview = document.getElementById('preview');
+        const downloadLink = document.getElementById('downloadLink');
+        const formatSelect = document.getElementById('formatSelect');
 
-            // Verifica se a biblioteca foi carregada
-            if (typeof backgroundRemoval === 'undefined') {
-                showError('Falha ao carregar a biblioteca de remoção de fundo. Recarregue a página.');
-            }
+        let currentFile = null;
+        let currentResultBlob = null;
 
-            uploadArea.addEventListener('click', () => fileInput.click());
+        // Verifica suporte a SharedArrayBuffer (necessário para a biblioteca)
+        if (typeof SharedArrayBuffer === 'undefined') {
+            statusDiv.innerText = '❌ Seu navegador não suporta SharedArrayBuffer. A ferramenta pode não funcionar.';
+            processBtn.disabled = true;
+        }
 
-            uploadArea.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                uploadArea.style.borderColor = '#a855f7';
-            });
-            uploadArea.addEventListener('dragleave', () => {
-                uploadArea.style.borderColor = '#334155';
-            });
-            uploadArea.addEventListener('drop', (e) => {
-                e.preventDefault();
-                uploadArea.style.borderColor = '#334155';
-                const file = e.dataTransfer.files[0];
-                if (file && file.type.startsWith('image/')) {
-                    handleImage(file);
+        // Upload
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.style.borderColor = '#a855f7'; });
+        uploadArea.addEventListener('dragleave', () => { uploadArea.style.borderColor = 'rgba(255,255,255,0.1)'; });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = 'rgba(255,255,255,0.1)';
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) handleFile(file);
+            else alert('Por favor, selecione uma imagem.');
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) handleFile(file);
+        });
+
+        function handleFile(file) {
+            currentFile = file;
+            fileNameSpan.innerText = file.name;
+            fileInfo.style.display = 'flex';
+            preview.style.display = 'none';
+            downloadLink.style.display = 'none';
+            processBtn.disabled = false;
+        }
+
+        // Processamento
+        processBtn.addEventListener('click', async () => {
+            if (!currentFile) return;
+
+            processBtn.disabled = true;
+            progressArea.style.display = 'block';
+            statusDiv.innerText = 'Preparando...';
+            progressFill.style.width = '0%';
+            preview.style.display = 'none';
+            downloadLink.style.display = 'none';
+
+            try {
+                // Configurações: podemos passar opções para a biblioteca
+                // A biblioteca aceita um objeto de configuração, mas não tem opção de formato diretamente.
+                // O formato de saída é sempre PNG com transparência. Se o usuário quiser JPG com fundo branco, 
+                // podemos fazer uma pós-conversão com canvas.
+                
+                statusDiv.innerText = 'Baixando modelo e processando... (primeira vez pode demorar)';
+                
+                // Chama a biblioteca (retorna um Blob em PNG)
+                const resultBlob = await removeBackground(currentFile, {
+                    progress: (progress) => {
+                        // progress é um número entre 0 e 1
+                        const percent = Math.round(progress * 100);
+                        progressFill.style.width = percent + '%';
+                        statusDiv.innerText = `Processando... ${percent}%`;
+                    }
+                });
+
+                // Se o formato selecionado for JPG, precisamos converter o PNG transparente para JPG com fundo branco
+                if (formatSelect.value === 'jpg') {
+                    statusDiv.innerText = 'Convertendo para JPG...';
+                    const img = new Image();
+                    const blobUrl = URL.createObjectURL(resultBlob);
+                    await new Promise((resolve, reject) => {
+                        img.onload = resolve;
+                        img.onerror = reject;
+                        img.src = blobUrl;
+                    });
+                    
+                    // Cria canvas com fundo branco
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0);
+                    
+                    // Converte para blob JPG
+                    const jpgBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.95));
+                    currentResultBlob = jpgBlob;
+                    URL.revokeObjectURL(blobUrl);
                 } else {
-                    showError('Por favor, solte um arquivo de imagem válido.');
+                    currentResultBlob = resultBlob;
                 }
-            });
 
-            fileInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (file) handleImage(file);
-            });
-
-            async function handleImage(file) {
-                hideError();
-                if (originalImageUrl) URL.revokeObjectURL(originalImageUrl);
-                originalImageUrl = null;
-                resultBlob = null;
-                downloadBtn.style.display = 'none';
-                downloadBtn.disabled = true;
-
-                // Preview original
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    originalImageUrl = e.target.result;
-                    originalContainer.innerHTML = `<img src="${originalImageUrl}" alt="Original">`;
-                    previewArea.style.display = 'flex';
-                    resultContainer.innerHTML = '';
-                };
-                reader.readAsDataURL(file);
-
-                try {
-                    loadingIndicator.style.display = 'block';
-
-                    const config = {
-                        device: 'gpu',
-                        model: 'isnet_fp16',
-                        output: {
-                            format: 'image/png',
-                            quality: 0.9,
-                        },
-                    };
-
-                    // A biblioteca expõe a função removeBackground como backgroundRemoval.removeBackground
-                    const blob = await backgroundRemoval.removeBackground(file, config);
-
-                    resultBlob = blob;
-                    const resultUrl = URL.createObjectURL(blob);
-                    resultContainer.innerHTML = `<img src="${resultUrl}" alt="Sem fundo">`;
-
-                    downloadBtn.style.display = 'inline-block';
-                    downloadBtn.disabled = false;
-                } catch (error) {
-                    console.error('Erro na remoção de fundo:', error);
-                    showError('Não foi possível remover o fundo. Tente outra imagem ou recarregue a página.');
-                } finally {
-                    loadingIndicator.style.display = 'none';
-                }
+                // Exibe preview
+                const previewUrl = URL.createObjectURL(currentResultBlob);
+                preview.src = previewUrl;
+                preview.style.display = 'block';
+                
+                // Configura download
+                downloadLink.href = previewUrl;
+                downloadLink.download = `sem_fundo_${Date.now()}.${formatSelect.value}`;
+                downloadLink.style.display = 'flex';
+                
+                statusDiv.innerText = 'Pronto!';
+                progressFill.style.width = '100%';
+                
+            } catch (error) {
+                console.error(error);
+                statusDiv.innerText = 'Erro: ' + error.message;
+            } finally {
+                processBtn.disabled = false;
             }
-
-            downloadBtn.addEventListener('click', () => {
-                if (!resultBlob) return;
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(resultBlob);
-                link.download = 'imagem_sem_fundo.png';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(link.href);
-            });
-
-            function showError(msg) {
-                errorMessage.textContent = msg;
-                errorMessage.style.display = 'block';
-            }
-            function hideError() {
-                errorMessage.style.display = 'none';
-            }
-
-            if (!window.WebAssembly) {
-                showError('Seu navegador não suporta WebAssembly, necessário para esta ferramenta. Atualize para um navegador moderno.');
-            }
-        })();
+        });
     </script>
 </body>
 </html>
