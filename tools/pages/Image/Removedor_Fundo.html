@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
@@ -6,6 +6,7 @@
     <title>Removedor de Fundo · thebox</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        /* Seus estilos (mantenha os mesmos) */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, system-ui, sans-serif; }
         body { background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%); min-height: 100vh; padding: 2rem 1rem; }
         .container { max-width: 900px; margin: 0 auto; }
@@ -85,8 +86,13 @@
     </div>
 
     <script type="module">
-        // Importa a biblioteca diretamente do CDN (versão ES Module)
-        import removeBackground from 'https://unpkg.com/@imgly/background-removal@1.4.3/dist/index.mjs';
+        // 1. IMPORTAÇÃO VIA CDN: Esqueça a pasta /libs/, pegamos direto da fonte oficial
+        import { removeBackground } from 'https://unpkg.com/@imgly/background-removal@1.4.3/dist/index.mjs';
+
+        // 2. A MÁGICA: Isso avisa o navegador para baixar os modelos pesados do servidor deles, e não do seu Vercel
+        const imglyConfig = {
+            publicPath: 'https://static.img.ly/packages/@imgly/background-removal-data/1.4.3/dist/'
+        };
 
         // Elementos DOM
         const uploadArea = document.getElementById('uploadArea');
@@ -104,7 +110,7 @@
         let currentFile = null;
         let currentResultBlob = null;
 
-        // Verifica suporte a SharedArrayBuffer (necessário para a biblioteca)
+        // Verifica suporte a SharedArrayBuffer
         if (typeof SharedArrayBuffer === 'undefined') {
             statusDiv.innerText = '❌ Seu navegador não suporta SharedArrayBuffer. A ferramenta pode não funcionar.';
             processBtn.disabled = true;
@@ -148,24 +154,15 @@
             downloadLink.style.display = 'none';
 
             try {
-                // Configurações: podemos passar opções para a biblioteca
-                // A biblioteca aceita um objeto de configuração, mas não tem opção de formato diretamente.
-                // O formato de saída é sempre PNG com transparência. Se o usuário quiser JPG com fundo branco, 
-                // podemos fazer uma pós-conversão com canvas.
-                
-                statusDiv.innerText = 'Baixando modelo e processando... (primeira vez pode demorar)';
-                
-                // Chama a biblioteca (retorna um Blob em PNG)
-                const resultBlob = await removeBackground(currentFile, {
-                    progress: (progress) => {
-                        // progress é um número entre 0 e 1
-                        const percent = Math.round(progress * 100);
-                        progressFill.style.width = percent + '%';
-                        statusDiv.innerText = `Processando... ${percent}%`;
-                    }
-                });
+                statusDiv.innerText = 'Baixando modelo e processando... (primeira vez pode demorar uns segundos)';
+                progressFill.style.width = '30%';
 
-                // Se o formato selecionado for JPG, precisamos converter o PNG transparente para JPG com fundo branco
+                // 3. PASSE A CONFIGURAÇÃO AQUI
+                const resultBlob = await removeBackground(currentFile, imglyConfig);
+
+                progressFill.style.width = '80%';
+
+                // Converte para JPG se necessário
                 if (formatSelect.value === 'jpg') {
                     statusDiv.innerText = 'Convertendo para JPG...';
                     const img = new Image();
@@ -176,7 +173,6 @@
                         img.src = blobUrl;
                     });
                     
-                    // Cria canvas com fundo branco
                     const canvas = document.createElement('canvas');
                     canvas.width = img.width;
                     canvas.height = img.height;
@@ -185,7 +181,6 @@
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                     ctx.drawImage(img, 0, 0);
                     
-                    // Converte para blob JPG
                     const jpgBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.95));
                     currentResultBlob = jpgBlob;
                     URL.revokeObjectURL(blobUrl);
@@ -193,12 +188,10 @@
                     currentResultBlob = resultBlob;
                 }
 
-                // Exibe preview
                 const previewUrl = URL.createObjectURL(currentResultBlob);
                 preview.src = previewUrl;
                 preview.style.display = 'block';
                 
-                // Configura download
                 downloadLink.href = previewUrl;
                 downloadLink.download = `sem_fundo_${Date.now()}.${formatSelect.value}`;
                 downloadLink.style.display = 'flex';
@@ -209,6 +202,7 @@
             } catch (error) {
                 console.error(error);
                 statusDiv.innerText = 'Erro: ' + error.message;
+                progressFill.style.width = '0%';
             } finally {
                 processBtn.disabled = false;
             }
