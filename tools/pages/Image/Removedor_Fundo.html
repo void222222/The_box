@@ -86,9 +86,7 @@
     </div>
 
     <script type="module">
-        // 1. IMPORTAÇÃO VIA CDN: Esqueça a pasta /libs/, pegamos direto da fonte oficial
-        import { removeBackground } from 'https://unpkg.com/@imgly/background-removal@1.4.3/dist/index.mjs';
-
+        import { removeBackground } from 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.3/+esm';
         // 2. A MÁGICA: Isso avisa o navegador para baixar os modelos pesados do servidor deles, e não do seu Vercel
         const imglyConfig = {
             publicPath: 'https://static.img.ly/packages/@imgly/background-removal-data/1.4.3/dist/'
