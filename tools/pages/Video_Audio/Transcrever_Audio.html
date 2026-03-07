@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>thebox · Transcritor Universal (áudio/vídeo para texto)</title>
+    <title>thebox · Transcritor Universal (áudio/vídeo → texto)</title>
     <!-- Headers obrigatórios para SharedArrayBuffer (FFmpeg) -->
     <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin">
     <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp">
@@ -42,10 +42,8 @@
     </style>
     <!-- Ícones Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Carregar FFmpeg (versão UMD, expõe FFmpeg global) -->
-    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.7/dist/ffmpeg.min.js"></script>
-    <!-- Carregar Transformers.js (versão UMD, expõe transformers global) -->
-    <script src="https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.1/dist/transformers.min.js"></script>
+    <!-- Carregar FFmpeg (versão 0.11.6 UMD) -->
+    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
 </head>
 <body>
 <div class="container">
@@ -93,245 +91,247 @@
     </footer>
 </div>
 
-<script>
-// ========== Código principal (agora não-module) ==========
-(function() {
-    // Elementos DOM
-    const uploadArea = document.getElementById('uploadArea');
-    const fileInput = document.getElementById('fileInput');
-    const fileInfo = document.getElementById('fileInfo');
-    const fileNameSpan = document.getElementById('fileName');
-    const transcribeBtn = document.getElementById('transcribeBtn');
-    const recordBtn = document.getElementById('recordBtn');
-    const progressArea = document.getElementById('progressArea');
-    const progressFill = document.getElementById('progressFill');
-    const statusDiv = document.getElementById('status');
-    const resultArea = document.getElementById('resultArea');
-    const transcriptionDiv = document.getElementById('transcription');
-    const copyBtn = document.getElementById('copyBtn');
-    const clearBtn = document.getElementById('clearBtn');
+<script type="module">
+    // ========== Importar Transformers.js como módulo ==========
+    import { pipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.1/dist/transformers.min.js';
 
-    // Variáveis de estado
-    let inputFile = null;
-    let isRecording = false;
-    let mediaRecorder = null;
-    let audioChunks = [];
-    let transcriber = null;
-    let modelLoading = false;
-    let ffmpeg = null;
+    // ========== Código principal ==========
+    (function() {
+        // Elementos DOM
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileNameSpan = document.getElementById('fileName');
+        const transcribeBtn = document.getElementById('transcribeBtn');
+        const recordBtn = document.getElementById('recordBtn');
+        const progressArea = document.getElementById('progressArea');
+        const progressFill = document.getElementById('progressFill');
+        const statusDiv = document.getElementById('status');
+        const resultArea = document.getElementById('resultArea');
+        const transcriptionDiv = document.getElementById('transcription');
+        const copyBtn = document.getElementById('copyBtn');
+        const clearBtn = document.getElementById('clearBtn');
 
-    // Utilitários
-    function updateStatus(msg, percent) {
-        statusDiv.innerText = msg;
-        if (percent !== undefined) {
-            progressFill.style.width = percent + '%';
-        }
-    }
+        // Variáveis de estado
+        let inputFile = null;
+        let isRecording = false;
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let transcriber = null;
+        let modelLoading = false;
+        let ffmpeg = null;
 
-    // Carregar FFmpeg (já disponível globalmente, mas precisamos criar a instância)
-    async function loadFFmpeg() {
-        if (ffmpeg) return ffmpeg;
-        updateStatus('Carregando FFmpeg...', 5);
-        const { createFFmpeg, fetchFile } = FFmpeg; // global
-        ffmpeg = createFFmpeg({ 
-            log: false,
-            corePath: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.7/dist/ffmpeg-core.js'
-        });
-        await ffmpeg.load();
-        updateStatus('FFmpeg pronto', 10);
-        return { ffmpeg, fetchFile };
-    }
-
-    // Carregar Whisper (usando pipeline do Transformers global)
-    async function loadTranscriber() {
-        if (transcriber) return transcriber;
-        if (modelLoading) return;
-        modelLoading = true;
-        progressArea.style.display = 'block';
-        updateStatus('Carregando modelo Whisper... (primeira vez pode demorar)', 15);
-        try {
-            // transformers é global
-            transcriber = await transformers.pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny', {
-                progress_callback: (progress) => {
-                    if (progress.status === 'progress' && progress.progress) {
-                        const percent = 15 + Math.round(progress.progress * 70);
-                        updateStatus(`Baixando modelo: ${Math.round(progress.progress * 100)}%`, percent);
-                    }
-                }
-            });
-            updateStatus('Modelo carregado!', 85);
-            return transcriber;
-        } catch (error) {
-            console.error(error);
-            updateStatus('Erro no modelo: ' + error.message, 0);
-            throw error;
-        } finally {
-            modelLoading = false;
-        }
-    }
-
-    // Upload
-    function handleFile(file) {
-        inputFile = file;
-        fileNameSpan.innerText = file.name;
-        fileInfo.style.display = 'flex';
-        transcribeBtn.disabled = false;
-    }
-
-    uploadArea.addEventListener('click', () => fileInput.click());
-    uploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadArea.style.borderColor = '#a855f7';
-    });
-    uploadArea.addEventListener('dragleave', () => {
-        uploadArea.style.borderColor = 'rgba(255,255,255,0.1)';
-    });
-    uploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadArea.style.borderColor = 'rgba(255,255,255,0.1)';
-        const file = e.dataTransfer.files[0];
-        if (file) handleFile(file);
-    });
-
-    fileInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) handleFile(file);
-    });
-
-    // Gravação
-    recordBtn.addEventListener('click', async () => {
-        if (!isRecording) {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = [];
-
-                mediaRecorder.ondataavailable = (event) => {
-                    audioChunks.push(event.data);
-                };
-
-                mediaRecorder.onstop = () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                    const file = new File([audioBlob], 'gravacao.webm', { type: 'audio/webm' });
-                    handleFile(file);
-                    stream.getTracks().forEach(track => track.stop());
-                };
-
-                mediaRecorder.start();
-                isRecording = true;
-                recordBtn.classList.add('recording');
-                recordBtn.innerHTML = '<i class="fas fa-stop"></i> Parar gravação';
-            } catch (error) {
-                alert('Microfone não disponível: ' + error.message);
+        // Utilitários
+        function updateStatus(msg, percent) {
+            statusDiv.innerText = msg;
+            if (percent !== undefined) {
+                progressFill.style.width = percent + '%';
             }
-        } else {
-            mediaRecorder.stop();
-            isRecording = false;
-            recordBtn.classList.remove('recording');
-            recordBtn.innerHTML = '<i class="fas fa-microphone"></i> Gravar áudio';
         }
-    });
 
-    // Conversão com FFmpeg
-    async function convertToWav(file) {
-        const { ffmpeg: ff, fetchFile } = await loadFFmpeg();
-
-        const inputName = 'input_' + Date.now() + '_' + file.name;
-        ff.FS('writeFile', inputName, await fetchFile(file));
-
-        updateStatus('Convertendo áudio... (FFmpeg)', 40);
-
-        await ff.run(
-            '-i', inputName,
-            '-vn',
-            '-acodec', 'pcm_s16le',
-            '-ac', '1',
-            '-ar', '16000',
-            '-y',
-            'output.wav'
-        );
-
-        const data = ff.FS('readFile', 'output.wav');
-        const wavBlob = new Blob([data.buffer], { type: 'audio/wav' });
-
-        ff.FS('unlink', inputName);
-        ff.FS('unlink', 'output.wav');
-
-        return wavBlob;
-    }
-
-    // Transcrição principal
-    transcribeBtn.addEventListener('click', async () => {
-        if (!inputFile) return;
-
-        transcribeBtn.disabled = true;
-        progressArea.style.display = 'block';
-        updateStatus('Iniciando...', 5);
-
-        try {
-            const transcriberPromise = loadTranscriber();
-            updateStatus('Convertendo arquivo...', 20);
-            const wavBlob = await convertToWav(inputFile);
-
-            const transcriberInstance = await transcriberPromise;
-
-            updateStatus('Decodificando áudio...', 70);
-            const arrayBuffer = await wavBlob.arrayBuffer();
-            const audioContext = new AudioContext({ sampleRate: 16000 });
-            const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-            const audioData = audioBuffer.getChannelData(0); // mono
-
-            updateStatus('Transcrevendo...', 80);
-            const output = await transcriberInstance(audioData, {
-                language: 'portuguese',
-                task: 'transcribe',
-                return_timestamps: false
+        // Carregar FFmpeg (global FFmpeg disponível)
+        async function loadFFmpeg() {
+            if (ffmpeg) return ffmpeg;
+            updateStatus('Carregando FFmpeg...', 5);
+            const { createFFmpeg, fetchFile } = FFmpeg; // global
+            ffmpeg = createFFmpeg({ 
+                log: false,
+                corePath: 'https://unpkg.com/@ffmpeg/core@0.11.6/dist/ffmpeg-core.js'
             });
+            await ffmpeg.load();
+            updateStatus('FFmpeg pronto', 10);
+            return { ffmpeg, fetchFile };
+        }
 
-            updateStatus('Finalizando...', 95);
-            transcriptionDiv.innerText = output.text;
-            resultArea.style.display = 'block';
-            updateStatus('Transcrição concluída!', 100);
-            setTimeout(() => {
-                progressArea.style.display = 'none';
-            }, 1000);
+        // Carregar Whisper (usando pipeline importado)
+        async function loadTranscriber() {
+            if (transcriber) return transcriber;
+            if (modelLoading) return;
+            modelLoading = true;
+            progressArea.style.display = 'block';
+            updateStatus('Carregando modelo Whisper... (primeira vez pode demorar)', 15);
+            try {
+                transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny', {
+                    progress_callback: (progress) => {
+                        if (progress.status === 'progress' && progress.progress) {
+                            const percent = 15 + Math.round(progress.progress * 70);
+                            updateStatus(`Baixando modelo: ${Math.round(progress.progress * 100)}%`, percent);
+                        }
+                    }
+                });
+                updateStatus('Modelo carregado!', 85);
+                return transcriber;
+            } catch (error) {
+                console.error(error);
+                updateStatus('Erro no modelo: ' + error.message, 0);
+                throw error;
+            } finally {
+                modelLoading = false;
+            }
+        }
 
-        } catch (error) {
-            console.error(error);
-            updateStatus('Erro: ' + error.message, 0);
-        } finally {
+        // Upload
+        function handleFile(file) {
+            inputFile = file;
+            fileNameSpan.innerText = file.name;
+            fileInfo.style.display = 'flex';
             transcribeBtn.disabled = false;
         }
-    });
 
-    // Ações
-    copyBtn.addEventListener('click', () => {
-        const text = transcriptionDiv.innerText;
-        if (!text) return;
-        navigator.clipboard.writeText(text).then(() => {
-            alert('Texto copiado!');
-        }).catch(() => {
-            alert('Copie manualmente.');
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#a855f7';
         });
-    });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.borderColor = 'rgba(255,255,255,0.1)';
+        });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = 'rgba(255,255,255,0.1)';
+            const file = e.dataTransfer.files[0];
+            if (file) handleFile(file);
+        });
 
-    clearBtn.addEventListener('click', () => {
-        inputFile = null;
-        fileInfo.style.display = 'none';
-        fileNameSpan.innerText = '';
-        transcribeBtn.disabled = true;
-        resultArea.style.display = 'none';
-        transcriptionDiv.innerText = '';
-        progressArea.style.display = 'none';
-        statusDiv.innerText = '';
-        progressFill.style.width = '0%';
-    });
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) handleFile(file);
+        });
 
-    // Verifica suporte a SharedArrayBuffer
-    if (typeof SharedArrayBuffer === 'undefined') {
-        statusDiv.innerText = '⚠️ Seu navegador não suporta SharedArrayBuffer. FFmpeg pode não funcionar.';
-    }
-})();
+        // Gravação
+        recordBtn.addEventListener('click', async () => {
+            if (!isRecording) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+
+                    mediaRecorder.ondataavailable = (event) => {
+                        audioChunks.push(event.data);
+                    };
+
+                    mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const file = new File([audioBlob], 'gravacao.webm', { type: 'audio/webm' });
+                        handleFile(file);
+                        stream.getTracks().forEach(track => track.stop());
+                    };
+
+                    mediaRecorder.start();
+                    isRecording = true;
+                    recordBtn.classList.add('recording');
+                    recordBtn.innerHTML = '<i class="fas fa-stop"></i> Parar gravação';
+                } catch (error) {
+                    alert('Microfone não disponível: ' + error.message);
+                }
+            } else {
+                mediaRecorder.stop();
+                isRecording = false;
+                recordBtn.classList.remove('recording');
+                recordBtn.innerHTML = '<i class="fas fa-microphone"></i> Gravar áudio';
+            }
+        });
+
+        // Conversão com FFmpeg
+        async function convertToWav(file) {
+            const { ffmpeg: ff, fetchFile } = await loadFFmpeg();
+
+            const inputName = 'input_' + Date.now() + '_' + file.name;
+            ff.FS('writeFile', inputName, await fetchFile(file));
+
+            updateStatus('Convertendo áudio... (FFmpeg)', 40);
+
+            await ff.run(
+                '-i', inputName,
+                '-vn',
+                '-acodec', 'pcm_s16le',
+                '-ac', '1',
+                '-ar', '16000',
+                '-y',
+                'output.wav'
+            );
+
+            const data = ff.FS('readFile', 'output.wav');
+            const wavBlob = new Blob([data.buffer], { type: 'audio/wav' });
+
+            ff.FS('unlink', inputName);
+            ff.FS('unlink', 'output.wav');
+
+            return wavBlob;
+        }
+
+        // Transcrição principal
+        transcribeBtn.addEventListener('click', async () => {
+            if (!inputFile) return;
+
+            transcribeBtn.disabled = true;
+            progressArea.style.display = 'block';
+            updateStatus('Iniciando...', 5);
+
+            try {
+                const transcriberPromise = loadTranscriber();
+                updateStatus('Convertendo arquivo...', 20);
+                const wavBlob = await convertToWav(inputFile);
+
+                const transcriberInstance = await transcriberPromise;
+
+                updateStatus('Decodificando áudio...', 70);
+                const arrayBuffer = await wavBlob.arrayBuffer();
+                const audioContext = new AudioContext({ sampleRate: 16000 });
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                const audioData = audioBuffer.getChannelData(0); // mono
+
+                updateStatus('Transcrevendo...', 80);
+                const output = await transcriberInstance(audioData, {
+                    language: 'portuguese',
+                    task: 'transcribe',
+                    return_timestamps: false
+                });
+
+                updateStatus('Finalizando...', 95);
+                transcriptionDiv.innerText = output.text;
+                resultArea.style.display = 'block';
+                updateStatus('Transcrição concluída!', 100);
+                setTimeout(() => {
+                    progressArea.style.display = 'none';
+                }, 1000);
+
+            } catch (error) {
+                console.error(error);
+                updateStatus('Erro: ' + error.message, 0);
+            } finally {
+                transcribeBtn.disabled = false;
+            }
+        });
+
+        // Ações
+        copyBtn.addEventListener('click', () => {
+            const text = transcriptionDiv.innerText;
+            if (!text) return;
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Texto copiado!');
+            }).catch(() => {
+                alert('Copie manualmente.');
+            });
+        });
+
+        clearBtn.addEventListener('click', () => {
+            inputFile = null;
+            fileInfo.style.display = 'none';
+            fileNameSpan.innerText = '';
+            transcribeBtn.disabled = true;
+            resultArea.style.display = 'none';
+            transcriptionDiv.innerText = '';
+            progressArea.style.display = 'none';
+            statusDiv.innerText = '';
+            progressFill.style.width = '0%';
+        });
+
+        // Verifica suporte a SharedArrayBuffer
+        if (typeof SharedArrayBuffer === 'undefined') {
+            statusDiv.innerText = '⚠️ Seu navegador não suporta SharedArrayBuffer. FFmpeg pode não funcionar.';
+        }
+    })();
 </script>
 </body>
 </html>
