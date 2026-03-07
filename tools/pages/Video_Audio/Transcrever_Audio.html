@@ -3,213 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>thebox · Transcritor Universal (FFmpeg + Whisper)</title>
+    <title>thebox · Transcritor Universal (áudio/vídeo para texto)</title>
     <!-- Headers obrigatórios para SharedArrayBuffer (FFmpeg) -->
     <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin">
     <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
-        }
-        body {
-            background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
-            min-height: 100vh;
-            padding: 2rem 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .container {
-            max-width: 800px;
-            width: 100%;
-            margin: 0 auto;
-        }
-        header {
-            text-align: center;
-            padding: 1rem 1rem 2rem;
-            color: white;
-        }
-        header h1 {
-            font-size: 2.8rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #c084fc, #60a5fa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 0.5rem;
-        }
-        header p {
-            color: #cbd5e1;
-            font-size: 1.1rem;
-        }
-        .card {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(8px);
-            border-radius: 32px;
-            padding: 2rem;
-            border: 1px solid rgba(255,255,255,0.05);
-            box-shadow: 0 25px 40px -12px black;
-        }
-        .upload-area {
-            border: 2px dashed rgba(255,255,255,0.1);
-            border-radius: 30px;
-            padding: 2rem;
-            text-align: center;
-            cursor: pointer;
-            transition: 0.2s;
-            background: rgba(0,0,0,0.2);
-            margin-bottom: 1.5rem;
-        }
-        .upload-area:hover {
-            border-color: #a855f7;
-        }
-        .upload-area i {
-            font-size: 3rem;
-            color: #a855f7;
-            margin-bottom: 0.5rem;
-        }
-        .upload-area p {
-            color: #94a3b8;
-        }
-        #fileInput {
-            display: none;
-        }
-        .file-info {
-            background: rgba(0,0,0,0.2);
-            border-radius: 40px;
-            padding: 0.8rem 1.5rem;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .file-info i {
-            color: #a855f7;
-            font-size: 1.2rem;
-        }
-        .file-info span {
-            color: #cbd5e1;
-            font-size: 0.95rem;
-            word-break: break-all;
-        }
-        .options {
-            display: flex;
-            gap: 1rem;
-            margin: 1.5rem 0;
-            flex-wrap: wrap;
-        }
-        .options button {
-            flex: 1;
-            min-width: 150px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: #cbd5e1;
-            padding: 0.8rem 1.5rem;
-            border-radius: 40px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-        .options button:hover:not(:disabled) {
-            background: rgba(255,255,255,0.15);
-            border-color: #a855f7;
-        }
-        .options button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .record-btn.recording {
-            background: #ef4444;
-            color: white;
-            border-color: #ef4444;
-        }
-        .progress-area {
-            margin-top: 1.5rem;
-            display: none;
-        }
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: #1e293b;
-            border-radius: 10px;
-            overflow: hidden;
-            margin-bottom: 0.5rem;
-        }
-        .progress-fill {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, #a855f7, #d946ef);
-            transition: width 0.3s ease;
-        }
-        .status {
-            text-align: center;
-            color: #94a3b8;
-            font-size: 0.95rem;
-            min-height: 2rem;
-            margin-top: 0.5rem;
-        }
-        .result-area {
-            margin-top: 2rem;
-            background: rgba(0,0,0,0.3);
-            border-radius: 24px;
-            padding: 1.5rem;
-            display: none;
-        }
-        .result-text {
-            background: rgba(255,255,255,0.05);
-            border-radius: 16px;
-            padding: 1.5rem;
-            color: #f1f5f9;
-            font-size: 1rem;
-            line-height: 1.6;
-            white-space: pre-wrap;
-            max-height: 400px;
-            overflow-y: auto;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .action-buttons {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1.5rem;
-            justify-content: flex-end;
-        }
-        .action-buttons button {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: #cbd5e1;
-            padding: 0.6rem 1.2rem;
-            border-radius: 30px;
-            cursor: pointer;
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .action-buttons button:hover {
-            background: rgba(255,255,255,0.15);
-        }
-        footer {
-            text-align: center;
-            padding: 2rem 1rem 0;
-            color: #64748b;
-        }
-        .note {
-            font-size: 0.85rem;
-            color: #94a3b8;
-            margin-top: 1rem;
-            text-align: center;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%); min-height: 100vh; padding: 2rem 1rem; display: flex; align-items: center; justify-content: center; }
+        .container { max-width: 800px; width: 100%; margin: 0 auto; }
+        header { text-align: center; padding: 1rem 1rem 2rem; color: white; }
+        header h1 { font-size: 2.8rem; font-weight: 700; background: linear-gradient(135deg, #c084fc, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 0.5rem; }
+        header p { color: #cbd5e1; font-size: 1.1rem; }
+        .card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(8px); border-radius: 32px; padding: 2rem; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 25px 40px -12px black; }
+        .upload-area { border: 2px dashed rgba(255,255,255,0.1); border-radius: 30px; padding: 2rem; text-align: center; cursor: pointer; transition: 0.2s; background: rgba(0,0,0,0.2); margin-bottom: 1.5rem; }
+        .upload-area:hover { border-color: #a855f7; }
+        .upload-area i { font-size: 3rem; color: #a855f7; margin-bottom: 0.5rem; }
+        .upload-area p { color: #94a3b8; }
+        #fileInput { display: none; }
+        .file-info { background: rgba(0,0,0,0.2); border-radius: 40px; padding: 0.8rem 1.5rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.8rem; border: 1px solid rgba(255,255,255,0.1); }
+        .file-info i { color: #a855f7; font-size: 1.2rem; }
+        .file-info span { color: #cbd5e1; font-size: 0.95rem; word-break: break-all; }
+        .options { display: flex; gap: 1rem; margin: 1.5rem 0; flex-wrap: wrap; }
+        .options button { flex: 1; min-width: 150px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #cbd5e1; padding: 0.8rem 1.5rem; border-radius: 40px; font-weight: 500; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .options button:hover:not(:disabled) { background: rgba(255,255,255,0.15); border-color: #a855f7; }
+        .options button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .record-btn.recording { background: #ef4444; color: white; border-color: #ef4444; }
+        .progress-area { margin-top: 1.5rem; display: none; }
+        .progress-bar { width: 100%; height: 8px; background: #1e293b; border-radius: 10px; overflow: hidden; margin-bottom: 0.5rem; }
+        .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #a855f7, #d946ef); transition: width 0.3s ease; }
+        .status { text-align: center; color: #94a3b8; font-size: 0.95rem; min-height: 2rem; margin-top: 0.5rem; }
+        .result-area { margin-top: 2rem; background: rgba(0,0,0,0.3); border-radius: 24px; padding: 1.5rem; display: none; }
+        .result-text { background: rgba(255,255,255,0.05); border-radius: 16px; padding: 1.5rem; color: #f1f5f9; font-size: 1rem; line-height: 1.6; white-space: pre-wrap; max-height: 400px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); }
+        .action-buttons { display: flex; gap: 1rem; margin-top: 1.5rem; justify-content: flex-end; }
+        .action-buttons button { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #cbd5e1; padding: 0.6rem 1.2rem; border-radius: 30px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 0.5rem; }
+        .action-buttons button:hover { background: rgba(255,255,255,0.15); }
+        footer { text-align: center; padding: 2rem 1rem 0; color: #64748b; }
+        .note { font-size: 0.85rem; color: #94a3b8; margin-top: 1rem; text-align: center; }
     </style>
     <!-- Ícones Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Carregar FFmpeg (versão UMD, expõe FFmpeg global) -->
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.7/dist/ffmpeg.min.js"></script>
+    <!-- Carregar Transformers.js (versão UMD, expõe transformers global) -->
+    <script src="https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.1/dist/transformers.min.js"></script>
 </head>
 <body>
 <div class="container">
@@ -257,11 +93,10 @@
     </footer>
 </div>
 
-<script type="module">
-    // ========== Módulo principal ==========
-    import { pipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.1/dist/transformers.min.js';
-    
-    // ========== Elementos DOM ==========
+<script>
+// ========== Código principal (agora não-module) ==========
+(function() {
+    // Elementos DOM
     const uploadArea = document.getElementById('uploadArea');
     const fileInput = document.getElementById('fileInput');
     const fileInfo = document.getElementById('fileInfo');
@@ -276,8 +111,8 @@
     const copyBtn = document.getElementById('copyBtn');
     const clearBtn = document.getElementById('clearBtn');
 
-    // ========== Variáveis de estado ==========
-    let inputFile = null;          // arquivo original (áudio ou vídeo)
+    // Variáveis de estado
+    let inputFile = null;
     let isRecording = false;
     let mediaRecorder = null;
     let audioChunks = [];
@@ -285,7 +120,7 @@
     let modelLoading = false;
     let ffmpeg = null;
 
-    // ========== Utilitários ==========
+    // Utilitários
     function updateStatus(msg, percent) {
         statusDiv.innerText = msg;
         if (percent !== undefined) {
@@ -293,11 +128,11 @@
         }
     }
 
-    // ========== Carregar FFmpeg (importação dinâmica) ==========
+    // Carregar FFmpeg (já disponível globalmente, mas precisamos criar a instância)
     async function loadFFmpeg() {
         if (ffmpeg) return ffmpeg;
         updateStatus('Carregando FFmpeg...', 5);
-        const { createFFmpeg, fetchFile } = await import('https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.7/dist/ffmpeg.min.js');
+        const { createFFmpeg, fetchFile } = FFmpeg; // global
         ffmpeg = createFFmpeg({ 
             log: false,
             corePath: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.7/dist/ffmpeg-core.js'
@@ -307,7 +142,7 @@
         return { ffmpeg, fetchFile };
     }
 
-    // ========== Carregar Whisper ==========
+    // Carregar Whisper (usando pipeline do Transformers global)
     async function loadTranscriber() {
         if (transcriber) return transcriber;
         if (modelLoading) return;
@@ -315,10 +150,11 @@
         progressArea.style.display = 'block';
         updateStatus('Carregando modelo Whisper... (primeira vez pode demorar)', 15);
         try {
-            transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny', {
+            // transformers é global
+            transcriber = await transformers.pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny', {
                 progress_callback: (progress) => {
                     if (progress.status === 'progress' && progress.progress) {
-                        const percent = 15 + Math.round(progress.progress * 70); // 15% a 85%
+                        const percent = 15 + Math.round(progress.progress * 70);
                         updateStatus(`Baixando modelo: ${Math.round(progress.progress * 100)}%`, percent);
                     }
                 }
@@ -334,7 +170,7 @@
         }
     }
 
-    // ========== Manipulação de arquivo ==========
+    // Upload
     function handleFile(file) {
         inputFile = file;
         fileNameSpan.innerText = file.name;
@@ -362,7 +198,7 @@
         if (file) handleFile(file);
     });
 
-    // ========== Gravação de áudio ==========
+    // Gravação
     recordBtn.addEventListener('click', async () => {
         if (!isRecording) {
             try {
@@ -396,39 +232,35 @@
         }
     });
 
-    // ========== Conversão com FFmpeg ==========
+    // Conversão com FFmpeg
     async function convertToWav(file) {
         const { ffmpeg: ff, fetchFile } = await loadFFmpeg();
 
-        // Escreve arquivo de entrada no sistema virtual
         const inputName = 'input_' + Date.now() + '_' + file.name;
         ff.FS('writeFile', inputName, await fetchFile(file));
 
         updateStatus('Convertendo áudio... (FFmpeg)', 40);
 
-        // Comando: extrair áudio, converter para WAV PCM mono 16kHz
         await ff.run(
             '-i', inputName,
-            '-vn',                // ignora vídeo
-            '-acodec', 'pcm_s16le', // codec PCM 16-bit
-            '-ac', '1',            // mono
-            '-ar', '16000',        // 16kHz
-            '-y',                  // sobrescrever
+            '-vn',
+            '-acodec', 'pcm_s16le',
+            '-ac', '1',
+            '-ar', '16000',
+            '-y',
             'output.wav'
         );
 
-        // Lê o arquivo de saída
         const data = ff.FS('readFile', 'output.wav');
         const wavBlob = new Blob([data.buffer], { type: 'audio/wav' });
 
-        // Limpeza
         ff.FS('unlink', inputName);
         ff.FS('unlink', 'output.wav');
 
         return wavBlob;
     }
 
-    // ========== Transcrição principal ==========
+    // Transcrição principal
     transcribeBtn.addEventListener('click', async () => {
         if (!inputFile) return;
 
@@ -437,16 +269,12 @@
         updateStatus('Iniciando...', 5);
 
         try {
-            // Carrega Whisper e FFmpeg em paralelo
             const transcriberPromise = loadTranscriber();
-            // Converte o arquivo para WAV
             updateStatus('Convertendo arquivo...', 20);
             const wavBlob = await convertToWav(inputFile);
 
-            // Aguarda o transcriber estar pronto
             const transcriberInstance = await transcriberPromise;
 
-            // Decodifica o WAV para Float32Array (16kHz mono)
             updateStatus('Decodificando áudio...', 70);
             const arrayBuffer = await wavBlob.arrayBuffer();
             const audioContext = new AudioContext({ sampleRate: 16000 });
@@ -476,7 +304,7 @@
         }
     });
 
-    // ========== Ações ==========
+    // Ações
     copyBtn.addEventListener('click', () => {
         const text = transcriptionDiv.innerText;
         if (!text) return;
@@ -503,6 +331,7 @@
     if (typeof SharedArrayBuffer === 'undefined') {
         statusDiv.innerText = '⚠️ Seu navegador não suporta SharedArrayBuffer. FFmpeg pode não funcionar.';
     }
+})();
 </script>
 </body>
 </html>
