@@ -104,17 +104,19 @@
     const statusDiv = document.getElementById('status');
     const transcriptionDiv = document.getElementById('transcription');
     const resultArea = document.getElementById('resultArea');
+    
+    // Pegando os botões de ação que faltavam
+    const copyBtn = document.getElementById('copyBtn');
+    const clearBtn = document.getElementById('clearBtn');
 
     let inputFile = null;
     let transcriber = null;
 
-    // Função para atualizar status
     function updateStatus(msg, percent) {
         statusDiv.innerText = msg;
         if (percent !== undefined) progressFill.style.width = percent + '%';
     }
 
-    // Gerenciamento de Arquivos
     uploadArea.onclick = () => fileInput.click();
     fileInput.onchange = (e) => {
         const file = e.target.files[0];
@@ -126,44 +128,38 @@
         }
     };
 
-    // Transcrição Otimizada
     transcribeBtn.onclick = async () => {
         try {
             transcribeBtn.disabled = true;
             progressArea.style.display = 'block';
             
-            // 1. Carregar Modelo
+            // 1. Mudamos para o Whisper SMALL (vai demorar um pouco mais pra baixar na 1ª vez, mas a qualidade é muito melhor)
             if (!transcriber) {
-                updateStatus('Carregando modelo Whisper (tiny)...', 20);
-                transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny', {
+                updateStatus('Carregando modelo Whisper Small... (Pode demorar um pouco na 1ª vez)', 10);
+                transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-small', {
                     progress_callback: (p) => {
                         if (p.status === 'progress') {
-                            updateStatus(`Baixando modelo: ${Math.round(p.progress)}%`, 20 + (p.progress * 0.5));
+                            updateStatus(`Baixando modelo IA: ${Math.round(p.progress)}%`, 10 + (p.progress * 0.8));
                         }
                     }
                 });
             }
 
-            // 2. Processar Áudio (Usando Web Audio API em vez de FFmpeg para simplicidade)
-            updateStatus('Lendo arquivo de áudio...', 70);
+            updateStatus('Processando áudio...', 90);
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
             const arrayBuffer = await inputFile.arrayBuffer();
             const decodedData = await audioCtx.decodeAudioData(arrayBuffer);
-            
-            // Converter para Mono 16kHz (o que o Whisper espera)
             let audioData = decodedData.getChannelData(0);
 
-            // 3. Transcrever
-            updateStatus('Transcrevendo áudio... (isso pode levar um tempo)', 90);
+            updateStatus('Transcrevendo... (O modelo small exige mais do PC)', 95);
             const output = await transcriber(audioData, {
                 language: 'portuguese',
                 task: 'transcribe'
             });
 
-            // 4. Exibir Resultado
             transcriptionDiv.innerText = output.text;
             resultArea.style.display = 'block';
-            updateStatus('Concluído!', 100);
+            updateStatus('Transcrição Concluída!', 100);
 
         } catch (err) {
             console.error(err);
@@ -171,6 +167,37 @@
         } finally {
             transcribeBtn.disabled = false;
         }
+    };
+
+    // --- CORRIGINDO OS BOTÕES ---
+
+    // Botão de Copiar
+    copyBtn.onclick = () => {
+        const text = transcriptionDiv.innerText;
+        if (!text) return;
+        
+        navigator.clipboard.writeText(text).then(() => {
+            // Feedback visual rápido
+            const originalHtml = copyBtn.innerHTML;
+            copyBtn.innerHTML = '<i class="fas fa-check"></i> Copiado!';
+            setTimeout(() => { copyBtn.innerHTML = originalHtml; }, 2000);
+        }).catch(() => {
+            alert('Não foi possível copiar. Selecione o texto manualmente.');
+        });
+    };
+
+    // Botão de Limpar
+    clearBtn.onclick = () => {
+        inputFile = null;
+        fileInfo.style.display = 'none';
+        fileNameSpan.innerText = '';
+        transcribeBtn.disabled = true;
+        resultArea.style.display = 'none';
+        transcriptionDiv.innerText = '';
+        progressArea.style.display = 'none';
+        progressFill.style.width = '0%';
+        statusDiv.innerText = '';
+        fileInput.value = ''; // Limpa o input de arquivo
     };
 </script>
 </body>
