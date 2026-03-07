@@ -3,11 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>thebox · Transcrição de Áudio Local</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Headers obrigatórios para SharedArrayBuffer -->
-    <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin">
-    <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp">
+    <title>thebox · Transcritor Universal (áudio/vídeo)</title>
     <style>
         * {
             margin: 0;
@@ -19,21 +15,32 @@
             background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
             min-height: 100vh;
             padding: 2rem 1rem;
-            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .container {
-            max-width: 900px;
+            max-width: 800px;
+            width: 100%;
             margin: 0 auto;
         }
         header {
             text-align: center;
-            margin-bottom: 2rem;
+            padding: 1rem 1rem 2rem;
+            color: white;
         }
         header h1 {
-            font-size: 2.5rem;
+            font-size: 2.8rem;
+            font-weight: 700;
             background: linear-gradient(135deg, #c084fc, #60a5fa);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+        header p {
+            color: #cbd5e1;
+            font-size: 1.1rem;
         }
         .card {
             background: rgba(30, 41, 59, 0.7);
@@ -54,17 +61,17 @@
             margin-bottom: 1.5rem;
         }
         .upload-area:hover {
-            border-color: #ef4444;
+            border-color: #a855f7;
         }
         .upload-area i {
             font-size: 3rem;
-            color: #ef4444;
+            color: #a855f7;
             margin-bottom: 0.5rem;
         }
         .upload-area p {
             color: #94a3b8;
         }
-        #audioFile {
+        #fileInput {
             display: none;
         }
         .file-info {
@@ -78,37 +85,52 @@
             border: 1px solid rgba(255,255,255,0.1);
         }
         .file-info i {
-            color: #ef4444;
+            color: #a855f7;
             font-size: 1.2rem;
         }
         .file-info span {
             color: #cbd5e1;
+            font-size: 0.95rem;
             word-break: break-all;
         }
-        .model-selector {
+        .options {
             display: flex;
-            gap: 2rem;
-            justify-content: center;
+            gap: 1rem;
             margin: 1.5rem 0;
-            background: #0f172a;
-            padding: 1rem;
-            border-radius: 40px;
             flex-wrap: wrap;
         }
-        .model-selector label {
+        .options button {
+            flex: 1;
+            min-width: 150px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #cbd5e1;
+            padding: 0.8rem 1.5rem;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 0.5rem;
-            color: #cbd5e1;
-            cursor: pointer;
         }
-        .model-selector input[type="radio"] {
-            accent-color: #ef4444;
-            width: 18px;
-            height: 18px;
+        .options button:hover:not(:disabled) {
+            background: rgba(255,255,255,0.15);
+            border-color: #a855f7;
+        }
+        .options button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .record-btn.recording {
+            background: #ef4444;
+            color: white;
+            border-color: #ef4444;
         }
         .progress-area {
-            margin: 1rem 0;
+            margin-top: 1.5rem;
+            display: none;
         }
         .progress-bar {
             width: 100%;
@@ -116,343 +138,369 @@
             background: #1e293b;
             border-radius: 10px;
             overflow: hidden;
+            margin-bottom: 0.5rem;
         }
         .progress-fill {
             height: 100%;
             width: 0%;
-            background: linear-gradient(90deg, #ef4444, #f97316);
+            background: linear-gradient(90deg, #a855f7, #d946ef);
             transition: width 0.3s ease;
         }
         .status {
             text-align: center;
             color: #94a3b8;
-            margin: 0.5rem 0;
+            font-size: 0.95rem;
             min-height: 2rem;
+            margin-top: 0.5rem;
         }
-        .transcription-box {
-            background: #0f172a;
-            border-radius: 20px;
+        .result-area {
+            margin-top: 2rem;
+            background: rgba(0,0,0,0.3);
+            border-radius: 24px;
             padding: 1.5rem;
-            margin: 1.5rem 0;
-            border: 1px solid #334155;
-            max-height: 400px;
-            overflow-y: auto;
-            white-space: pre-wrap;
+            display: none;
+        }
+        .result-text {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 1.5rem;
+            color: #f1f5f9;
             font-size: 1rem;
             line-height: 1.6;
-        }
-        .transcription-placeholder {
-            color: #64748b;
-            text-align: center;
-            font-style: italic;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid rgba(255,255,255,0.1);
         }
         .action-buttons {
             display: flex;
             gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin: 1rem 0;
+            margin-top: 1.5rem;
+            justify-content: flex-end;
         }
-        .btn {
-            background: #1e293b;
-            color: white;
-            border: none;
-            padding: 0.8rem 1.5rem;
-            border-radius: 40px;
-            font-weight: 600;
+        .action-buttons button {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #cbd5e1;
+            padding: 0.6rem 1.2rem;
+            border-radius: 30px;
             cursor: pointer;
             transition: 0.2s;
-            display: inline-flex;
+            display: flex;
             align-items: center;
             gap: 0.5rem;
         }
-        .btn-primary {
-            background: linear-gradient(135deg, #ef4444, #f97316);
-        }
-        .btn-primary:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px -5px #ef4444;
-        }
-        .btn-secondary {
-            background: #334155;
-        }
-        .btn-secondary:hover {
-            background: #475569;
-        }
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .download-link {
-            background: #10b981;
-            color: white;
-            text-decoration: none;
-            padding: 0.8rem 1.5rem;
-            border-radius: 40px;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: 0.2s;
-        }
-        .download-link:hover {
-            background: #059669;
-        }
-        .error-message {
-            background: rgba(239, 68, 68, 0.2);
-            border: 1px solid #ef4444;
-            color: #fecaca;
-            padding: 1rem;
-            border-radius: 20px;
-            margin: 1rem 0;
+        .action-buttons button:hover {
+            background: rgba(255,255,255,0.15);
         }
         footer {
             text-align: center;
-            margin-top: 2rem;
+            padding: 2rem 1rem 0;
             color: #64748b;
         }
-        .warning {
-            background: #f59e0b20;
-            border: 1px solid #f59e0b;
-            color: #fcd34d;
-            padding: 1rem;
-            border-radius: 20px;
-            margin: 1rem 0;
+        .note {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-top: 1rem;
+            text-align: center;
         }
     </style>
+    <!-- Bibliotecas externas (CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.1/dist/transformers.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1><i class="fas fa-microphone-alt"></i> Transcrição de Áudio Local</h1>
-            <p>Converta áudio em texto diretamente no seu navegador. 100% privado.</p>
-        </header>
+<div class="container">
+    <header>
+        <h1>🎙️ Transcritor Universal</h1>
+        <p>Converta áudio ou vídeo em texto com IA (Whisper). Tudo local e gratuito.</p>
+    </header>
 
-        <div class="card">
-            <div class="upload-area" id="uploadArea">
-                <i class="fas fa-cloud-upload-alt"></i>
-                <p>Clique para selecionar um arquivo de áudio</p>
-                <p style="font-size:0.8rem; margin-top:0.5rem;">MP3, WAV, M4A (até 100MB)</p>
-            </div>
-            <input type="file" id="audioFile" accept="audio/*">
+    <div class="card">
+        <!-- Área de upload (aceita áudio e vídeo) -->
+        <div class="upload-area" id="uploadArea">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <p>Clique para selecionar um arquivo (áudio ou vídeo)</p>
+        </div>
+        <input type="file" id="fileInput" accept="audio/*,video/*">
 
-            <div id="fileInfo" class="file-info" style="display: none;">
-                <i class="fas fa-file-audio"></i>
-                <span id="fileName"></span>
-            </div>
-
-            <div class="model-selector">
-                <label>
-                    <input type="radio" name="model" value="tiny" checked> <i class="fas fa-bolt"></i> Tiny (rápido)
-                </label>
-                <label>
-                    <input type="radio" name="model" value="base"> <i class="fas fa-microchip"></i> Base (equilibrado)
-                </label>
-                <label>
-                    <input type="radio" name="model" value="small"> <i class="fas fa-brain"></i> Small (preciso)
-                </label>
-            </div>
-
-            <div class="action-buttons">
-                <button id="transcribeBtn" class="btn btn-primary" disabled>
-                    <i class="fas fa-play"></i> Transcrever
-                </button>
-            </div>
-
-            <div class="progress-area" id="progressArea" style="display: none;">
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
-                <div class="status" id="status"></div>
-            </div>
-
-            <div id="transcriptionContainer" style="display: none;">
-                <div class="transcription-box" id="transcriptionText"></div>
-                <div class="action-buttons">
-                    <button id="copyBtn" class="btn btn-secondary"><i class="fas fa-copy"></i> Copiar</button>
-                    <a id="downloadTxt" class="download-link"><i class="fas fa-download"></i> Baixar .TXT</a>
-                </div>
-            </div>
-
-            <div id="errorContainer" class="error-message" style="display: none;"></div>
-            <div id="warningContainer" class="warning" style="display: none;">
-                <i class="fas fa-exclamation-triangle"></i> Seu navegador pode não suportar todas as funcionalidades necessárias. Recomendamos Chrome, Edge ou Opera.
-            </div>
+        <div id="fileInfo" class="file-info" style="display: none;">
+            <i class="fas fa-file-audio"></i>
+            <span id="fileName"></span>
         </div>
 
-        <footer>
-            <p>🔒 Processamento local com Whisper + transformers.js. Nada sai do seu computador.</p>
-        </footer>
+        <!-- Botões: transcrever e gravar áudio -->
+        <div class="options">
+            <button id="transcribeBtn" disabled><i class="fas fa-play"></i> Transcrever</button>
+            <button id="recordBtn" class="record-btn"><i class="fas fa-microphone"></i> Gravar áudio</button>
+        </div>
+
+        <!-- Barra de progresso e status -->
+        <div class="progress-area" id="progressArea">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="status" id="status"></div>
+        </div>
+
+        <!-- Resultado da transcrição -->
+        <div class="result-area" id="resultArea">
+            <div class="result-text" id="transcription"></div>
+            <div class="action-buttons">
+                <button id="copyBtn"><i class="fas fa-copy"></i> Copiar</button>
+                <button id="clearBtn"><i class="fas fa-eraser"></i> Limpar</button>
+            </div>
+        </div>
     </div>
 
-    <script type="importmap">
-        {
-            "imports": {
-                "@xenova/transformers": "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.1/dist/transformers.min.js"
-            }
-        }
-    </script>
-    <script type="module">
-        // Importar pipeline do Transformers.js
-        import { pipeline } from '@xenova/transformers';
+    <footer>
+        <p>🔒 Processamento 100% local. Modelo Whisper tiny (~75MB) baixado uma vez.</p>
+        <p class="note">📹 Vídeos: o áudio é extraído automaticamente (formatos suportados pelo navegador).</p>
+    </footer>
+</div>
 
-        // Elementos DOM
+<!-- Ícones Font Awesome (CDN) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+<script>
+    (function() {
+        // ========== Elementos DOM ==========
         const uploadArea = document.getElementById('uploadArea');
-        const audioFileInput = document.getElementById('audioFile');
+        const fileInput = document.getElementById('fileInput');
         const fileInfo = document.getElementById('fileInfo');
-        const fileName = document.getElementById('fileName');
+        const fileNameSpan = document.getElementById('fileName');
         const transcribeBtn = document.getElementById('transcribeBtn');
+        const recordBtn = document.getElementById('recordBtn');
         const progressArea = document.getElementById('progressArea');
         const progressFill = document.getElementById('progressFill');
         const statusDiv = document.getElementById('status');
-        const transcriptionContainer = document.getElementById('transcriptionContainer');
-        const transcriptionText = document.getElementById('transcriptionText');
+        const resultArea = document.getElementById('resultArea');
+        const transcriptionDiv = document.getElementById('transcription');
         const copyBtn = document.getElementById('copyBtn');
-        const downloadTxt = document.getElementById('downloadTxt');
-        const errorContainer = document.getElementById('errorContainer');
-        const warningContainer = document.getElementById('warningContainer');
-        const modelRadios = document.querySelectorAll('input[name="model"]');
+        const clearBtn = document.getElementById('clearBtn');
 
+        // ========== Variáveis de estado ==========
         let audioFile = null;
-        let transcriber = null; // Vai armazenar a função pipeline
-        let isModelLoading = false;
+        let isRecording = false;
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let transcriber = null;
+        let modelLoading = false;
 
-        // Verificação de suporte SharedArrayBuffer
-        if (typeof SharedArrayBuffer === 'undefined') {
-            warningContainer.style.display = 'block';
+        // ========== Funções auxiliares ==========
+        function updateStatus(msg, percent) {
+            statusDiv.innerText = msg;
+            if (percent !== undefined) {
+                progressFill.style.width = percent + '%';
+            }
         }
 
-        // Upload
-        uploadArea.addEventListener('click', () => audioFileInput.click());
-        uploadArea.addEventListener('dragover', (e) => e.preventDefault());
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            const file = e.dataTransfer.files[0];
-            if (file && file.type.startsWith('audio/')) handleFile(file);
-            else showError('Por favor, selecione um arquivo de áudio válido.');
-        });
-        audioFileInput.addEventListener('change', (e) => {
-            if (e.target.files[0]) handleFile(e.target.files[0]);
-        });
+        // ========== Carregar modelo Whisper ==========
+        async function loadTranscriber() {
+            if (transcriber) return transcriber;
+            if (modelLoading) return;
+            modelLoading = true;
+            progressArea.style.display = 'block';
+            updateStatus('Carregando modelo Whisper... (primeira vez pode demorar)', 10);
+            try {
+                transcriber = await Transformers.pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny', {
+                    progress_callback: (progress) => {
+                        if (progress.status === 'progress' && progress.progress) {
+                            const percent = Math.round(progress.progress * 90) + 10;
+                            updateStatus(`Baixando modelo: ${Math.round(progress.progress * 100)}%`, percent);
+                        }
+                    }
+                });
+                updateStatus('Modelo carregado!', 100);
+                setTimeout(() => {
+                    progressArea.style.display = 'none';
+                }, 1000);
+                return transcriber;
+            } catch (error) {
+                console.error(error);
+                updateStatus('Erro ao carregar modelo: ' + error.message, 0);
+                throw error;
+            } finally {
+                modelLoading = false;
+            }
+        }
 
+        // ========== Manipulação de arquivo (áudio ou vídeo) ==========
         function handleFile(file) {
-            if (file.size > 100 * 1024 * 1024) {
-                showError('Arquivo muito grande. Limite: 100MB.');
+            // Aceita qualquer arquivo de áudio ou vídeo
+            if (!file.type.startsWith('audio/') && !file.type.startsWith('video/')) {
+                alert('Por favor, selecione um arquivo de áudio ou vídeo.');
                 return;
             }
             audioFile = file;
-            fileName.textContent = file.name;
+            fileNameSpan.innerText = file.name + (file.type.startsWith('video/') ? ' (vídeo)' : '');
             fileInfo.style.display = 'flex';
             transcribeBtn.disabled = false;
-            transcriptionContainer.style.display = 'none';
-            errorContainer.style.display = 'none';
         }
 
-        async function loadModel(modelId) {
-            if (transcriber) return true;
-            if (isModelLoading) return false;
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#a855f7';
+        });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.borderColor = 'rgba(255,255,255,0.1)';
+        });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = 'rgba(255,255,255,0.1)';
+            const file = e.dataTransfer.files[0];
+            if (file) handleFile(file);
+        });
 
-            isModelLoading = true;
-            progressArea.style.display = 'block';
-            statusDiv.innerText = `Carregando modelo ${modelId}... (pode levar alguns minutos na primeira vez)`;
-            progressFill.style.width = '10%';
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) handleFile(file);
+        });
 
+        // ========== Gravação de áudio ==========
+        recordBtn.addEventListener('click', async () => {
+            if (!isRecording) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+
+                    mediaRecorder.ondataavailable = (event) => {
+                        audioChunks.push(event.data);
+                    };
+
+                    mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const file = new File([audioBlob], 'gravacao.webm', { type: 'audio/webm' });
+                        handleFile(file);
+                        stream.getTracks().forEach(track => track.stop());
+                    };
+
+                    mediaRecorder.start();
+                    isRecording = true;
+                    recordBtn.classList.add('recording');
+                    recordBtn.innerHTML = '<i class="fas fa-stop"></i> Parar gravação';
+                } catch (error) {
+                    alert('Não foi possível acessar o microfone: ' + error.message);
+                }
+            } else {
+                mediaRecorder.stop();
+                isRecording = false;
+                recordBtn.classList.remove('recording');
+                recordBtn.innerHTML = '<i class="fas fa-microphone"></i> Gravar áudio';
+            }
+        });
+
+        // ========== Função para extrair áudio do arquivo (vídeo ou áudio) ==========
+        async function extractAudioFromFile(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            
+            // Tenta decodificar diretamente com AudioContext (funciona para a maioria dos áudios e vídeos com áudio suportado)
             try {
-                // Carregar pipeline (o modelo específico)
-                // O pipeline retorna uma função que podemos chamar com o áudio
-                const pipe = await pipeline('automatic-speech-recognition', `Xenova/whisper-${modelId}`);
-                transcriber = pipe; // Armazena a função
-                progressFill.style.width = '100%';
-                statusDiv.innerText = 'Modelo carregado!';
-                setTimeout(() => progressArea.style.display = 'none', 500);
-                return true;
+                // Cria AudioContext com sampleRate 16000 (ideal para Whisper)
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice(0)); // cópia para evitar detached
+                
+                // Converte para mono e retorna Float32Array
+                let audioData;
+                if (audioBuffer.numberOfChannels === 2) {
+                    const left = audioBuffer.getChannelData(0);
+                    const right = audioBuffer.getChannelData(1);
+                    audioData = new Float32Array(audioBuffer.length);
+                    for (let i = 0; i < audioBuffer.length; i++) {
+                        audioData[i] = (left[i] + right[i]) / 2;
+                    }
+                } else {
+                    audioData = audioBuffer.getChannelData(0);
+                }
+
+                // Se a taxa de amostragem for diferente de 16000, reamostra
+                if (audioBuffer.sampleRate !== 16000) {
+                    const offlineCtx = new OfflineAudioContext(1, Math.ceil(audioBuffer.duration * 16000), 16000);
+                    const source = offlineCtx.createBufferSource();
+                    source.buffer = audioBuffer;
+                    source.connect(offlineCtx.destination);
+                    source.start();
+                    const renderedBuffer = await offlineCtx.startRendering();
+                    return renderedBuffer.getChannelData(0);
+                }
+
+                return audioData;
             } catch (error) {
-                console.error(error);
-                showError('Erro ao carregar o modelo: ' + error.message);
-                return false;
-            } finally {
-                isModelLoading = false;
+                console.warn('Decodificação direta falhou, tentando via elemento de mídia...', error);
+                // Se falhou (ex: vídeo com codec não suportado), tenta usar um elemento <video> para extrair áudio?
+                // Isso é mais complexo, então lançamos erro amigável.
+                throw new Error('Não foi possível extrair o áudio deste arquivo. Verifique se o codec é suportado pelo navegador.');
             }
         }
 
+        // ========== Transcrição ==========
         transcribeBtn.addEventListener('click', async () => {
             if (!audioFile) return;
 
-            // Descobrir modelo selecionado
-            let modelId = 'tiny';
-            for (const radio of modelRadios) {
-                if (radio.checked) {
-                    modelId = radio.value;
-                    break;
-                }
-            }
-
-            const loaded = await loadModel(modelId);
-            if (!loaded) return;
-
             transcribeBtn.disabled = true;
             progressArea.style.display = 'block';
-            statusDiv.innerText = 'Transcrevendo áudio... (pode levar alguns segundos)';
-            progressFill.style.width = '30%';
-            transcriptionContainer.style.display = 'none';
-            errorContainer.style.display = 'none';
+            updateStatus('Preparando áudio...', 20);
 
             try {
-                // Converter arquivo para ArrayBuffer
-                const arrayBuffer = await audioFile.arrayBuffer();
-                // O pipeline espera um Blob, File, ou ArrayBuffer? A documentação diz que aceita File/Blob/URL.
-                // Vamos usar o arquivo diretamente.
-                // Nota: alguns modelos esperam áudio em float32, mas o pipeline lida com isso.
-                const result = await transcriber(audioFile, {
+                const transcriberInstance = await loadTranscriber();
+                if (!transcriberInstance) throw new Error('Falha ao carregar modelo.');
+
+                updateStatus('Extraindo áudio do arquivo...', 40);
+                const audioData = await extractAudioFromFile(audioFile);
+
+                updateStatus('Transcrevendo... (pode levar alguns segundos)', 60);
+                const output = await transcriberInstance(audioData, {
                     language: 'portuguese',
                     task: 'transcribe',
-                    return_timestamps: false,
+                    return_timestamps: false
                 });
 
-                progressFill.style.width = '90%';
+                updateStatus('Processando resultado...', 90);
+                transcriptionDiv.innerText = output.text;
+                resultArea.style.display = 'block';
+                updateStatus('Transcrição concluída!', 100);
+                setTimeout(() => {
+                    progressArea.style.display = 'none';
+                }, 1000);
 
-                let text = '';
-                if (typeof result === 'string') {
-                    text = result;
-                } else if (result && result.text) {
-                    text = result.text;
-                } else {
-                    text = 'Transcrição não disponível.';
-                }
-
-                transcriptionText.textContent = text;
-                transcriptionContainer.style.display = 'block';
-
-                // Criar link de download
-                const blob = new Blob([text], { type: 'text/plain' });
-                downloadTxt.href = URL.createObjectURL(blob);
-                downloadTxt.download = `transcricao_${Date.now()}.txt`;
-
-                progressFill.style.width = '100%';
-                statusDiv.innerText = 'Transcrição concluída!';
-                setTimeout(() => progressArea.style.display = 'none', 1000);
             } catch (error) {
                 console.error(error);
-                showError('Erro durante a transcrição: ' + error.message);
+                updateStatus('Erro: ' + error.message, 0);
             } finally {
                 transcribeBtn.disabled = false;
             }
         });
 
+        // ========== Botões de ação ==========
         copyBtn.addEventListener('click', () => {
-            const text = transcriptionText.textContent;
+            const text = transcriptionDiv.innerText;
+            if (!text) return;
             navigator.clipboard.writeText(text).then(() => {
                 alert('Texto copiado!');
             }).catch(() => {
-                alert('Erro ao copiar. Selecione manualmente.');
+                alert('Não foi possível copiar. Selecione manualmente.');
             });
         });
 
-        function showError(msg) {
-            errorContainer.textContent = msg;
-            errorContainer.style.display = 'block';
+        clearBtn.addEventListener('click', () => {
+            audioFile = null;
+            fileInfo.style.display = 'none';
+            fileNameSpan.innerText = '';
+            transcribeBtn.disabled = true;
+            resultArea.style.display = 'none';
+            transcriptionDiv.innerText = '';
             progressArea.style.display = 'none';
+            statusDiv.innerText = '';
+            progressFill.style.width = '0%';
+        });
+
+        // Verifica suporte a SharedArrayBuffer (necessário para ONNX)
+        if (typeof SharedArrayBuffer === 'undefined') {
+            statusDiv.innerText = '⚠️ Seu navegador não suporta SharedArrayBuffer. A transcrição pode falhar.';
         }
-    </script>
+    })();
+</script>
 </body>
 </html>
