@@ -104,19 +104,25 @@
     const statusDiv = document.getElementById('status');
     const transcriptionDiv = document.getElementById('transcription');
     const resultArea = document.getElementById('resultArea');
-    
-    // Pegando os botões de ação que faltavam
     const copyBtn = document.getElementById('copyBtn');
     const clearBtn = document.getElementById('clearBtn');
+    
+    // Pegando o botão de gravar
+    const recordBtn = document.getElementById('recordBtn');
 
+    // Variáveis de estado
     let inputFile = null;
     let transcriber = null;
+    let isRecording = false;
+    let mediaRecorder = null;
+    let audioChunks = [];
 
     function updateStatus(msg, percent) {
         statusDiv.innerText = msg;
         if (percent !== undefined) progressFill.style.width = percent + '%';
     }
 
+    // --- LÓGICA DE UPLOAD DE ARQUIVO ---
     uploadArea.onclick = () => fileInput.click();
     fileInput.onchange = (e) => {
         const file = e.target.files[0];
@@ -128,18 +134,71 @@
         }
     };
 
+    // --- LÓGICA DE GRAVAÇÃO PELO MICROFONE ---
+    recordBtn.onclick = async () => {
+        if (!isRecording) {
+            try {
+                // Pede permissão para usar o microfone
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    // Quando para de gravar, junta os pedaços num arquivo webm
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const file = new File([audioBlob], 'gravacao_microfone.webm', { type: 'audio/webm' });
+                    
+                    // Joga o arquivo para o sistema como se tivesse feito upload
+                    inputFile = file;
+                    fileNameSpan.innerText = "🎤 Áudio Gravado";
+                    fileInfo.style.display = 'flex';
+                    transcribeBtn.disabled = false;
+                    
+                    // Desliga a luzinha do microfone da aba do navegador
+                    stream.getTracks().forEach(track => track.stop());
+                };
+
+                mediaRecorder.start();
+                isRecording = true;
+                recordBtn.classList.add('recording');
+                recordBtn.innerHTML = '<i class="fas fa-stop"></i> Parar gravação';
+                
+                progressArea.style.display = 'block';
+                updateStatus('Gravando áudio... Fale agora!', 100);
+                progressFill.style.background = '#ef4444'; // Fica vermelho pra indicar gravação
+
+            } catch (error) {
+                alert('Erro ao acessar o microfone. Verifique as permissões do navegador!');
+                console.error(error);
+            }
+        } else {
+            // Parar gravação
+            mediaRecorder.stop();
+            isRecording = false;
+            recordBtn.classList.remove('recording');
+            recordBtn.innerHTML = '<i class="fas fa-microphone"></i> Gravar áudio';
+            progressFill.style.background = 'linear-gradient(90deg, #a855f7, #d946ef)'; // Volta a cor normal
+            updateStatus('Gravação concluída. Clique em Transcrever.', 0);
+        }
+    };
+
+    // --- LÓGICA DE TRANSCRIÇÃO ---
     transcribeBtn.onclick = async () => {
         try {
             transcribeBtn.disabled = true;
+            recordBtn.disabled = true; // Bloqueia gravação enquanto transcreve
             progressArea.style.display = 'block';
             
-            // 1. Mudamos para o Whisper SMALL (vai demorar um pouco mais pra baixar na 1ª vez, mas a qualidade é muito melhor)
             if (!transcriber) {
-                updateStatus('Carregando modelo Whisper Small... (Pode demorar um pouco na 1ª vez)', 10);
+                updateStatus('Carregando modelo Whisper Small... (Pode demorar um pouco)', 10);
                 transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-small', {
                     progress_callback: (p) => {
                         if (p.status === 'progress') {
-                            updateStatus(`Baixando modelo IA: ${Math.round(p.progress)}%`, 10 + (p.progress * 0.8));
+                            updateStatus(`Baixando IA: ${Math.round(p.progress)}%`, 10 + (p.progress * 0.8));
                         }
                     }
                 });
@@ -151,7 +210,7 @@
             const decodedData = await audioCtx.decodeAudioData(arrayBuffer);
             let audioData = decodedData.getChannelData(0);
 
-            updateStatus('Transcrevendo... (O modelo small exige mais do PC)', 95);
+            updateStatus('Transcrevendo... (Aguarde)', 95);
             const output = await transcriber(audioData, {
                 language: 'portuguese',
                 task: 'transcribe'
@@ -166,18 +225,16 @@
             updateStatus('Erro: ' + err.message, 0);
         } finally {
             transcribeBtn.disabled = false;
+            recordBtn.disabled = false;
         }
     };
 
-    // --- CORRIGINDO OS BOTÕES ---
-
-    // Botão de Copiar
+    // --- LÓGICA DOS BOTÕES EXTRAS ---
     copyBtn.onclick = () => {
         const text = transcriptionDiv.innerText;
         if (!text) return;
         
         navigator.clipboard.writeText(text).then(() => {
-            // Feedback visual rápido
             const originalHtml = copyBtn.innerHTML;
             copyBtn.innerHTML = '<i class="fas fa-check"></i> Copiado!';
             setTimeout(() => { copyBtn.innerHTML = originalHtml; }, 2000);
@@ -186,7 +243,6 @@
         });
     };
 
-    // Botão de Limpar
     clearBtn.onclick = () => {
         inputFile = null;
         fileInfo.style.display = 'none';
@@ -197,7 +253,7 @@
         progressArea.style.display = 'none';
         progressFill.style.width = '0%';
         statusDiv.innerText = '';
-        fileInput.value = ''; // Limpa o input de arquivo
+        fileInput.value = '';
     };
 </script>
 </body>
