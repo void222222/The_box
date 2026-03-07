@@ -8,6 +8,7 @@
     <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin">
     <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp">
     <style>
+        /* (mesmo estilo anterior, mantido) */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
         body { background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%); min-height: 100vh; padding: 2rem 1rem; display: flex; align-items: center; justify-content: center; }
         .container { max-width: 800px; width: 100%; margin: 0 auto; }
@@ -42,44 +43,6 @@
     </style>
     <!-- Ícones Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
-    <!-- Carregador dinâmico do FFmpeg com fallback (remove a tag estática) -->
-    <script>
-        window.FFmpeg = null; // placeholder
-
-        function loadFFmpegScript() {
-            return new Promise((resolve, reject) => {
-                const urls = [
-                    'https://unpkg.com/@ffmpeg/ffmpeg@0.12.7/dist/ffmpeg.min.js',
-                    'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.7/dist/ffmpeg.min.js',
-                    'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/ffmpeg.min.js' // versão mais recente
-                ];
-
-                function tryNext(index) {
-                    if (index >= urls.length) {
-                        reject(new Error('Todas as tentativas de carregar o FFmpeg falharam.'));
-                        return;
-                    }
-
-                    const script = document.createElement('script');
-                    script.src = urls[index];
-                    script.onload = () => {
-                        if (typeof FFmpeg !== 'undefined') {
-                            resolve();
-                        } else {
-                            tryNext(index + 1);
-                        }
-                    };
-                    script.onerror = () => tryNext(index + 1);
-                    document.head.appendChild(script);
-                }
-
-                tryNext(0);
-            });
-        }
-
-        window.loadFFmpegScript = loadFFmpegScript;
-    </script>
 </head>
 <body>
 <div class="container">
@@ -128,8 +91,10 @@
 </div>
 
 <script type="module">
-    // ========== Importar Transformers.js como módulo ==========
+    // ========== Importações como módulos ES ==========
     import { pipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.1/dist/transformers.min.js';
+    import { FFmpeg } from 'https://esm.sh/@ffmpeg/ffmpeg@0.12.10?bundle';
+    import { toBlob, toFile } from 'https://esm.sh/@ffmpeg/util@0.12.1';
 
     // ========== Código principal ==========
     (function() {
@@ -155,7 +120,7 @@
         let audioChunks = [];
         let transcriber = null;
         let modelLoading = false;
-        let ffmpeg = null;
+        let ffmpegInstance = null; // instância do FFmpeg
 
         // Utilitários
         function updateStatus(msg, percent) {
@@ -165,51 +130,24 @@
             }
         }
 
-        // Carregar FFmpeg com garantia de que o script global foi carregado
+        // Carregar FFmpeg (versão modular)
         async function loadFFmpeg() {
-            if (ffmpeg) return ffmpeg;
+            if (ffmpegInstance) return ffmpegInstance;
 
-            // Se a variável global FFmpeg ainda não existe, carrega o script dinamicamente
-            if (typeof FFmpeg === 'undefined') {
-                updateStatus('Carregando FFmpeg (script)...', 5);
-                try {
-                    await window.loadFFmpegScript();
-                } catch (error) {
-                    throw new Error('Falha ao carregar o FFmpeg: ' + error.message);
-                }
-            }
+            updateStatus('Carregando FFmpeg...', 5);
+            const ffmpeg = new FFmpeg();
+            // Opcional: log para debug
+            ffmpeg.on('log', ({ message }) => console.log(message));
 
-            updateStatus('Inicializando FFmpeg...', 8);
-            const { createFFmpeg, fetchFile } = FFmpeg; // agora deve estar definido
+            // URLs dos arquivos core (com fallback)
+            const coreURL = 'https://unpkg.com/@ffmpeg/core@0.12.7/dist/ffmpeg-core.js';
+            const wasmURL = 'https://unpkg.com/@ffmpeg/core@0.12.7/dist/ffmpeg-core.wasm';
+            const workerURL = 'https://unpkg.com/@ffmpeg/core@0.12.7/dist/ffmpeg-core.worker.js';
 
-            // Tenta carregar o core do jsDelivr primeiro, com fallback para unpkg
-            const coreUrls = [
-                'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.7/dist/ffmpeg-core.js',
-                'https://unpkg.com/@ffmpeg/core@0.12.7/dist/ffmpeg-core.js'
-            ];
-
-            let ffmpegInstance = null;
-            let lastError = null;
-
-            for (const coreUrl of coreUrls) {
-                try {
-                    ffmpegInstance = createFFmpeg({ 
-                        log: false,
-                        corePath: coreUrl
-                    });
-                    await ffmpegInstance.load();
-                    ffmpeg = ffmpegInstance;
-                    updateStatus('FFmpeg pronto', 10);
-                    return { ffmpeg, fetchFile };
-                } catch (error) {
-                    console.warn(`Falha ao carregar FFmpeg core de ${coreUrl}:`, error);
-                    lastError = error;
-                    // Continua para a próxima URL
-                }
-            }
-
-            // Se todas falharem, lança erro
-            throw new Error('Não foi possível carregar o FFmpeg. Tente novamente mais tarde. Detalhes: ' + (lastError ? lastError.message : 'desconhecido'));
+            await ffmpeg.load({ coreURL, wasmURL, workerURL });
+            ffmpegInstance = ffmpeg;
+            updateStatus('FFmpeg pronto', 10);
+            return ffmpegInstance;
         }
 
         // Carregar Whisper (usando pipeline importado)
@@ -301,16 +239,18 @@
             }
         });
 
-        // Conversão com FFmpeg
+        // Conversão com FFmpeg (agora usando a instância modular)
         async function convertToWav(file) {
-            const { ffmpeg: ff, fetchFile } = await loadFFmpeg();
+            const ffmpeg = await loadFFmpeg();
 
             const inputName = 'input_' + Date.now() + '_' + file.name;
-            ff.FS('writeFile', inputName, await fetchFile(file));
+            // Converte arquivo para Uint8Array
+            const fileData = new Uint8Array(await file.arrayBuffer());
+            await ffmpeg.writeFile(inputName, fileData);
 
             updateStatus('Convertendo áudio... (FFmpeg)', 40);
 
-            await ff.run(
+            await ffmpeg.exec([
                 '-i', inputName,
                 '-vn',
                 '-acodec', 'pcm_s16le',
@@ -318,13 +258,14 @@
                 '-ar', '16000',
                 '-y',
                 'output.wav'
-            );
+            ]);
 
-            const data = ff.FS('readFile', 'output.wav');
-            const wavBlob = new Blob([data.buffer], { type: 'audio/wav' });
+            const outputData = await ffmpeg.readFile('output.wav');
+            const wavBlob = new Blob([outputData.buffer], { type: 'audio/wav' });
 
-            ff.FS('unlink', inputName);
-            ff.FS('unlink', 'output.wav');
+            // Limpeza
+            await ffmpeg.deleteFile(inputName);
+            await ffmpeg.deleteFile('output.wav');
 
             return wavBlob;
         }
