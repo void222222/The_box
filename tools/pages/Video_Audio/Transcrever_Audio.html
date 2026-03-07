@@ -42,8 +42,8 @@
     </style>
     <!-- Ícones Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Carregar FFmpeg (versão 0.11.6) via jsDelivr -->
-    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
+    <!-- Carregar FFmpeg (versão 0.12.7) via jsDelivr -->
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.7/dist/ffmpeg.min.js"></script>
 </head>
 <body>
 <div class="container">
@@ -134,19 +134,35 @@
             if (ffmpeg) return ffmpeg;
             updateStatus('Carregando FFmpeg...', 5);
             const { createFFmpeg, fetchFile } = FFmpeg; // global
-            ffmpeg = createFFmpeg({ 
-                log: false,
-                corePath: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.11.6/dist/ffmpeg-core.js'
-            });
-            try {
-                await ffmpeg.load();
-            } catch (error) {
-                console.error('Falha ao carregar FFmpeg core:', error);
-                updateStatus('Erro ao carregar FFmpeg. Verifique sua conexão.', 0);
-                throw error;
+            
+            // Tenta carregar o core do jsDelivr primeiro, com fallback para unpkg
+            const coreUrls = [
+                'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.7/dist/ffmpeg-core.js',
+                'https://unpkg.com/@ffmpeg/core@0.12.7/dist/ffmpeg-core.js'
+            ];
+            
+            let ffmpegInstance = null;
+            let lastError = null;
+            
+            for (const coreUrl of coreUrls) {
+                try {
+                    ffmpegInstance = createFFmpeg({ 
+                        log: false,
+                        corePath: coreUrl
+                    });
+                    await ffmpegInstance.load();
+                    ffmpeg = ffmpegInstance;
+                    updateStatus('FFmpeg pronto', 10);
+                    return { ffmpeg, fetchFile };
+                } catch (error) {
+                    console.warn(`Falha ao carregar FFmpeg core de ${coreUrl}:`, error);
+                    lastError = error;
+                    // Continua para a próxima URL
+                }
             }
-            updateStatus('FFmpeg pronto', 10);
-            return { ffmpeg, fetchFile };
+            
+            // Se todas falharem, lança erro
+            throw new Error('Não foi possível carregar o FFmpeg. Tente novamente mais tarde. Detalhes: ' + (lastError ? lastError.message : 'desconhecido'));
         }
 
         // Carregar Whisper (usando pipeline importado)
