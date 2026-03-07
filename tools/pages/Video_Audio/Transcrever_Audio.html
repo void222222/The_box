@@ -42,8 +42,8 @@
     </style>
     <!-- Ícones Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Carregar FFmpeg (versão 0.11.6 UMD) -->
-    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
+    <!-- Carregar FFmpeg (versão 0.11.6) via jsDelivr -->
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
 </head>
 <body>
 <div class="container">
@@ -129,16 +129,22 @@
             }
         }
 
-        // Carregar FFmpeg (global FFmpeg disponível)
+        // Carregar FFmpeg (global FFmpeg disponível via script)
         async function loadFFmpeg() {
             if (ffmpeg) return ffmpeg;
             updateStatus('Carregando FFmpeg...', 5);
             const { createFFmpeg, fetchFile } = FFmpeg; // global
             ffmpeg = createFFmpeg({ 
                 log: false,
-                corePath: 'https://unpkg.com/@ffmpeg/core@0.11.6/dist/ffmpeg-core.js'
+                corePath: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.11.6/dist/ffmpeg-core.js'
             });
-            await ffmpeg.load();
+            try {
+                await ffmpeg.load();
+            } catch (error) {
+                console.error('Falha ao carregar FFmpeg core:', error);
+                updateStatus('Erro ao carregar FFmpeg. Verifique sua conexão.', 0);
+                throw error;
+            }
             updateStatus('FFmpeg pronto', 10);
             return { ffmpeg, fetchFile };
         }
