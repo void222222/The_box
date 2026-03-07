@@ -42,8 +42,44 @@
     </style>
     <!-- Ícones Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Carregar FFmpeg (versão 0.12.7) via jsDelivr -->
-    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.7/dist/ffmpeg.min.js"></script>
+
+    <!-- Carregador dinâmico do FFmpeg com fallback (remove a tag estática) -->
+    <script>
+        window.FFmpeg = null; // placeholder
+
+        function loadFFmpegScript() {
+            return new Promise((resolve, reject) => {
+                const urls = [
+                    'https://unpkg.com/@ffmpeg/ffmpeg@0.12.7/dist/ffmpeg.min.js',
+                    'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.7/dist/ffmpeg.min.js',
+                    'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/ffmpeg.min.js' // versão mais recente
+                ];
+
+                function tryNext(index) {
+                    if (index >= urls.length) {
+                        reject(new Error('Todas as tentativas de carregar o FFmpeg falharam.'));
+                        return;
+                    }
+
+                    const script = document.createElement('script');
+                    script.src = urls[index];
+                    script.onload = () => {
+                        if (typeof FFmpeg !== 'undefined') {
+                            resolve();
+                        } else {
+                            tryNext(index + 1);
+                        }
+                    };
+                    script.onerror = () => tryNext(index + 1);
+                    document.head.appendChild(script);
+                }
+
+                tryNext(0);
+            });
+        }
+
+        window.loadFFmpegScript = loadFFmpegScript;
+    </script>
 </head>
 <body>
 <div class="container">
@@ -129,21 +165,32 @@
             }
         }
 
-        // Carregar FFmpeg (global FFmpeg disponível via script)
+        // Carregar FFmpeg com garantia de que o script global foi carregado
         async function loadFFmpeg() {
             if (ffmpeg) return ffmpeg;
-            updateStatus('Carregando FFmpeg...', 5);
-            const { createFFmpeg, fetchFile } = FFmpeg; // global
-            
+
+            // Se a variável global FFmpeg ainda não existe, carrega o script dinamicamente
+            if (typeof FFmpeg === 'undefined') {
+                updateStatus('Carregando FFmpeg (script)...', 5);
+                try {
+                    await window.loadFFmpegScript();
+                } catch (error) {
+                    throw new Error('Falha ao carregar o FFmpeg: ' + error.message);
+                }
+            }
+
+            updateStatus('Inicializando FFmpeg...', 8);
+            const { createFFmpeg, fetchFile } = FFmpeg; // agora deve estar definido
+
             // Tenta carregar o core do jsDelivr primeiro, com fallback para unpkg
             const coreUrls = [
                 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.7/dist/ffmpeg-core.js',
                 'https://unpkg.com/@ffmpeg/core@0.12.7/dist/ffmpeg-core.js'
             ];
-            
+
             let ffmpegInstance = null;
             let lastError = null;
-            
+
             for (const coreUrl of coreUrls) {
                 try {
                     ffmpegInstance = createFFmpeg({ 
@@ -160,7 +207,7 @@
                     // Continua para a próxima URL
                 }
             }
-            
+
             // Se todas falharem, lança erro
             throw new Error('Não foi possível carregar o FFmpeg. Tente novamente mais tarde. Detalhes: ' + (lastError ? lastError.message : 'desconhecido'));
         }
