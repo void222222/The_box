@@ -8,203 +8,43 @@
     <!-- Headers de segurança (já definidos no vercel.json) -->
     <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin">
     <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp">
+    <!-- Carregar FFmpeg via CDN (versão 0.12.6) -->
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/ffmpeg.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
-        }
-        body {
-            background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
-            min-height: 100vh;
-            padding: 2rem 1rem;
-        }
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-        header {
-            text-align: center;
-            padding: 1rem 1rem 2rem;
-            color: white;
-        }
-        header h1 {
-            font-size: 2.8rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #c084fc, #60a5fa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        header p {
-            color: #cbd5e1;
-        }
-        .card {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(8px);
-            border-radius: 32px;
-            padding: 2rem;
-            border: 1px solid rgba(255,255,255,0.05);
-            box-shadow: 0 25px 40px -12px black;
-            position: relative;
-            overflow: hidden;
-        }
-        .upload-area {
-            border: 2px dashed rgba(255,255,255,0.1);
-            border-radius: 30px;
-            padding: 2rem;
-            text-align: center;
-            cursor: pointer;
-            transition: 0.2s;
-            background: rgba(0,0,0,0.2);
-            margin-bottom: 1.5rem;
-        }
-        .upload-area:hover {
-            border-color: #ef4444;
-        }
-        .upload-area i {
-            font-size: 3rem;
-            color: #ef4444;
-            margin-bottom: 0.5rem;
-        }
-        .upload-area p {
-            color: #94a3b8;
-        }
-        #fileInput {
-            display: none;
-        }
-        .file-info {
-            background: rgba(0,0,0,0.2);
-            border-radius: 40px;
-            padding: 0.8rem 1.5rem;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .file-info i {
-            color: #ef4444;
-            font-size: 1.2rem;
-        }
-        .file-info span {
-            color: #cbd5e1;
-            font-size: 0.95rem;
-            word-break: break-all;
-        }
-        .options {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.2rem;
-            margin: 1.5rem 0;
-        }
-        .option-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.3rem;
-        }
-        .option-group label {
-            color: #cbd5e1;
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-        .option-group select, .option-group input {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: #e2e8f0;
-            padding: 0.7rem 1rem;
-            border-radius: 40px;
-            font-size: 0.95rem;
-            outline: none;
-        }
-        .option-group input::placeholder {
-            color: #64748b;
-        }
-        .bitrate-advanced {
-            display: none;
-            margin-top: 1rem;
-            padding: 1rem;
-            background: rgba(0,0,0,0.2);
-            border-radius: 20px;
-        }
-        .bitrate-advanced.active {
-            display: block;
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #ef4444, #f97316);
-            color: white;
-            border: none;
-            padding: 1rem 2rem;
-            border-radius: 40px;
-            font-weight: 600;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: 0.2s;
-            width: 100%;
-            margin-top: 1rem;
-        }
-        .btn-primary:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px -5px #ef4444;
-        }
-        .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .progress-area {
-            margin-top: 1.5rem;
-        }
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: #1e293b;
-            border-radius: 10px;
-            overflow: hidden;
-            margin-bottom: 0.5rem;
-        }
-        .progress-fill {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, #ef4444, #f97316);
-            transition: width 0.3s ease;
-        }
-        .status {
-            text-align: center;
-            color: #94a3b8;
-            font-size: 0.95rem;
-            min-height: 2rem;
-            margin-top: 0.5rem;
-        }
-        .download-link {
-            background: #10b981;
-            color: white;
-            text-decoration: none;
-            padding: 1rem 2rem;
-            border-radius: 40px;
-            font-weight: 600;
-            font-size: 1.1rem;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            transition: 0.2s;
-            margin-top: 1.5rem;
-        }
-        .download-link:hover {
-            background: #059669;
-        }
-        footer {
-            text-align: center;
-            padding: 2rem 1rem 0;
-            color: #64748b;
-        }
-        .note {
-            font-size: 0.85rem;
-            color: #94a3b8;
-            margin-top: 1rem;
-            text-align: center;
-        }
+        /* (mesmo estilo, omitido por brevidade - manter o mesmo CSS) */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, system-ui, sans-serif; }
+        body { background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%); min-height: 100vh; padding: 2rem 1rem; }
+        .container { max-width: 900px; margin: 0 auto; }
+        header { text-align: center; padding: 1rem 1rem 2rem; color: white; }
+        header h1 { font-size: 2.8rem; font-weight: 700; background: linear-gradient(135deg, #c084fc, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        header p { color: #cbd5e1; }
+        .card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(8px); border-radius: 32px; padding: 2rem; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 25px 40px -12px black; }
+        .upload-area { border: 2px dashed rgba(255,255,255,0.1); border-radius: 30px; padding: 2rem; text-align: center; cursor: pointer; transition: 0.2s; background: rgba(0,0,0,0.2); margin-bottom: 1.5rem; }
+        .upload-area:hover { border-color: #ef4444; }
+        .upload-area i { font-size: 3rem; color: #ef4444; margin-bottom: 0.5rem; }
+        .upload-area p { color: #94a3b8; }
+        #fileInput { display: none; }
+        .file-info { background: rgba(0,0,0,0.2); border-radius: 40px; padding: 0.8rem 1.5rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.8rem; border: 1px solid rgba(255,255,255,0.1); }
+        .file-info i { color: #ef4444; font-size: 1.2rem; }
+        .file-info span { color: #cbd5e1; font-size: 0.95rem; word-break: break-all; }
+        .options { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.2rem; margin: 1.5rem 0; }
+        .option-group { display: flex; flex-direction: column; gap: 0.3rem; }
+        .option-group label { color: #cbd5e1; font-size: 0.9rem; font-weight: 500; }
+        .option-group select, .option-group input { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #e2e8f0; padding: 0.7rem 1rem; border-radius: 40px; font-size: 0.95rem; outline: none; }
+        .option-group input::placeholder { color: #64748b; }
+        .bitrate-advanced { display: none; margin-top: 1rem; padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 20px; }
+        .bitrate-advanced.active { display: block; }
+        .btn-primary { background: linear-gradient(135deg, #ef4444, #f97316); color: white; border: none; padding: 1rem 2rem; border-radius: 40px; font-weight: 600; font-size: 1.1rem; cursor: pointer; transition: 0.2s; width: 100%; margin-top: 1rem; }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 20px -5px #ef4444; }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .progress-area { margin-top: 1.5rem; }
+        .progress-bar { width: 100%; height: 8px; background: #1e293b; border-radius: 10px; overflow: hidden; margin-bottom: 0.5rem; }
+        .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #ef4444, #f97316); transition: width 0.3s ease; }
+        .status { text-align: center; color: #94a3b8; font-size: 0.95rem; min-height: 2rem; margin-top: 0.5rem; }
+        .download-link { background: #10b981; color: white; text-decoration: none; padding: 1rem 2rem; border-radius: 40px; font-weight: 600; font-size: 1.1rem; display: none; align-items: center; justify-content: center; gap: 0.5rem; transition: 0.2s; margin-top: 1.5rem; }
+        .download-link:hover { background: #059669; }
+        footer { text-align: center; padding: 2rem 1rem 0; color: #64748b; }
+        .note { font-size: 0.85rem; color: #94a3b8; margin-top: 1rem; text-align: center; }
     </style>
 </head>
 <body>
@@ -293,9 +133,6 @@
         </footer>
     </div>
 
-    <!-- Carregar FFmpeg (do diretório local) -->
-    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
-
     <script>
         (function() {
             // Elementos DOM
@@ -322,6 +159,13 @@
             // Verifica suporte a SharedArrayBuffer
             if (typeof SharedArrayBuffer === 'undefined') {
                 statusDiv.innerText = '❌ Seu navegador não suporta SharedArrayBuffer. A ferramenta pode não funcionar.';
+                compressBtn.disabled = true;
+            }
+
+            // Verifica se a biblioteca FFmpeg foi carregada
+            if (typeof FFmpeg === 'undefined') {
+                console.error('FFmpeg não carregado. Verifique a conexão com a CDN.');
+                statusDiv.innerText = '❌ Erro ao carregar FFmpeg. Tente recarregar a página.';
                 compressBtn.disabled = true;
             }
 
@@ -360,43 +204,36 @@
                 compressBtn.disabled = false;
             }
 
-            // Carrega FFmpeg (similar ao Cortar_Video)
+            // Carrega FFmpeg (versão 0.12.6)
             async function loadFFmpeg() {
                 if (ffmpegLoaded) return true;
+
+                if (typeof FFmpeg === 'undefined') {
+                    throw new Error('FFmpeg não está disponível. Verifique o carregamento do script.');
+                }
+
                 statusDiv.innerText = 'Carregando FFmpeg... (pode levar alguns segundos)';
                 progressArea.style.display = 'block';
                 progressFill.style.width = '0%';
 
-                // Usa a mesma estratégia do Cortar_Video: FFmpegWASM com createFFmpeg
                 const { createFFmpeg, fetchFile } = FFmpeg;
 
-                // Tenta com múltiplos core paths (fallback)
-                const corePaths = [
-                    '/ffmpeg/ffmpeg-core.js',
-                    'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js'
-                ];
-
-                for (let corePath of corePaths) {
-                    try {
-                        ffmpeg = createFFmpeg({
-                            corePath,
-                            log: false,
-                            progress: ({ ratio }) => {
-                                const percent = Math.round(ratio * 100);
-                                progressFill.style.width = percent + '%';
-                                statusDiv.innerText = `Carregando... ${percent}%`;
-                            }
-                        });
-                        await ffmpeg.load();
-                        ffmpegLoaded = true;
-                        statusDiv.innerText = 'FFmpeg pronto!';
-                        progressArea.style.display = 'none';
-                        return true;
-                    } catch (err) {
-                        console.warn('Falha ao carregar FFmpeg de', corePath, err);
+                // Configuração com corePath apontando para o diretório da CDN
+                ffmpeg = createFFmpeg({
+                    corePath: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/ffmpeg-core.js',
+                    log: false,
+                    progress: ({ ratio }) => {
+                        const percent = Math.round(ratio * 100);
+                        progressFill.style.width = percent + '%';
+                        statusDiv.innerText = `Carregando... ${percent}%`;
                     }
-                }
-                throw new Error('Não foi possível carregar o FFmpeg. Verifique sua conexão.');
+                });
+
+                await ffmpeg.load();
+                ffmpegLoaded = true;
+                statusDiv.innerText = 'FFmpeg pronto!';
+                progressArea.style.display = 'none';
+                return true;
             }
 
             // Mapeia qualidade para CRF e parâmetros de áudio
@@ -407,27 +244,6 @@
                     case 'low':   return { crf: 30, audioBitrate: '96k' };
                     default:      return { crf: 23, audioBitrate: '128k' };
                 }
-            }
-
-            // Obtém resolução alvo (width, height) preservando aspect ratio
-            function getTargetResolution(originalWidth, originalHeight, resolution) {
-                if (resolution === 'original') return { w: originalWidth, h: originalHeight };
-                const target = resolution === '1080p' ? 1080 :
-                               resolution === '720p'  ? 720 :
-                               resolution === '480p'  ? 480 : 360;
-                const aspect = originalWidth / originalHeight;
-                let newWidth, newHeight;
-                if (originalHeight > originalWidth) { // vertical
-                    newHeight = target;
-                    newWidth = Math.round(target * aspect);
-                } else {
-                    newWidth = target;
-                    newHeight = Math.round(target / aspect);
-                }
-                // Garante dimensões pares (exigência de alguns codecs)
-                if (newWidth % 2 !== 0) newWidth++;
-                if (newHeight % 2 !== 0) newHeight++;
-                return { w: newWidth, h: newHeight };
             }
 
             // Evento de compressão
@@ -442,9 +258,9 @@
 
                 try {
                     // Carrega FFmpeg se necessário
-                    if (!ffmpegLoaded) await loadFFmpeg();
+                    await loadFFmpeg();
 
-                    statusDiv.innerText = 'Analisando vídeo...';
+                    statusDiv.innerText = 'Preparando arquivo...';
                     progressFill.style.width = '10%';
 
                     // Escreve arquivo no sistema virtual
@@ -454,10 +270,6 @@
                     const { fetchFile } = FFmpeg;
                     ffmpeg.FS('writeFile', inputFileName, await fetchFile(currentFile));
 
-                    // Obtém informações do vídeo original (opcional, mas útil para resolução)
-                    // Para simplificar, usaremos um comando que redimensiona com scale e aplica CRF
-                    // Poderíamos rodar ffprobe, mas é mais complexo; confiamos que o usuário escolheu a resolução.
-
                     // Determina parâmetros de qualidade
                     const quality = qualitySelect.value;
                     const { crf, audioBitrate } = getQualityParams(quality);
@@ -466,13 +278,6 @@
                     const resolution = resolutionSelect.value;
                     let scaleFilter = '';
                     if (resolution !== 'original') {
-                        // Precisamos das dimensões originais para calcular o scale proporcional.
-                        // Infelizmente não temos sem analisar o vídeo. Uma abordagem alternativa:
-                        // usar 'scale=iw*min(1\,TARGET/ih):-2' onde TARGET é a altura desejada.
-                        // Isso redimensiona proporcionalmente mantendo a altura máxima TARGET.
-                        // Exemplo para 720p: scale='min(1280,iw)':'min(720,ih)'
-                        // Mas para simplificar, usaremos escala fixa com force_original_aspect_ratio=decrease.
-                        // Vamos construir um filtro scale baseado na altura desejada.
                         let targetHeight;
                         switch (resolution) {
                             case '1080p': targetHeight = 1080; break;
@@ -502,24 +307,21 @@
                     // Monta comando FFmpeg
                     let args = ['-i', inputFileName];
 
-                    // Se houver scale, adiciona antes
                     if (scaleFilter) {
                         args.push('-vf', scaleFilter);
                     }
 
-                    // Parâmetros de compressão
                     args.push(
-                        '-c:v', 'libx264',       // codec de vídeo
-                        '-preset', 'medium',      // velocidade x qualidade
-                        '-crf', crf.toString(),   // qualidade (menor = melhor)
-                        '-c:a', 'aac',             // codec de áudio
-                        '-b:a', audioBitrate,      // bitrate de áudio
-                        '-movflags', '+faststart'  // otimiza para streaming
+                        '-c:v', 'libx264',
+                        '-preset', 'medium',
+                        '-crf', crf.toString(),
+                        '-c:a', 'aac',
+                        '-b:a', audioBitrate,
+                        '-movflags', '+faststart'
                     );
 
-                    // Adiciona bitrate personalizado se definido (substitui CRF)
                     if (bitrateParams.length > 0) {
-                        // Remove o parâmetro -crf (pois bitrate fixo é incompatível com CRF)
+                        // Remove CRF se usar bitrate fixo
                         args = args.filter(arg => arg !== '-crf' && arg !== crf.toString());
                         args.push(...bitrateParams);
                     }
