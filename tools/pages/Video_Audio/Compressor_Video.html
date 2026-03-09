@@ -5,13 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Compressor de Vídeo · thebox</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Headers de segurança (já definidos no vercel.json) -->
     <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin">
     <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp">
-    <!-- Carregar FFmpeg via CDN (versão 0.12.6) -->
-    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/ffmpeg.min.js"></script>
+    <!-- FFmpeg via UNPKG -->
+    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/ffmpeg.min.js"></script>
     <style>
-        /* (mesmo estilo, omitido por brevidade - manter o mesmo CSS) */
+        /* Mesmo CSS anterior – mantido por questões de espaço */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, system-ui, sans-serif; }
         body { background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%); min-height: 100vh; padding: 2rem 1rem; }
         .container { max-width: 900px; margin: 0 auto; }
@@ -55,7 +54,6 @@
         </header>
 
         <div class="card">
-            <!-- Upload -->
             <div class="upload-area" id="uploadArea">
                 <i class="fas fa-cloud-upload-alt"></i>
                 <p id="uploadText">Arraste ou clique para selecionar um vídeo</p>
@@ -67,7 +65,6 @@
                 <span id="fileName"></span>
             </div>
 
-            <!-- Opções de compressão -->
             <div class="options">
                 <div class="option-group">
                     <label for="quality">Qualidade</label>
@@ -96,7 +93,6 @@
                 </div>
             </div>
 
-            <!-- Campo avançado de bitrate -->
             <div class="bitrate-advanced" id="bitrateAdvanced">
                 <div class="option-group">
                     <label for="customBitrate">Bitrate (kbps)</label>
@@ -104,12 +100,10 @@
                 </div>
             </div>
 
-            <!-- Botão de compressão -->
             <button class="btn-primary" id="compressBtn" disabled>
                 <i class="fas fa-compress"></i> Comprimir Vídeo
             </button>
 
-            <!-- Progresso -->
             <div class="progress-area" id="progressArea" style="display: none;">
                 <div class="progress-bar">
                     <div class="progress-fill" id="progressFill"></div>
@@ -117,7 +111,6 @@
                 <div class="status" id="status"></div>
             </div>
 
-            <!-- Download -->
             <a id="downloadLink" class="download-link">
                 <i class="fas fa-download"></i> Baixar vídeo comprimido
             </a>
@@ -127,15 +120,11 @@
                 🔒 Seu vídeo não é enviado para nenhum servidor.
             </div>
         </div>
-
-        <footer>
-            <p>thebox · ferramentas gratuitas</p>
-        </footer>
+        <footer>thebox · ferramentas gratuitas</footer>
     </div>
 
     <script>
         (function() {
-            // Elementos DOM
             const uploadArea = document.getElementById('uploadArea');
             const fileInput = document.getElementById('fileInput');
             const fileInfo = document.getElementById('fileInfo');
@@ -151,48 +140,35 @@
             const statusDiv = document.getElementById('status');
             const downloadLink = document.getElementById('downloadLink');
 
-            // Estado
             let currentFile = null;
             let ffmpeg = null;
             let ffmpegLoaded = false;
 
-            // Verifica suporte a SharedArrayBuffer
             if (typeof SharedArrayBuffer === 'undefined') {
                 statusDiv.innerText = '❌ Seu navegador não suporta SharedArrayBuffer. A ferramenta pode não funcionar.';
                 compressBtn.disabled = true;
             }
 
-            // Verifica se a biblioteca FFmpeg foi carregada
             if (typeof FFmpeg === 'undefined') {
                 console.error('FFmpeg não carregado. Verifique a conexão com a CDN.');
                 statusDiv.innerText = '❌ Erro ao carregar FFmpeg. Tente recarregar a página.';
                 compressBtn.disabled = true;
             }
 
-            // Mostra/esconde campo de bitrate personalizado
             bitrateModeSelect.addEventListener('change', () => {
-                if (bitrateModeSelect.value === 'custom') {
-                    bitrateAdvanced.classList.add('active');
-                } else {
-                    bitrateAdvanced.classList.remove('active');
-                }
+                bitrateAdvanced.classList.toggle('active', bitrateModeSelect.value === 'custom');
             });
 
-            // Upload
             uploadArea.addEventListener('click', () => fileInput.click());
-            uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.style.borderColor = '#ef4444'; });
-            uploadArea.addEventListener('dragleave', () => { uploadArea.style.borderColor = 'rgba(255,255,255,0.1)'; });
+            uploadArea.addEventListener('dragover', (e) => e.preventDefault());
             uploadArea.addEventListener('drop', (e) => {
                 e.preventDefault();
-                uploadArea.style.borderColor = 'rgba(255,255,255,0.1)';
                 const file = e.dataTransfer.files[0];
                 if (file && file.type.startsWith('video/')) handleFile(file);
                 else alert('Por favor, selecione um vídeo.');
             });
-
             fileInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (file) handleFile(file);
+                if (e.target.files[0]) handleFile(e.target.files[0]);
             });
 
             function handleFile(file) {
@@ -204,23 +180,17 @@
                 compressBtn.disabled = false;
             }
 
-            // Carrega FFmpeg (versão 0.12.6)
             async function loadFFmpeg() {
                 if (ffmpegLoaded) return true;
-
-                if (typeof FFmpeg === 'undefined') {
-                    throw new Error('FFmpeg não está disponível. Verifique o carregamento do script.');
-                }
+                if (typeof FFmpeg === 'undefined') throw new Error('FFmpeg não está disponível.');
 
                 statusDiv.innerText = 'Carregando FFmpeg... (pode levar alguns segundos)';
                 progressArea.style.display = 'block';
                 progressFill.style.width = '0%';
 
                 const { createFFmpeg, fetchFile } = FFmpeg;
-
-                // Configuração com corePath apontando para o diretório da CDN
                 ffmpeg = createFFmpeg({
-                    corePath: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/ffmpeg-core.js',
+                    corePath: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/ffmpeg-core.js',
                     log: false,
                     progress: ({ ratio }) => {
                         const percent = Math.round(ratio * 100);
@@ -236,7 +206,6 @@
                 return true;
             }
 
-            // Mapeia qualidade para CRF e parâmetros de áudio
             function getQualityParams(quality) {
                 switch (quality) {
                     case 'high':  return { crf: 18, audioBitrate: '192k' };
@@ -246,7 +215,6 @@
                 }
             }
 
-            // Evento de compressão
             compressBtn.addEventListener('click', async () => {
                 if (!currentFile) return;
 
@@ -257,92 +225,53 @@
                 downloadLink.style.display = 'none';
 
                 try {
-                    // Carrega FFmpeg se necessário
                     await loadFFmpeg();
 
                     statusDiv.innerText = 'Preparando arquivo...';
                     progressFill.style.width = '10%';
 
-                    // Escreve arquivo no sistema virtual
                     const inputFileName = 'input_' + Date.now() + getExtension(currentFile.name);
                     const outputFileName = 'output_' + Date.now() + '.mp4';
 
                     const { fetchFile } = FFmpeg;
                     ffmpeg.FS('writeFile', inputFileName, await fetchFile(currentFile));
 
-                    // Determina parâmetros de qualidade
                     const quality = qualitySelect.value;
                     const { crf, audioBitrate } = getQualityParams(quality);
-
-                    // Resolução
                     const resolution = resolutionSelect.value;
                     let scaleFilter = '';
                     if (resolution !== 'original') {
-                        let targetHeight;
-                        switch (resolution) {
-                            case '1080p': targetHeight = 1080; break;
-                            case '720p':  targetHeight = 720; break;
-                            case '480p':  targetHeight = 480; break;
-                            case '360p':  targetHeight = 360; break;
-                            default: targetHeight = 0;
-                        }
-                        if (targetHeight > 0) {
-                            scaleFilter = `scale=-2:${targetHeight}:flags=lanczos`;
-                        }
+                        const targetHeight = { '1080p':1080, '720p':720, '480p':480, '360p':360 }[resolution];
+                        if (targetHeight) scaleFilter = `scale=-2:${targetHeight}:flags=lanczos`;
                     }
 
-                    // Taxa de bits
                     let bitrateParams = [];
                     if (bitrateModeSelect.value === 'custom') {
                         const bitrate = parseInt(customBitrateInput.value);
-                        if (!isNaN(bitrate) && bitrate >= 100) {
-                            bitrateParams = ['-b:v', `${bitrate}k`];
-                        } else {
-                            alert('Informe um bitrate válido (mínimo 100 kbps) ou use automático.');
-                            compressBtn.disabled = false;
-                            return;
-                        }
+                        if (!isNaN(bitrate) && bitrate >= 100) bitrateParams = ['-b:v', `${bitrate}k`];
+                        else { alert('Bitrate inválido'); compressBtn.disabled = false; return; }
                     }
 
-                    // Monta comando FFmpeg
                     let args = ['-i', inputFileName];
-
-                    if (scaleFilter) {
-                        args.push('-vf', scaleFilter);
-                    }
-
-                    args.push(
-                        '-c:v', 'libx264',
-                        '-preset', 'medium',
-                        '-crf', crf.toString(),
-                        '-c:a', 'aac',
-                        '-b:a', audioBitrate,
-                        '-movflags', '+faststart'
-                    );
-
-                    if (bitrateParams.length > 0) {
-                        // Remove CRF se usar bitrate fixo
+                    if (scaleFilter) args.push('-vf', scaleFilter);
+                    args.push('-c:v', 'libx264', '-preset', 'medium', '-crf', crf.toString(),
+                              '-c:a', 'aac', '-b:a', audioBitrate, '-movflags', '+faststart');
+                    if (bitrateParams.length) {
                         args = args.filter(arg => arg !== '-crf' && arg !== crf.toString());
                         args.push(...bitrateParams);
                     }
-
                     args.push(outputFileName);
 
                     statusDiv.innerText = 'Comprimindo vídeo...';
                     progressFill.style.width = '30%';
-
-                    // Executa
                     await ffmpeg.run(...args);
 
                     statusDiv.innerText = 'Finalizando...';
                     progressFill.style.width = '90%';
 
-                    // Lê o resultado
                     const data = ffmpeg.FS('readFile', outputFileName);
                     const blob = new Blob([data.buffer], { type: 'video/mp4' });
                     const url = URL.createObjectURL(blob);
-
-                    // Nome do arquivo para download
                     const originalName = currentFile.name.replace(/\.[^/.]+$/, '');
                     downloadLink.href = url;
                     downloadLink.download = `${originalName}_comprimido.mp4`;
@@ -350,10 +279,8 @@
                     statusDiv.innerText = 'Pronto!';
                     progressFill.style.width = '100%';
 
-                    // Limpeza
                     ffmpeg.FS('unlink', inputFileName);
                     ffmpeg.FS('unlink', outputFileName);
-
                 } catch (error) {
                     console.error(error);
                     statusDiv.innerText = 'Erro: ' + error.message;
