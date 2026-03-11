@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>thebox · Compressor de Vídeo</title>
+    <title>thebox · Compressor de Vídeo PRO</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="icon" type="image/png" href="/logo_the_box_luz_e_sombra_sem_fundo-removebg-preview.png">
+    
+    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
+    
     <style>
         * {
             margin: 0;
@@ -25,7 +27,6 @@
             margin: 0 auto;
         }
 
-        /* header igual ao index */
         header {
             text-align: center;
             padding: 1rem 1rem 2rem;
@@ -65,7 +66,6 @@
             color: #cbd5e1;
         }
 
-        /* card da ferramenta */
         .tool-container {
             background: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(8px);
@@ -191,6 +191,8 @@
             text-decoration: none;
             font-weight: 500;
             margin-top: 1rem;
+            width: 100%;
+            text-align: center;
         }
 
         .back-link {
@@ -199,9 +201,6 @@
             color: #94a3b8;
             text-decoration: none;
             font-size: 1rem;
-        }
-        .back-link i {
-            margin-right: 0.3rem;
         }
         .back-link:hover {
             color: white;
@@ -219,10 +218,10 @@
     <div class="container">
         <header>
             <div class="logo-container">
-                <img src="/logo_the_box_luz_e_sombra_sem_fundo-removebg-preview.png" alt="thebox logo"  >
+                <img src="/logo_the_box_luz_e_sombra_sem_fundo-removebg-preview.png" alt="thebox logo">
             </div>
             <h1>thebox</h1>
-            <p>Compressor de Vídeo</p>
+            <p>Compressor de Vídeo PRO</p>
         </header>
 
         <div class="tool-container">
@@ -236,26 +235,26 @@
                 <div class="compression-controls">
                     <div class="slider-label">
                         <span>Qualidade (taxa de bits)</span>
-                        <span id="qualityLabel">1.5 Mbps</span>
+                        <span id="qualityLabel">1500 kbps</span>
                     </div>
                     <input type="range" id="qualitySlider" min="0" max="100" value="40" oninput="updateQualityLabel()">
                 </div>
 
                 <div class="preview-area">
                     <div class="preview-box">
-                        <video id="originalPreview" controls muted></video>
+                        <video id="originalPreview" controls></video>
                         <p>Original</p>
                         <span id="originalSize" class="size-number">0 KB</span>
                     </div>
                     <div class="preview-box">
-                        <video id="compressedPreview" controls muted style="display:none;"></video>
+                        <video id="compressedPreview" controls style="display:none;"></video>
                         <p>Comprimido</p>
                         <span id="compressedSize" class="size-number">—</span>
                     </div>
                 </div>
 
                 <button class="btn" id="compressBtn" onclick="compressVideo()">Comprimir vídeo</button>
-                <a id="downloadLink" class="download-btn" style="display:none;" download="video_comprimido.webm">⬇ Baixar vídeo comprimido</a>
+                <a id="downloadLink" class="download-btn" style="display:none;" download="video_comprimido.mp4">⬇ Baixar vídeo comprimido (MP4)</a>
             </div>
 
             <a href="/" class="back-link"><i class="fas fa-arrow-left"></i> Voltar para o início</a>
@@ -267,6 +266,11 @@
     </div>
 
     <script>
+        // Inicializa o FFmpeg
+        const { createFFmpeg, fetchFile } = FFmpeg;
+        // log: true ajuda a ver o processo no console do navegador (F12)
+        const ffmpeg = createFFmpeg({ log: true });
+
         const fileInput = document.getElementById('fileInput');
         const panel = document.getElementById('compressionPanel');
         const originalVideo = document.getElementById('originalPreview');
@@ -279,13 +283,11 @@
         const downloadLink = document.getElementById('downloadLink');
 
         let currentFile = null;
-        let mediaRecorder = null;
-        let recordedChunks = [];
 
         function updateQualityLabel() {
             const val = parseInt(qualitySlider.value);
-            // Mapeia 0-100 para 100kbps a 5mbps
-            const bitrate = Math.round(100 + (val / 100) * 4900); // 100 a 5000 kbps
+            // Mapeia 0-100 para 100kbps a 5000kbps
+            const bitrate = Math.round(100 + (val / 100) * 4900); 
             qualityLabel.innerText = bitrate + ' kbps';
         }
 
@@ -296,107 +298,66 @@
 
             const url = URL.createObjectURL(file);
             originalVideo.src = url;
-            originalVideo.onloadedmetadata = () => {
-                originalSizeSpan.innerText = (file.size / 1024).toFixed(2) + ' KB';
-                panel.style.display = 'block';
-                compressBtn.disabled = false;
-                downloadLink.style.display = 'none';
-                compressedVideo.style.display = 'none';
-                compressedSizeSpan.innerText = '—';
-            };
+            originalSizeSpan.innerText = (file.size / (1024 * 1024)).toFixed(2) + ' MB'; // Mudei para MB para facilitar
+            
+            panel.style.display = 'block';
+            compressBtn.disabled = false;
+            compressBtn.innerText = 'Comprimir vídeo';
+            downloadLink.style.display = 'none';
+            compressedVideo.style.display = 'none';
+            compressedSizeSpan.innerText = '—';
         }
 
         async function compressVideo() {
             if (!currentFile) return;
 
-            // Desabilitar botão durante o processo
-            compressBtn.disabled = true;
-            compressBtn.innerText = 'Comprimindo...';
+            try {
+                compressBtn.disabled = true;
+                compressBtn.innerText = 'Iniciando motor FFmpeg... (Pode demorar na 1ª vez)';
 
-            const quality = parseInt(qualitySlider.value);
-            const videoBitsPerSecond = Math.round(100 + (quality / 100) * 4900) * 1000; // em bps
-
-            // Criar stream a partir do vídeo original
-            const stream = originalVideo.captureStream();
-            const mimeTypes = [
-                'video/webm;codecs=vp8,opus',
-                'video/webm;codecs=vp9,opus',
-                'video/webm'
-            ];
-            let mimeType = '';
-            for (const type of mimeTypes) {
-                if (MediaRecorder.isTypeSupported(type)) {
-                    mimeType = type;
-                    break;
+                // Carrega o núcleo do FFmpeg (pesa cerca de 25MB, por isso demora um pouco na primeira vez)
+                if (!ffmpeg.isLoaded()) {
+                    await ffmpeg.load();
                 }
-            }
-            if (!mimeType) {
-                alert('Seu navegador não suporta gravação de vídeo no formato necessário.');
-                compressBtn.disabled = false;
-                compressBtn.innerText = 'Comprimir vídeo';
-                return;
-            }
 
-            const options = {
-                mimeType: mimeType,
-                videoBitsPerSecond: videoBitsPerSecond,
-                audioBitsPerSecond: 128000 // 128 kbps para áudio
-            };
+                compressBtn.innerText = 'Processando vídeo... Aguarde!';
 
-            recordedChunks = [];
-            mediaRecorder = new MediaRecorder(stream, options);
+                // Pega o valor do slider e calcula o bitrate
+                const val = parseInt(qualitySlider.value);
+                const bitrate = Math.round(100 + (val / 100) * 4900); 
+                const bitrateStr = `${bitrate}k`;
 
-            mediaRecorder.ondataavailable = (event) => {
-                if (event.data.size > 0) {
-                    recordedChunks.push(event.data);
-                }
-            };
+                // Coloca o arquivo na memória virtual do navegador
+                ffmpeg.FS('writeFile', 'input.mp4', await fetchFile(currentFile));
 
-            mediaRecorder.onstop = () => {
-                const blob = new Blob(recordedChunks, { type: mimeType });
+                // RODA O COMANDO MAGICO DO FFMPEG
+                // -i (input), -b:v (bitrate do video), -preset ultrafast (para ser rápido no navegador)
+                await ffmpeg.run('-i', 'input.mp4', '-b:v', bitrateStr, '-preset', 'ultrafast', 'output.mp4');
+
+                // Lê o resultado da memória virtual
+                const data = ffmpeg.FS('readFile', 'output.mp4');
+
+                // Cria o arquivo final e disponibiliza pro usuário
+                const blob = new Blob([data.buffer], { type: 'video/mp4' });
                 const url = URL.createObjectURL(blob);
+
                 compressedVideo.src = url;
                 compressedVideo.style.display = 'block';
-                compressedSizeSpan.innerText = (blob.size / 1024).toFixed(2) + ' KB';
+                compressedSizeSpan.innerText = (blob.size / (1024 * 1024)).toFixed(2) + ' MB';
+                
                 downloadLink.href = url;
-                downloadLink.download = 'video_comprimido.webm';
-                downloadLink.style.display = 'inline-block';
+                downloadLink.style.display = 'block';
+                compressBtn.innerText = 'Compressão Concluída!';
+
+            } catch (err) {
+                console.error('Erro na compressão:', err);
+                alert('Ocorreu um erro ao comprimir. Verifique o console.');
+                compressBtn.innerText = 'Erro. Tente novamente.';
                 compressBtn.disabled = false;
-                compressBtn.innerText = 'Comprimir vídeo';
-            };
-
-            mediaRecorder.onerror = (err) => {
-                console.error('Erro no MediaRecorder:', err);
-                alert('Erro ao comprimir vídeo. Tente novamente.');
-                compressBtn.disabled = false;
-                compressBtn.innerText = 'Comprimir vídeo';
-            };
-
-            // Iniciar gravação
-            mediaRecorder.start();
-            // Parar quando o vídeo original terminar? Ou gravar por tempo determinado.
-            // Vamos gravar até o fim do vídeo.
-            originalVideo.onended = () => {
-                if (mediaRecorder.state === 'recording') {
-                    mediaRecorder.stop();
-                }
-            };
-
-            // Se o vídeo não tiver o atributo 'loop' e terminar, o onended dispara.
-            // Caso contrário, podemos parar após um tempo. Para garantir, vamos parar quando a duração for atingida.
-            // Melhor: usar setTimeout baseado na duração do vídeo.
-            const duration = originalVideo.duration * 1000; // em ms
-            setTimeout(() => {
-                if (mediaRecorder.state === 'recording') {
-                    mediaRecorder.stop();
-                }
-            }, duration + 500); // meio segundo extra
-
-            // Começar a reprodução para que a stream flua
-            originalVideo.play();
+            }
         }
 
-        // Arrastar e soltar
+        // Sistema de Arrastar e Soltar
         const dropArea = document.querySelector('.file-drop-area');
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             dropArea.addEventListener(eventName, preventDefaults, false);
