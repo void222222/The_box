@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Compressor de Vídeo · thebox</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- COOP/COEP via meta (reforço) -->
     <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin">
     <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp">
     <!-- FFmpeg via UNPKG -->
     <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/ffmpeg.min.js"></script>
     <style>
-        /* Mesmo CSS anterior – mantido por questões de espaço */
+        /* Mesmo CSS anterior - mantido */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, system-ui, sans-serif; }
         body { background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%); min-height: 100vh; padding: 2rem 1rem; }
         .container { max-width: 900px; margin: 0 auto; }
@@ -44,6 +45,7 @@
         .download-link:hover { background: #059669; }
         footer { text-align: center; padding: 2rem 1rem 0; color: #64748b; }
         .note { font-size: 0.85rem; color: #94a3b8; margin-top: 1rem; text-align: center; }
+        .file-size { color: #94a3b8; font-size: 0.9rem; margin-left: 0.5rem; }
     </style>
 </head>
 <body>
@@ -63,6 +65,7 @@
             <div id="fileInfo" class="file-info" style="display: none;">
                 <i class="fas fa-file-video"></i>
                 <span id="fileName"></span>
+                <span id="fileSize" class="file-size"></span>
             </div>
 
             <div class="options">
@@ -116,8 +119,9 @@
             </a>
 
             <div class="note">
-                ⚡ A primeira execução baixa o FFmpeg (alguns MB). Depois fica em cache.<br>
-                🔒 Seu vídeo não é enviado para nenhum servidor.
+                ⚡ A primeira execução baixa o FFmpeg (cerca de 20 MB). Depois fica em cache.<br>
+                🔒 Seu vídeo não é enviado para nenhum servidor.<br>
+                🧪 Certifique-se de que seu navegador seja compatível (Chrome, Edge, Opera, etc.).
             </div>
         </div>
         <footer>thebox · ferramentas gratuitas</footer>
@@ -125,10 +129,12 @@
 
     <script>
         (function() {
+            // Elementos DOM
             const uploadArea = document.getElementById('uploadArea');
             const fileInput = document.getElementById('fileInput');
             const fileInfo = document.getElementById('fileInfo');
             const fileNameSpan = document.getElementById('fileName');
+            const fileSizeSpan = document.getElementById('fileSize');
             const qualitySelect = document.getElementById('quality');
             const resolutionSelect = document.getElementById('resolution');
             const bitrateModeSelect = document.getElementById('bitrateMode');
@@ -144,21 +150,24 @@
             let ffmpeg = null;
             let ffmpegLoaded = false;
 
+            // Verificação de SharedArrayBuffer
             if (typeof SharedArrayBuffer === 'undefined') {
-                statusDiv.innerText = '❌ Seu navegador não suporta SharedArrayBuffer. A ferramenta pode não funcionar.';
+                statusDiv.innerText = '❌ Seu navegador não suporta SharedArrayBuffer. A ferramenta pode não funcionar. Tente Chrome/Edge/Opera.';
                 compressBtn.disabled = true;
             }
 
-            if (typeof FFmpeg === 'undefined') {
-                console.error('FFmpeg não carregado. Verifique a conexão com a CDN.');
-                statusDiv.innerText = '❌ Erro ao carregar FFmpeg. Tente recarregar a página.';
-                compressBtn.disabled = true;
+            // Verificação de headers COOP/COEP
+            if (window.crossOriginIsolated === false) {
+                console.warn('A página não está cross-origin isolated. Verifique os headers COOP/COEP no servidor.');
+                statusDiv.innerText = '⚠️ Headers de segurança ausentes. Pode não funcionar. Verifique a configuração do servidor.';
             }
 
+            // Toggle do campo de bitrate customizado
             bitrateModeSelect.addEventListener('change', () => {
                 bitrateAdvanced.classList.toggle('active', bitrateModeSelect.value === 'custom');
             });
 
+            // Upload por clique
             uploadArea.addEventListener('click', () => fileInput.click());
             uploadArea.addEventListener('dragover', (e) => e.preventDefault());
             uploadArea.addEventListener('drop', (e) => {
@@ -174,15 +183,25 @@
             function handleFile(file) {
                 currentFile = file;
                 fileNameSpan.innerText = file.name;
+                fileSizeSpan.innerText = `(${formatBytes(file.size)})`;
                 fileInfo.style.display = 'flex';
                 downloadLink.style.display = 'none';
                 progressArea.style.display = 'none';
                 compressBtn.disabled = false;
             }
 
+            function formatBytes(bytes, decimals = 2) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const dm = decimals < 0 ? 0 : decimals;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+            }
+
             async function loadFFmpeg() {
                 if (ffmpegLoaded) return true;
-                if (typeof FFmpeg === 'undefined') throw new Error('FFmpeg não está disponível.');
+                if (typeof FFmpeg === 'undefined') throw new Error('FFmpeg não está disponível. Verifique sua conexão.');
 
                 statusDiv.innerText = 'Carregando FFmpeg... (pode levar alguns segundos)';
                 progressArea.style.display = 'block';
@@ -249,21 +268,30 @@
                     if (bitrateModeSelect.value === 'custom') {
                         const bitrate = parseInt(customBitrateInput.value);
                         if (!isNaN(bitrate) && bitrate >= 100) bitrateParams = ['-b:v', `${bitrate}k`];
-                        else { alert('Bitrate inválido'); compressBtn.disabled = false; return; }
+                        else { 
+                            alert('Bitrate inválido. Insira um valor numérico >= 100.');
+                            compressBtn.disabled = false;
+                            progressArea.style.display = 'none';
+                            return; 
+                        }
                     }
 
                     let args = ['-i', inputFileName];
                     if (scaleFilter) args.push('-vf', scaleFilter);
                     args.push('-c:v', 'libx264', '-preset', 'medium', '-crf', crf.toString(),
                               '-c:a', 'aac', '-b:a', audioBitrate, '-movflags', '+faststart');
+                    
+                    // Se for bitrate customizado, removemos o crf e usamos bitrate fixo
                     if (bitrateParams.length) {
                         args = args.filter(arg => arg !== '-crf' && arg !== crf.toString());
                         args.push(...bitrateParams);
                     }
                     args.push(outputFileName);
 
-                    statusDiv.innerText = 'Comprimindo vídeo...';
+                    statusDiv.innerText = 'Comprimindo vídeo... (isso pode levar alguns minutos)';
                     progressFill.style.width = '30%';
+                    
+                    // Executar FFmpeg
                     await ffmpeg.run(...args);
 
                     statusDiv.innerText = 'Finalizando...';
@@ -276,14 +304,18 @@
                     downloadLink.href = url;
                     downloadLink.download = `${originalName}_comprimido.mp4`;
                     downloadLink.style.display = 'flex';
-                    statusDiv.innerText = 'Pronto!';
+                    
+                    // Mostra tamanho final
+                    const compressedSize = data.length;
+                    statusDiv.innerText = `Pronto! Tamanho final: ${formatBytes(compressedSize)} (redução de ${Math.round((1 - compressedSize/currentFile.size)*100)}%)`;
                     progressFill.style.width = '100%';
 
+                    // Limpeza
                     ffmpeg.FS('unlink', inputFileName);
                     ffmpeg.FS('unlink', outputFileName);
                 } catch (error) {
                     console.error(error);
-                    statusDiv.innerText = 'Erro: ' + error.message;
+                    statusDiv.innerText = '❌ Erro: ' + error.message;
                     progressFill.style.width = '0%';
                 } finally {
                     compressBtn.disabled = false;
