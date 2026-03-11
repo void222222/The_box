@@ -5,13 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Compressor de Vídeo · thebox</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- COOP/COEP via meta (reforço) -->
+    <!-- Meta tags COOP/COEP (ajudam, mas não substituem os headers HTTP) -->
     <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin">
     <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp">
-    <!-- FFmpeg via UNPKG -->
-    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/ffmpeg.min.js"></script>
     <style>
-        /* Mesmo CSS anterior - mantido */
+        /* === SEU CSS ORIGINAL (MANTIDO) === */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, system-ui, sans-serif; }
         body { background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%); min-height: 100vh; padding: 2rem 1rem; }
         .container { max-width: 900px; margin: 0 auto; }
@@ -121,12 +119,41 @@
             <div class="note">
                 ⚡ A primeira execução baixa o FFmpeg (cerca de 20 MB). Depois fica em cache.<br>
                 🔒 Seu vídeo não é enviado para nenhum servidor.<br>
-                🧪 Certifique-se de que seu navegador seja compatível (Chrome, Edge, Opera, etc.).
+                🧪 Certifique-se de que seu navegador seja compatível (Chrome, Edge, Opera) e que o site esteja com HTTPS e headers COOP/COEP ativos.
             </div>
         </div>
         <footer>thebox · ferramentas gratuitas</footer>
     </div>
 
+    <!-- Carregamento inteligente do FFmpeg com fallback -->
+    <script>
+        (function loadFFmpegWithFallback() {
+            var script = document.createElement('script');
+            // Primeira tentativa: jsDelivr (geralmente mais rápida e estável)
+            script.src = 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/ffmpeg.min.js';
+            script.onload = function() { 
+                console.log('✅ FFmpeg carregado via jsDelivr');
+                window.ffmpegLoaded = true;
+            };
+            script.onerror = function() {
+                console.warn('⚠️ jsDelivr falhou, tentando unpkg...');
+                var fallback = document.createElement('script');
+                fallback.src = 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/ffmpeg.min.js';
+                fallback.onload = function() { 
+                    console.log('✅ FFmpeg carregado via unpkg (fallback)');
+                    window.ffmpegLoaded = true;
+                };
+                fallback.onerror = function() {
+                    console.error('❌ Não foi possível carregar FFmpeg de nenhuma CDN.');
+                    document.getElementById('status').innerText = '❌ Erro ao carregar FFmpeg. Verifique sua internet ou recarregue.';
+                };
+                document.head.appendChild(fallback);
+            };
+            document.head.appendChild(script);
+        })();
+    </script>
+
+    <!-- Código principal da aplicação -->
     <script>
         (function() {
             // Elementos DOM
@@ -148,7 +175,7 @@
 
             let currentFile = null;
             let ffmpeg = null;
-            let ffmpegLoaded = false;
+            let ffmpegReady = false; // será true após o carregamento da biblioteca
 
             // Verificação de SharedArrayBuffer
             if (typeof SharedArrayBuffer === 'undefined') {
@@ -158,9 +185,28 @@
 
             // Verificação de headers COOP/COEP
             if (window.crossOriginIsolated === false) {
-                console.warn('A página não está cross-origin isolated. Verifique os headers COOP/COEP no servidor.');
+                console.warn('⚠️ A página não está cross-origin isolated. Verifique os headers COOP/COEP no servidor.');
                 statusDiv.innerText = '⚠️ Headers de segurança ausentes. Pode não funcionar. Verifique a configuração do servidor.';
             }
+
+            // Monitora o carregamento do FFmpeg
+            const checkFFmpeg = setInterval(() => {
+                if (window.ffmpegLoaded && typeof FFmpeg !== 'undefined') {
+                    ffmpegReady = true;
+                    clearInterval(checkFFmpeg);
+                    statusDiv.innerText = '✅ FFmpeg pronto!';
+                    // Se já houver um arquivo selecionado, habilita o botão
+                    if (currentFile) compressBtn.disabled = false;
+                }
+            }, 200);
+
+            // Timeout após 10 segundos
+            setTimeout(() => {
+                if (!ffmpegReady) {
+                    statusDiv.innerText = '❌ Tempo limite excedido ao carregar FFmpeg. Recarregue a página.';
+                    compressBtn.disabled = true;
+                }
+            }, 10000);
 
             // Toggle do campo de bitrate customizado
             bitrateModeSelect.addEventListener('change', () => {
@@ -187,7 +233,8 @@
                 fileInfo.style.display = 'flex';
                 downloadLink.style.display = 'none';
                 progressArea.style.display = 'none';
-                compressBtn.disabled = false;
+                // Habilita o botão apenas se o FFmpeg já estiver carregado
+                compressBtn.disabled = !ffmpegReady;
             }
 
             function formatBytes(bytes, decimals = 2) {
@@ -199,11 +246,11 @@
                 return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
             }
 
-            async function loadFFmpeg() {
-                if (ffmpegLoaded) return true;
-                if (typeof FFmpeg === 'undefined') throw new Error('FFmpeg não está disponível. Verifique sua conexão.');
-
-                statusDiv.innerText = 'Carregando FFmpeg... (pode levar alguns segundos)';
+            async function loadFFmpegInstance() {
+                if (ffmpeg) return ffmpeg;
+                if (!ffmpegReady) throw new Error('FFmpeg não carregado.');
+                
+                statusDiv.innerText = 'Inicializando FFmpeg...';
                 progressArea.style.display = 'block';
                 progressFill.style.width = '0%';
 
@@ -219,10 +266,9 @@
                 });
 
                 await ffmpeg.load();
-                ffmpegLoaded = true;
                 statusDiv.innerText = 'FFmpeg pronto!';
                 progressArea.style.display = 'none';
-                return true;
+                return ffmpeg;
             }
 
             function getQualityParams(quality) {
@@ -244,7 +290,8 @@
                 downloadLink.style.display = 'none';
 
                 try {
-                    await loadFFmpeg();
+                    const ffmpegInstance = await loadFFmpegInstance();
+                    const { fetchFile } = FFmpeg;
 
                     statusDiv.innerText = 'Preparando arquivo...';
                     progressFill.style.width = '10%';
@@ -252,8 +299,7 @@
                     const inputFileName = 'input_' + Date.now() + getExtension(currentFile.name);
                     const outputFileName = 'output_' + Date.now() + '.mp4';
 
-                    const { fetchFile } = FFmpeg;
-                    ffmpeg.FS('writeFile', inputFileName, await fetchFile(currentFile));
+                    ffmpegInstance.FS('writeFile', inputFileName, await fetchFile(currentFile));
 
                     const quality = qualitySelect.value;
                     const { crf, audioBitrate } = getQualityParams(quality);
@@ -281,7 +327,6 @@
                     args.push('-c:v', 'libx264', '-preset', 'medium', '-crf', crf.toString(),
                               '-c:a', 'aac', '-b:a', audioBitrate, '-movflags', '+faststart');
                     
-                    // Se for bitrate customizado, removemos o crf e usamos bitrate fixo
                     if (bitrateParams.length) {
                         args = args.filter(arg => arg !== '-crf' && arg !== crf.toString());
                         args.push(...bitrateParams);
@@ -291,13 +336,12 @@
                     statusDiv.innerText = 'Comprimindo vídeo... (isso pode levar alguns minutos)';
                     progressFill.style.width = '30%';
                     
-                    // Executar FFmpeg
-                    await ffmpeg.run(...args);
+                    await ffmpegInstance.run(...args);
 
                     statusDiv.innerText = 'Finalizando...';
                     progressFill.style.width = '90%';
 
-                    const data = ffmpeg.FS('readFile', outputFileName);
+                    const data = ffmpegInstance.FS('readFile', outputFileName);
                     const blob = new Blob([data.buffer], { type: 'video/mp4' });
                     const url = URL.createObjectURL(blob);
                     const originalName = currentFile.name.replace(/\.[^/.]+$/, '');
@@ -305,14 +349,12 @@
                     downloadLink.download = `${originalName}_comprimido.mp4`;
                     downloadLink.style.display = 'flex';
                     
-                    // Mostra tamanho final
                     const compressedSize = data.length;
                     statusDiv.innerText = `Pronto! Tamanho final: ${formatBytes(compressedSize)} (redução de ${Math.round((1 - compressedSize/currentFile.size)*100)}%)`;
                     progressFill.style.width = '100%';
 
-                    // Limpeza
-                    ffmpeg.FS('unlink', inputFileName);
-                    ffmpeg.FS('unlink', outputFileName);
+                    ffmpegInstance.FS('unlink', inputFileName);
+                    ffmpegInstance.FS('unlink', outputFileName);
                 } catch (error) {
                     console.error(error);
                     statusDiv.innerText = '❌ Erro: ' + error.message;
