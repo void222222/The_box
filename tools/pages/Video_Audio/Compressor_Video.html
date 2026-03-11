@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>thebox · Compressor de Imagens</title>
+    <title>thebox · Compressor de Vídeo</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="icon" type="image/png" href="/logo_the_box_luz_e_sombra_sem_fundo-removebg-preview.png">
     <style>
@@ -153,7 +153,7 @@
             font-weight: 700;
             color: #60a5fa;
         }
-        .preview-image {
+        video {
             max-width: 100%;
             max-height: 150px;
             border-radius: 12px;
@@ -219,43 +219,43 @@
     <div class="container">
         <header>
             <div class="logo-container">
-                <img src="/logo_the_box_luz_e_sombra_sem_fundo-removebg-preview.png" alt="thebox logo" class="logo-img">
+                <img src="/logo_the_box_luz_e_sombra_sem_fundo-removebg-preview.png" alt="thebox logo"  >
             </div>
             <h1>thebox</h1>
-            <p>Compressor de Imagens</p>
+            <p>Compressor de Vídeo</p>
         </header>
 
         <div class="tool-container">
             <div class="file-drop-area" onclick="document.getElementById('fileInput').click()">
                 <i class="fas fa-cloud-upload-alt"></i>
-                <p>Clique para selecionar ou arraste uma imagem JPG/PNG</p>
-                <input type="file" id="fileInput" accept="image/jpeg,image/png" onchange="handleImageUpload(event)">
+                <p>Clique para selecionar ou arraste um vídeo (MP4, MOV, WebM)</p>
+                <input type="file" id="fileInput" accept="video/mp4,video/quicktime,video/webm" onchange="handleVideoUpload(event)">
             </div>
 
             <div id="compressionPanel" style="display: none;">
                 <div class="compression-controls">
                     <div class="slider-label">
-                        <span>Qualidade</span>
-                        <span id="qualityValue">80%</span>
+                        <span>Qualidade (taxa de bits)</span>
+                        <span id="qualityLabel">1.5 Mbps</span>
                     </div>
-                    <input type="range" id="qualitySlider" min="10" max="100" value="80" oninput="updateQualityLabel()">
+                    <input type="range" id="qualitySlider" min="0" max="100" value="40" oninput="updateQualityLabel()">
                 </div>
 
                 <div class="preview-area">
                     <div class="preview-box">
-                        <img id="originalPreview" class="preview-image" src="" alt="Original">
+                        <video id="originalPreview" controls muted></video>
                         <p>Original</p>
                         <span id="originalSize" class="size-number">0 KB</span>
                     </div>
                     <div class="preview-box">
-                        <img id="compressedPreview" class="preview-image" src="" alt="Comprimida">
-                        <p>Comprimida</p>
-                        <span id="compressedSize" class="size-number">0 KB</span>
+                        <video id="compressedPreview" controls muted style="display:none;"></video>
+                        <p>Comprimido</p>
+                        <span id="compressedSize" class="size-number">—</span>
                     </div>
                 </div>
 
-                <button class="btn" id="compressBtn" onclick="compressImage()">Comprimir e visualizar</button>
-                <a id="downloadLink" class="download-btn" style="display:none; text-align:center; margin-top:1rem;" download="imagem_comprimida.jpg">⬇ Baixar imagem comprimida</a>
+                <button class="btn" id="compressBtn" onclick="compressVideo()">Comprimir vídeo</button>
+                <a id="downloadLink" class="download-btn" style="display:none;" download="video_comprimido.webm">⬇ Baixar vídeo comprimido</a>
             </div>
 
             <a href="/" class="back-link"><i class="fas fa-arrow-left"></i> Voltar para o início</a>
@@ -269,85 +269,131 @@
     <script>
         const fileInput = document.getElementById('fileInput');
         const panel = document.getElementById('compressionPanel');
-        const originalPreview = document.getElementById('originalPreview');
-        const compressedPreview = document.getElementById('compressedPreview');
+        const originalVideo = document.getElementById('originalPreview');
+        const compressedVideo = document.getElementById('compressedPreview');
         const originalSizeSpan = document.getElementById('originalSize');
         const compressedSizeSpan = document.getElementById('compressedSize');
         const qualitySlider = document.getElementById('qualitySlider');
-        const qualityValue = document.getElementById('qualityValue');
+        const qualityLabel = document.getElementById('qualityLabel');
         const compressBtn = document.getElementById('compressBtn');
         const downloadLink = document.getElementById('downloadLink');
 
         let currentFile = null;
+        let mediaRecorder = null;
+        let recordedChunks = [];
 
         function updateQualityLabel() {
-            qualityValue.innerText = qualitySlider.value + '%';
+            const val = parseInt(qualitySlider.value);
+            // Mapeia 0-100 para 100kbps a 5mbps
+            const bitrate = Math.round(100 + (val / 100) * 4900); // 100 a 5000 kbps
+            qualityLabel.innerText = bitrate + ' kbps';
         }
 
-        function handleImageUpload(event) {
+        function handleVideoUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
             currentFile = file;
 
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                originalPreview.src = e.target.result;
-                originalPreview.onload = () => {
-                    originalSizeSpan.innerText = (file.size / 1024).toFixed(2) + ' KB';
-                    panel.style.display = 'block';
-                    compressBtn.disabled = false;
-                    downloadLink.style.display = 'none';
-                    compressedPreview.src = ''; // limpa preview anterior
-                    compressedSizeSpan.innerText = '0 KB';
-                };
+            const url = URL.createObjectURL(file);
+            originalVideo.src = url;
+            originalVideo.onloadedmetadata = () => {
+                originalSizeSpan.innerText = (file.size / 1024).toFixed(2) + ' KB';
+                panel.style.display = 'block';
+                compressBtn.disabled = false;
+                downloadLink.style.display = 'none';
+                compressedVideo.style.display = 'none';
+                compressedSizeSpan.innerText = '—';
             };
-            reader.readAsDataURL(file);
         }
 
-        function compressImage() {
+        async function compressVideo() {
             if (!currentFile) return;
 
-            const quality = qualitySlider.value / 100;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = new Image();
-                img.src = e.target.result;
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    let width = img.width;
-                    let height = img.height;
+            // Desabilitar botão durante o processo
+            compressBtn.disabled = true;
+            compressBtn.innerText = 'Comprimindo...';
 
-                    // Redimensionar se for muito grande (max 1200px) para não travar
-                    const maxDimension = 1200;
-                    if (width > maxDimension || height > maxDimension) {
-                        if (width > height) {
-                            height = Math.round((height * maxDimension) / width);
-                            width = maxDimension;
-                        } else {
-                            width = Math.round((width * maxDimension) / height);
-                            height = maxDimension;
-                        }
-                    }
+            const quality = parseInt(qualitySlider.value);
+            const videoBitsPerSecond = Math.round(100 + (quality / 100) * 4900) * 1000; // em bps
 
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
+            // Criar stream a partir do vídeo original
+            const stream = originalVideo.captureStream();
+            const mimeTypes = [
+                'video/webm;codecs=vp8,opus',
+                'video/webm;codecs=vp9,opus',
+                'video/webm'
+            ];
+            let mimeType = '';
+            for (const type of mimeTypes) {
+                if (MediaRecorder.isTypeSupported(type)) {
+                    mimeType = type;
+                    break;
+                }
+            }
+            if (!mimeType) {
+                alert('Seu navegador não suporta gravação de vídeo no formato necessário.');
+                compressBtn.disabled = false;
+                compressBtn.innerText = 'Comprimir vídeo';
+                return;
+            }
 
-                    // Gerar JPEG comprimido
-                    canvas.toBlob((blob) => {
-                        const compressedUrl = URL.createObjectURL(blob);
-                        compressedPreview.src = compressedUrl;
-                        compressedSizeSpan.innerText = (blob.size / 1024).toFixed(2) + ' KB';
-
-                        // Configurar link de download
-                        downloadLink.href = compressedUrl;
-                        downloadLink.download = 'imagem_comprimida.jpg';
-                        downloadLink.style.display = 'inline-block';
-                    }, 'image/jpeg', quality);
-                };
+            const options = {
+                mimeType: mimeType,
+                videoBitsPerSecond: videoBitsPerSecond,
+                audioBitsPerSecond: 128000 // 128 kbps para áudio
             };
-            reader.readAsDataURL(currentFile);
+
+            recordedChunks = [];
+            mediaRecorder = new MediaRecorder(stream, options);
+
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    recordedChunks.push(event.data);
+                }
+            };
+
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(recordedChunks, { type: mimeType });
+                const url = URL.createObjectURL(blob);
+                compressedVideo.src = url;
+                compressedVideo.style.display = 'block';
+                compressedSizeSpan.innerText = (blob.size / 1024).toFixed(2) + ' KB';
+                downloadLink.href = url;
+                downloadLink.download = 'video_comprimido.webm';
+                downloadLink.style.display = 'inline-block';
+                compressBtn.disabled = false;
+                compressBtn.innerText = 'Comprimir vídeo';
+            };
+
+            mediaRecorder.onerror = (err) => {
+                console.error('Erro no MediaRecorder:', err);
+                alert('Erro ao comprimir vídeo. Tente novamente.');
+                compressBtn.disabled = false;
+                compressBtn.innerText = 'Comprimir vídeo';
+            };
+
+            // Iniciar gravação
+            mediaRecorder.start();
+            // Parar quando o vídeo original terminar? Ou gravar por tempo determinado.
+            // Vamos gravar até o fim do vídeo.
+            originalVideo.onended = () => {
+                if (mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop();
+                }
+            };
+
+            // Se o vídeo não tiver o atributo 'loop' e terminar, o onended dispara.
+            // Caso contrário, podemos parar após um tempo. Para garantir, vamos parar quando a duração for atingida.
+            // Melhor: usar setTimeout baseado na duração do vídeo.
+            const duration = originalVideo.duration * 1000; // em ms
+            setTimeout(() => {
+                if (mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop();
+                }
+            }, duration + 500); // meio segundo extra
+
+            // Começar a reprodução para que a stream flua
+            originalVideo.play();
         }
 
         // Arrastar e soltar
@@ -362,11 +408,11 @@
         dropArea.addEventListener('drop', (e) => {
             const dt = e.dataTransfer;
             const file = dt.files[0];
-            if (file && (file.type === 'image/jpeg' || file.type === 'image/png')) {
+            if (file && file.type.startsWith('video/')) {
                 fileInput.files = dt.files;
-                handleImageUpload({ target: { files: [file] } });
+                handleVideoUpload({ target: { files: [file] } });
             } else {
-                alert('Por favor, solte uma imagem JPG ou PNG.');
+                alert('Por favor, solte um arquivo de vídeo válido.');
             }
         });
     </script>
