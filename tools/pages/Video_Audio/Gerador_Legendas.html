@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="icon" type="image/png" href="../../../logo_the_box_luz_e_sombra_sem_fundo-removebg-preview.png">
     <style>
-        /* ESTILO IDÊNTICO AO SEU SITE (mantido igual) */
+        /* (mesmo estilo, mantido) */
         * {
             margin: 0;
             padding: 0;
@@ -378,8 +378,9 @@
 
     <!-- Script principal em módulo ES -->
     <script type="module">
-        // --- Importação do Transformers.js via import map ---
-        import { pipeline } from '@huggingface/transformers';
+        // --- Importação correta para Transformers.js v3 ---
+        import * as transformers from '@huggingface/transformers';
+        const { pipeline } = transformers;  // Acessa a função pipeline
 
         // Elementos DOM (mesmos IDs do HTML)
         const uploadArea = document.getElementById('uploadArea');
@@ -408,7 +409,7 @@
         let modelLoaded = false;
         let lastSRT = '';
 
-        // --- Upload Handlers (idênticos) ---
+        // --- Upload Handlers ---
         uploadArea.addEventListener('click', () => fileInput.click());
         uploadArea.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -430,7 +431,7 @@
         });
 
         function setSelectedFile(file) {
-            // Aumentei o limite para 50 MB (opcional)
+            // Limite de 50 MB (ajustável)
             if (file.size > 50 * 1024 * 1024) {
                 showAlert('Arquivo muito grande. Máximo 50 MB.');
                 return;
@@ -453,7 +454,7 @@
             transcriptionArea.classList.remove('show');
         });
 
-        // --- Carregar modelo Whisper (com progresso) ---
+        // --- Carregar modelo Whisper ---
         async function loadModel() {
             if (modelLoaded) return true;
             try {
@@ -498,16 +499,14 @@
             }
         }
 
-        // --- Extrair áudio do arquivo (usando Web Audio API) ---
+        // --- Extrair áudio do arquivo (Web Audio API) ---
         async function extractAudioData(file) {
-            // Converte o arquivo para ArrayBuffer
             const arrayBuffer = await file.arrayBuffer();
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            
-            // Decodifica o áudio (funciona para áudio e vídeo, pois o vídeo terá a trilha de áudio decodificada)
+            // Decodifica (funciona para áudio e vídeo, pois o vídeo terá a trilha de áudio decodificada)
             const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
             
-            // Pega o primeiro canal (mono) e faz resample para 16000 Hz (exigido pelo Whisper)
+            // Pega o primeiro canal (mono)
             const channelData = audioBuffer.getChannelData(0);
             const targetSampleRate = 16000;
             const sourceSampleRate = audioBuffer.sampleRate;
@@ -527,7 +526,7 @@
             }
         }
 
-        // --- Converter chunks de transcrição para SRT ---
+        // --- Converter chunks para SRT ---
         function chunksToSRT(chunks) {
             let srt = '';
             chunks.forEach((chunk, index) => {
@@ -551,7 +550,7 @@
             return srt;
         }
 
-        // --- Transcrever (botão principal) ---
+        // --- Transcrever ---
         transcribeBtn.addEventListener('click', async () => {
             if (!selectedFile) return;
 
@@ -568,7 +567,6 @@
                 progressFill.style.width = '10%';
                 progressPercent.innerText = '10%';
 
-                // Extrai o áudio como Float32Array (16000 Hz, mono)
                 const audioData = await extractAudioData(selectedFile);
 
                 progressMessage.innerText = 'Transcrevendo...';
