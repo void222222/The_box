@@ -224,10 +224,10 @@
             <p>Compressor de Vídeo PRO</p>
         </header>
 
-        <div class="tool-container">
-            <div class="file-drop-area" onclick="document.getElementById('fileInput').click()">
+<div class="tool-container">
+            <div class="file-drop-area" id="dropArea" onclick="document.getElementById('fileInput').click()">
                 <i class="fas fa-cloud-upload-alt"></i>
-                <p>Clique para selecionar ou arraste um vídeo (MP4, MOV, WebM)</p>
+                <p id="dropText">Clique para selecionar ou arraste um vídeo (MP4, MOV, WebM)</p>
                 <input type="file" id="fileInput" accept="video/mp4,video/quicktime,video/webm" onchange="handleVideoUpload(event)">
             </div>
 
@@ -244,12 +244,22 @@
                     <div class="preview-box">
                         <video id="originalPreview" controls></video>
                         <p>Original</p>
-                        <span id="originalSize" class="size-number">0 KB</span>
+                        <span id="originalSize" class="size-number">0 MB</span>
                     </div>
                     <div class="preview-box">
                         <video id="compressedPreview" controls style="display:none;"></video>
                         <p>Comprimido</p>
                         <span id="compressedSize" class="size-number">—</span>
+                    </div>
+                </div>
+
+                <div class="progress-wrapper" id="progressWrapper">
+                    <div class="progress-text">
+                        <span id="progressStatus">Processando...</span>
+                        <span id="progressPercent">0%</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" id="progressBar"></div>
                     </div>
                 </div>
 
@@ -266,12 +276,21 @@
     </div>
 
     <script>
-        // Inicializa o FFmpeg
         const { createFFmpeg, fetchFile } = FFmpeg;
-        // log: true ajuda a ver o processo no console do navegador (F12)
-        const ffmpeg = createFFmpeg({ log: true });
+        
+        // Inicializa o FFmpeg capturando o evento de progresso
+        const ffmpeg = createFFmpeg({ 
+            log: true,
+            progress: ({ ratio }) => {
+                // O ratio vai de 0.0 até 1.0
+                const percent = Math.max(0, Math.min(100, Math.round(ratio * 100)));
+                updateProgressUI(percent);
+            }
+        });
 
         const fileInput = document.getElementById('fileInput');
+        const dropArea = document.getElementById('dropArea');
+        const dropText = document.getElementById('dropText');
         const panel = document.getElementById('compressionPanel');
         const originalVideo = document.getElementById('originalPreview');
         const compressedVideo = document.getElementById('compressedPreview');
@@ -281,91 +300,154 @@
         const qualityLabel = document.getElementById('qualityLabel');
         const compressBtn = document.getElementById('compressBtn');
         const downloadLink = document.getElementById('downloadLink');
+        
+        // Elementos de Progresso
+        const progressWrapper = document.getElementById('progressWrapper');
+        const progressBar = document.getElementById('progressBar');
+        const progressPercent = document.getElementById('progressPercent');
+        const progressStatus = document.getElementById('progressStatus');
 
         let currentFile = null;
+        let originalObjectUrl = null;
+        let compressedObjectUrl = null;
 
         function updateQualityLabel() {
             const val = parseInt(qualitySlider.value);
-            // Mapeia 0-100 para 100kbps a 5000kbps
             const bitrate = Math.round(100 + (val / 100) * 4900); 
             qualityLabel.innerText = bitrate + ' kbps';
         }
 
-        function handleVideoUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            currentFile = file;
+        function updateProgressUI(percent) {
+            progressBar.style.width = `${percent}%`;
+            progressPercent.innerText = `${percent}%`;
+            if (percent === 100) {
+                progressStatus.innerText = 'Finalizando arquivo...';
+            } else {
+                progressStatus.innerText = 'Comprimindo vídeo...';
+            }
+        }
 
-            const url = URL.createObjectURL(file);
-            originalVideo.src = url;
-            originalSizeSpan.innerText = (file.size / (1024 * 1024)).toFixed(2) + ' MB'; // Mudei para MB para facilitar
+        function handleVideoUpload(event) {
+            const file = event.target.files ? event.target.files[0] : null;
+            if (!file) return;
             
+            currentFile = file;
+            dropText.innerText = `Arquivo selecionado: ${file.name}`;
+
+            // Limpa URLs antigos para liberar RAM
+            if (originalObjectUrl) URL.revokeObjectURL(originalObjectUrl);
+            if (compressedObjectUrl) URL.revokeObjectURL(compressedObjectUrl);
+
+            originalObjectUrl = URL.createObjectURL(file);
+            originalVideo.src = originalObjectUrl;
+            originalSizeSpan.innerText = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+            
+            // Reseta a UI para o estado inicial
             panel.style.display = 'block';
             compressBtn.disabled = false;
             compressBtn.innerText = 'Comprimir vídeo';
+            qualitySlider.disabled = false;
+            
             downloadLink.style.display = 'none';
             compressedVideo.style.display = 'none';
+            compressedVideo.src = '';
             compressedSizeSpan.innerText = '—';
+            progressWrapper.style.display = 'none';
         }
 
         async function compressVideo() {
             if (!currentFile) return;
 
             try {
+                // Trava a interface
                 compressBtn.disabled = true;
-                compressBtn.innerText = 'Iniciando motor FFmpeg... (Pode demorar na 1ª vez)';
+                qualitySlider.disabled = true;
+                dropArea.style.pointerEvents = 'none'; // Evita novos uploads no meio do processo
+                
+                progressWrapper.style.display = 'block';
+                progressBar.style.width = '0%';
+                progressPercent.innerText = '0%';
+                progressStatus.innerText = 'Iniciando motor FFmpeg...';
+                compressBtn.innerText = 'Aguarde...';
 
-                // Carrega o núcleo do FFmpeg (pesa cerca de 25MB, por isso demora um pouco na primeira vez)
                 if (!ffmpeg.isLoaded()) {
                     await ffmpeg.load();
                 }
 
-                compressBtn.innerText = 'Processando vídeo... Aguarde!';
-
-                // Pega o valor do slider e calcula o bitrate
                 const val = parseInt(qualitySlider.value);
                 const bitrate = Math.round(100 + (val / 100) * 4900); 
                 const bitrateStr = `${bitrate}k`;
 
-                // Coloca o arquivo na memória virtual do navegador
+                // Garante que arquivos anteriores não causem conflito/vazamento
+                try { ffmpeg.FS('unlink', 'input.mp4'); } catch (e) {}
+                try { ffmpeg.FS('unlink', 'output.mp4'); } catch (e) {}
+
+                progressStatus.innerText = 'Lendo arquivo...';
                 ffmpeg.FS('writeFile', 'input.mp4', await fetchFile(currentFile));
 
-                // RODA O COMANDO MAGICO DO FFMPEG
-                // -i (input), -b:v (bitrate do video), -preset ultrafast (para ser rápido no navegador)
-                await ffmpeg.run('-i', 'input.mp4', '-b:v', bitrateStr, '-preset', 'ultrafast', 'output.mp4');
+                progressStatus.innerText = 'Comprimindo vídeo...';
+                
+                // Comando FFmpeg
+                await ffmpeg.run(
+                    '-i', 'input.mp4', 
+                    '-b:v', bitrateStr, 
+                    '-c:v', 'libx264', // Força o codec H.264 para garantir compatibilidade no navegador
+                    '-preset', 'ultrafast', 
+                    'output.mp4'
+                );
 
-                // Lê o resultado da memória virtual
                 const data = ffmpeg.FS('readFile', 'output.mp4');
 
-                // Cria o arquivo final e disponibiliza pro usuário
                 const blob = new Blob([data.buffer], { type: 'video/mp4' });
-                const url = URL.createObjectURL(blob);
+                compressedObjectUrl = URL.createObjectURL(blob);
 
-                compressedVideo.src = url;
+                compressedVideo.src = compressedObjectUrl;
                 compressedVideo.style.display = 'block';
                 compressedSizeSpan.innerText = (blob.size / (1024 * 1024)).toFixed(2) + ' MB';
                 
-                downloadLink.href = url;
+                downloadLink.href = compressedObjectUrl;
+                // Define o nome do arquivo final dinamicamente
+                downloadLink.download = `comprimido_${currentFile.name}`;
                 downloadLink.style.display = 'block';
+                
                 compressBtn.innerText = 'Compressão Concluída!';
+                progressStatus.innerText = 'Pronto!';
 
             } catch (err) {
                 console.error('Erro na compressão:', err);
-                alert('Ocorreu um erro ao comprimir. Verifique o console.');
+                alert('Ocorreu um erro ao comprimir. Verifique se o formato é suportado e tente novamente.');
                 compressBtn.innerText = 'Erro. Tente novamente.';
+                progressWrapper.style.display = 'none';
+            } finally {
+                // Destrava a interface
                 compressBtn.disabled = false;
+                qualitySlider.disabled = false;
+                dropArea.style.pointerEvents = 'auto';
+                
+                // Limpeza Crucial: Remove os arquivos da memória virtual do WASM
+                try { ffmpeg.FS('unlink', 'input.mp4'); } catch (e) {}
+                try { ffmpeg.FS('unlink', 'output.mp4'); } catch (e) {}
             }
         }
 
-        // Sistema de Arrastar e Soltar
-        const dropArea = document.querySelector('.file-drop-area');
+        // Sistema de Arrastar e Soltar (Drag & Drop) com efeitos visuais
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             dropArea.addEventListener(eventName, preventDefaults, false);
         });
+
         function preventDefaults(e) {
             e.preventDefault();
             e.stopPropagation();
         }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => dropArea.classList.add('drag-over'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => dropArea.classList.remove('drag-over'), false);
+        });
+
         dropArea.addEventListener('drop', (e) => {
             const dt = e.dataTransfer;
             const file = dt.files[0];
@@ -377,5 +459,5 @@
             }
         });
     </script>
-</body>
+</body> 
 </html>
