@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>thebox · Transcrição para Legendas</title>
+    <title>thebox · Gerador de Legendas Automáticas</title>
+    <!-- Font Awesome e estilos globais (mesmo do site) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="icon" type="image/png" href="../../../logo_the_box_luz_e_sombra_sem_fundo-removebg-preview.png">
     <style>
-        /* (mesmo estilo, mantido) */
         * {
             margin: 0;
             padding: 0;
@@ -22,10 +22,11 @@
         }
 
         .container {
-            max-width: 900px;
+            max-width: 1000px;
             margin: 0 auto;
         }
 
+        /* Header com logo */
         header {
             text-align: center;
             padding: 1rem 1rem 2rem;
@@ -36,618 +37,555 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: 0.1rem;
+            margin-bottom: 0.2rem;
         }
 
         .logo-img {
-            width: 80px;
-            height: 80px;
-            border-radius: 20px;
+            width: 100px;
+            height: 100px;
+            border-radius: 24px;
             object-fit: cover;
-            border: 3px solid #a855f7;
-            box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+            border: 4px solid #a855f7;
+            box-shadow: 0 0 25px rgba(168, 85, 247, 0.6);
             background-color: #2d1b4e;
         }
 
         header h1 {
-            font-size: 2.5rem;
+            font-size: 2.8rem;
             font-weight: 700;
             background: linear-gradient(135deg, #c084fc, #60a5fa);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            margin-bottom: 0.3rem;
         }
 
         header p {
+            font-size: 1.2rem;
             color: #cbd5e1;
-            font-size: 1.1rem;
         }
 
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: #94a3b8;
-            text-decoration: none;
-            font-weight: 500;
-            margin-bottom: 2rem;
-            transition: color 0.2s;
-            background: rgba(255,255,255,0.03);
-            padding: 0.5rem 1.2rem;
-            border-radius: 40px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        .back-link:hover {
-            color: white;
-            border-color: #60a5fa;
-        }
-
-        .tool-card {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.05);
+        /* cartão da ferramenta */
+        .tool-container {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.08);
             border-radius: 36px;
-            padding: 2.2rem 2rem;
-            box-shadow: 0 25px 40px -15px black;
+            padding: 2.5rem 2rem;
+            box-shadow: 0 30px 45px -15px black;
+            color: #f1f5f9;
         }
 
+        .tool-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .tool-header i {
+            font-size: 2.8rem;
+            color: #a855f7;
+            background: rgba(168, 85, 247, 0.15);
+            padding: 0.8rem;
+            border-radius: 24px;
+        }
+
+        .tool-header h2 {
+            font-size: 2rem;
+            font-weight: 600;
+        }
+
+        .tool-header p {
+            color: #94a3b8;
+            margin-top: 0.3rem;
+        }
+
+        /* área de upload */
         .upload-area {
-            border: 2px dashed #334155;
+            border: 2px dashed #475569;
+            background: rgba(0,0,0,0.2);
             border-radius: 28px;
-            padding: 3rem 1rem;
+            padding: 3rem 2rem;
             text-align: center;
             cursor: pointer;
-            transition: border 0.2s, background 0.2s;
+            transition: all 0.2s;
             margin-bottom: 2rem;
         }
+
         .upload-area:hover {
-            border-color: #60a5fa;
-            background: rgba(96, 165, 250, 0.05);
+            border-color: #a855f7;
+            background: rgba(168, 85, 247, 0.05);
         }
+
         .upload-area i {
             font-size: 3.5rem;
-            color: #60a5fa;
+            color: #94a3b8;
             margin-bottom: 1rem;
         }
+
         .upload-area p {
-            color: #cbd5e1;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
         }
+
         .upload-area small {
             color: #64748b;
-            display: block;
-            margin-top: 0.8rem;
+        }
+
+        /* player escondido inicialmente */
+        .preview-container {
+            display: none;
+            margin-bottom: 2rem;
+        }
+
+        .preview-container video, .preview-container audio {
+            width: 100%;
+            max-height: 300px;
+            border-radius: 20px;
+            background: #0f172a;
+            border: 1px solid #334155;
         }
 
         .file-info {
-            background: rgba(255,255,255,0.02);
-            border-radius: 20px;
-            padding: 1rem 1.5rem;
-            margin: 1.5rem 0;
-            border: 1px solid #334155;
-            display: none;
-            align-items: center;
+            display: flex;
             justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-        .file-info.show {
-            display: flex;
-        }
-        .file-name {
-            color: #f1f5f9;
-            font-weight: 500;
-            display: flex;
             align-items: center;
-            gap: 0.8rem;
+            background: #1e293b;
+            padding: 0.8rem 1.5rem;
+            border-radius: 40px;
+            margin-top: 1rem;
         }
-        .file-size {
-            color: #94a3b8;
-            font-size: 0.9rem;
+
+        .file-info span {
+            color: #cbd5e1;
+            font-size: 0.95rem;
         }
-        .clear-file {
+
+        .remove-file {
             background: none;
             border: none;
             color: #ef4444;
             cursor: pointer;
             font-size: 1.2rem;
-            padding: 0.3rem;
+            padding: 0 0.5rem;
         }
 
-        .language-selector {
-            margin: 1.5rem 0;
+        /* botões e controles */
+        .actions {
             display: flex;
-            align-items: center;
             gap: 1rem;
             flex-wrap: wrap;
-        }
-        .language-selector label {
-            color: #cbd5e1;
-            font-weight: 500;
-        }
-        .language-selector select {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 40px;
-            padding: 0.7rem 1.5rem;
-            color: white;
-            font-size: 1rem;
-            outline: none;
-            cursor: pointer;
-            flex: 1;
+            margin-bottom: 2rem;
         }
 
         .btn {
             background: rgba(255,255,255,0.05);
-            border: 1px solid #334155;
-            padding: 1rem 2rem;
-            border-radius: 60px;
-            font-weight: 600;
+            border: 1px solid rgba(255,255,255,0.1);
             color: white;
+            padding: 0.9rem 2rem;
+            border-radius: 40px;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: 0.2s;
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            gap: 0.6rem;
+            gap: 0.5rem;
             font-size: 1rem;
+            backdrop-filter: blur(4px);
         }
+
         .btn-primary {
-            background: #2563eb;
-            border-color: #3b82f6;
-            width: 100%;
-            margin: 1rem 0;
+            background: #a855f7;
+            border-color: #a855f7;
+            color: white;
+            box-shadow: 0 8px 20px rgba(168, 85, 247, 0.4);
         }
-        .btn-primary:hover:not(:disabled) {
-            background: #3b82f6;
+
+        .btn-primary:hover {
+            background: #9333ea;
+            border-color: #9333ea;
             transform: scale(1.02);
         }
+
+        .btn:not(.btn-primary):hover {
+            background: rgba(255,255,255,0.15);
+            border-color: #60a5fa;
+        }
+
         .btn:disabled {
             opacity: 0.4;
-            cursor: not-allowed;
+            pointer-events: none;
         }
 
-        .progress-area {
-            margin-top: 2rem;
-            background: #0f172a;
-            border-radius: 40px;
-            padding: 1.5rem;
-            border: 1px solid #334155;
-            display: none;
-        }
-        .progress-area.show {
-            display: block;
-        }
-        .progress-bar {
-            height: 10px;
-            background: #1e293b;
-            border-radius: 20px;
-            overflow: hidden;
-            margin: 1rem 0 0.5rem;
-        }
-        .progress-fill {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, #60a5fa, #a855f7);
-            transition: width 0.2s;
-        }
-        .progress-status {
-            display: flex;
-            justify-content: space-between;
-            color: #94a3b8;
-            font-size: 0.9rem;
-        }
-
-        .transcription-area {
+        /* área de resultado */
+        .result-area {
             background: #0f172a;
             border-radius: 24px;
             padding: 1.5rem;
-            margin: 2rem 0;
             border: 1px solid #334155;
             display: none;
         }
-        .transcription-area.show {
-            display: block;
-        }
-        .transcription-title {
-            color: #94a3b8;
-            margin-bottom: 1rem;
+
+        .result-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-        #srtOutput {
-            color: #f1f5f9;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            white-space: pre-wrap;
-            background: #1e293b;
-            padding: 1rem;
-            border-radius: 16px;
-            max-height: 300px;
-            overflow-y: auto;
+            margin-bottom: 1rem;
         }
 
-        .alert {
-            background: #991b1b;
-            color: #fecaca;
-            padding: 1rem 1.5rem;
-            border-radius: 60px;
-            margin: 1.5rem 0;
+        .result-header h3 {
+            font-size: 1.3rem;
+            font-weight: 500;
+        }
+
+        .srt-content {
+            background: #1e293b;
+            border-radius: 16px;
+            padding: 1.2rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #cbd5e1;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #334155;
+        }
+
+        .download-btn {
+            background: #10b981;
+            border: none;
+            color: white;
+            padding: 0.7rem 1.8rem;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: 0.2s;
+        }
+
+        .download-btn:hover {
+            background: #059669;
+        }
+
+        .loading {
             display: none;
             align-items: center;
+            justify-content: center;
             gap: 1rem;
+            padding: 2rem;
         }
-        .alert.show {
-            display: flex;
+
+        .spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: #a855f7;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
         }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         footer {
             text-align: center;
             padding: 3rem 1rem 1rem;
             color: #64748b;
         }
-    </style>
-    <!-- Import Map: define de onde virá o Transformers.js (Skypack) -->
-    <script type="importmap">
-        {
-            "imports": {
-                "@huggingface/transformers": "https://cdn.skypack.dev/@huggingface/transformers@3.0.2"
-            }
+
+        /* idioma selector */
+        .lang-selector {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: white;
+            padding: 0.7rem 1.5rem;
+            border-radius: 40px;
+            font-size: 0.95rem;
+            cursor: pointer;
         }
-    </script>
+
+        .lang-selector option {
+            background: #1e293b;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
+        <!-- cabeçalho com logo -->
         <header>
             <div class="logo-container">
                 <img src="../../../logo_the_box_luz_e_sombra_sem_fundo-removebg-preview.png" alt="thebox" class="logo-img">
             </div>
-            <h1>Transcrição para Legendas</h1>
-            <p>Envie áudio ou vídeo e gere legendas automaticamente</p>
+            <h1>thebox</h1>
+            <p>Gerador de Legendas Automáticas</p>
         </header>
 
-        <a href="../../../index.html" class="back-link"><i class="fas fa-arrow-left"></i> Voltar para ferramentas</a>
+        <!-- ferramenta principal -->
+        <div class="tool-container">
+            <div class="tool-header">
+                <i class="fas fa-closed-captioning"></i>
+                <div>
+                    <h2>Legendas a partir de áudio/vídeo</h2>
+                    <p>Envie um arquivo e gere legendas .srt com IA (simulação).</p>
+                </div>
+            </div>
 
-        <div class="tool-card">
-            <div id="uploadArea" class="upload-area">
+            <!-- área de upload (drag & drop ou clique) -->
+            <div class="upload-area" id="uploadArea">
                 <i class="fas fa-cloud-upload-alt"></i>
-                <p>Arraste ou clique para selecionar um arquivo</p>
-                <small>MP3, WAV, M4A, MP4, MOV (até 50 MB)</small>
+                <p>Arraste um arquivo ou clique para selecionar</p>
+                <small>MP4, MOV, MP3, WAV, M4A, etc. (até 200MB)</small>
                 <input type="file" id="fileInput" accept="audio/*,video/*" style="display: none;">
             </div>
 
-            <div id="fileInfo" class="file-info">
-                <div class="file-name">
-                    <i class="fas fa-file-audio" style="color:#60a5fa;"></i>
-                    <span id="fileName">arquivo.mp3</span>
-                    <span id="fileSize" class="file-size">(5 MB)</span>
+            <!-- preview do arquivo carregado -->
+            <div class="preview-container" id="previewContainer">
+                <div id="mediaPreview"></div>
+                <div class="file-info">
+                    <span id="fileName"></span>
+                    <button class="remove-file" id="removeFileBtn" title="Remover arquivo"><i class="fas fa-times"></i></button>
                 </div>
-                <button id="clearFile" class="clear-file" title="Remover arquivo"><i class="fas fa-times-circle"></i></button>
             </div>
 
-            <div class="language-selector">
-                <label><i class="fas fa-globe"></i> Idioma do áudio:</label>
-                <select id="languageSelect">
+            <!-- controles: idioma + botão gerar -->
+            <div class="actions">
+                <select class="lang-selector" id="languageSelect">
                     <option value="pt">Português</option>
                     <option value="en">Inglês</option>
                     <option value="es">Espanhol</option>
                     <option value="fr">Francês</option>
-                    <option value="de">Alemão</option>
-                    <option value="it">Italiano</option>
                 </select>
+                <button class="btn btn-primary" id="generateBtn" disabled><i class="fas fa-magic"></i> Gerar legendas</button>
             </div>
 
-            <button id="transcribeBtn" class="btn btn-primary" disabled><i class="fas fa-microphone-alt"></i> Transcrever e gerar legendas</button>
-
-            <div id="progressArea" class="progress-area">
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <i class="fas fa-spinner fa-pulse" style="color:#60a5fa;"></i>
-                    <span id="progressMessage">Carregando modelo de IA...</span>
-                </div>
-                <div class="progress-bar">
-                    <div id="progressFill" class="progress-fill" style="width: 0%;"></div>
-                </div>
-                <div class="progress-status">
-                    <span id="progressDetail">Iniciando...</span>
-                    <span id="progressPercent">0%</span>
-                </div>
+            <!-- indicador de carregamento -->
+            <div class="loading" id="loadingIndicator">
+                <div class="spinner"></div>
+                <span>Transcrevendo áudio... isso pode levar alguns segundos.</span>
             </div>
 
-            <div id="transcriptionArea" class="transcription-area">
-                <div class="transcription-title">
-                    <span><i class="fas fa-closed-captioning"></i> Legendas geradas (.srt)</span>
-                    <div>
-                        <button id="copyBtn" class="btn" style="padding: 0.4rem 1.2rem; background: #334155;"><i class="fas fa-copy"></i> Copiar</button>
-                        <button id="downloadBtn" class="btn" style="padding: 0.4rem 1.2rem; background: #10b981;"><i class="fas fa-download"></i> Baixar .srt</button>
-                    </div>
+            <!-- resultado da transcrição / SRT -->
+            <div class="result-area" id="resultArea">
+                <div class="result-header">
+                    <h3><i class="fas fa-caption" style="margin-right: 0.5rem;"></i>Legendas geradas (.srt)</h3>
+                    <button class="download-btn" id="downloadBtn"><i class="fas fa-download"></i> Baixar .srt</button>
                 </div>
-                <div id="srtOutput"></div>
-            </div>
-
-            <div id="alertBox" class="alert">
-                <i class="fas fa-exclamation-triangle"></i>
-                <span id="alertMessage">Erro</span>
+                <div class="srt-content" id="srtContent"></div>
+                <p style="color:#94a3b8; font-size:0.85rem; margin-top:0.8rem;">
+                    ⚡ Isso é uma simulação. Substitua a função <code>transcreverArquivo</code> pela chamada à sua API de transcrição.
+                </p>
             </div>
         </div>
 
         <footer>
-            <p>🚀 Processamento local com IA (Whisper) · nenhum dado enviado para servidores</p>
+            <p>🚀 thebox — legendas automáticas com IA</p>
         </footer>
     </div>
 
-    <!-- Script principal em módulo ES -->
-    <script type="module">
-        // --- Importação correta para Transformers.js v3 ---
-        import * as transformers from '@huggingface/transformers';
-        const { pipeline } = transformers;  // Acessa a função pipeline
+    <script>
+        (function() {
+            // Elementos DOM
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+            const previewContainer = document.getElementById('previewContainer');
+            const mediaPreview = document.getElementById('mediaPreview');
+            const fileNameSpan = document.getElementById('fileName');
+            const removeFileBtn = document.getElementById('removeFileBtn');
+            const generateBtn = document.getElementById('generateBtn');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const resultArea = document.getElementById('resultArea');
+            const srtContent = document.getElementById('srtContent');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const languageSelect = document.getElementById('languageSelect');
 
-        // Elementos DOM (mesmos IDs do HTML)
-        const uploadArea = document.getElementById('uploadArea');
-        const fileInput = document.getElementById('fileInput');
-        const fileInfo = document.getElementById('fileInfo');
-        const fileNameSpan = document.getElementById('fileName');
-        const fileSizeSpan = document.getElementById('fileSize');
-        const clearFileBtn = document.getElementById('clearFile');
-        const transcribeBtn = document.getElementById('transcribeBtn');
-        const languageSelect = document.getElementById('languageSelect');
-        const progressArea = document.getElementById('progressArea');
-        const progressFill = document.getElementById('progressFill');
-        const progressMessage = document.getElementById('progressMessage');
-        const progressDetail = document.getElementById('progressDetail');
-        const progressPercent = document.getElementById('progressPercent');
-        const transcriptionArea = document.getElementById('transcriptionArea');
-        const srtOutput = document.getElementById('srtOutput');
-        const copyBtn = document.getElementById('copyBtn');
-        const downloadBtn = document.getElementById('downloadBtn');
-        const alertBox = document.getElementById('alertBox');
-        const alertMessage = document.getElementById('alertMessage');
+            let currentFile = null;
 
-        // Estado
-        let selectedFile = null;
-        let transcriber = null;
-        let modelLoaded = false;
-        let lastSRT = '';
-
-        // --- Upload Handlers ---
-        uploadArea.addEventListener('click', () => fileInput.click());
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.style.borderColor = '#60a5fa';
-        });
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.style.borderColor = '#334155';
-        });
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.style.borderColor = '#334155';
-            const file = e.dataTransfer.files[0];
-            if (file) setSelectedFile(file);
-        });
-
-        fileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) setSelectedFile(file);
-        });
-
-        function setSelectedFile(file) {
-            // Limite de 50 MB (ajustável)
-            if (file.size > 50 * 1024 * 1024) {
-                showAlert('Arquivo muito grande. Máximo 50 MB.');
-                return;
-            }
-            selectedFile = file;
-            fileNameSpan.innerText = file.name;
-            fileSizeSpan.innerText = `(${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
-            fileInfo.classList.add('show');
-            transcribeBtn.disabled = false;
-            transcriptionArea.classList.remove('show');
-            lastSRT = '';
-            hideAlert();
-        }
-
-        clearFileBtn.addEventListener('click', () => {
-            selectedFile = null;
-            fileInput.value = '';
-            fileInfo.classList.remove('show');
-            transcribeBtn.disabled = true;
-            transcriptionArea.classList.remove('show');
-        });
-
-        // --- Carregar modelo Whisper ---
-        async function loadModel() {
-            if (modelLoaded) return true;
-            try {
-                progressArea.classList.add('show');
-                progressMessage.innerText = 'Carregando modelo Whisper (~150 MB) ...';
-                progressDetail.innerText = 'baixando da primeira vez pode demorar';
-                progressFill.style.width = '10%';
-
-                // Cria o pipeline de reconhecimento de fala
-                transcriber = await pipeline(
-                    'automatic-speech-recognition',
-                    'Xenova/whisper-tiny', // modelo pequeno multilíngue
-                    {
-                        progress_callback: (progress) => {
-                            if (progress.status === 'progress') {
-                                // progress.loaded e progress.total em bytes
-                                const percent = progress.total
-                                    ? Math.round((progress.loaded / progress.total) * 70) + 20
-                                    : 20;
-                                progressFill.style.width = percent + '%';
-                                progressPercent.innerText = percent + '%';
-                                if (progress.file) {
-                                    progressDetail.innerText = `baixando ${progress.file}`;
-                                }
-                            }
-                        }
-                    }
-                );
-
-                modelLoaded = true;
-                progressFill.style.width = '100%';
-                progressDetail.innerText = 'Modelo pronto!';
-                setTimeout(() => {
-                    progressArea.classList.remove('show');
-                }, 1000);
-                return true;
-            } catch (err) {
-                console.error('Erro ao carregar modelo:', err);
-                showAlert('Erro ao carregar modelo: ' + err.message);
-                progressArea.classList.remove('show');
-                return false;
-            }
-        }
-
-        // --- Extrair áudio do arquivo (Web Audio API) ---
-        async function extractAudioData(file) {
-            const arrayBuffer = await file.arrayBuffer();
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            // Decodifica (funciona para áudio e vídeo, pois o vídeo terá a trilha de áudio decodificada)
-            const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-            
-            // Pega o primeiro canal (mono)
-            const channelData = audioBuffer.getChannelData(0);
-            const targetSampleRate = 16000;
-            const sourceSampleRate = audioBuffer.sampleRate;
-            
-            if (sourceSampleRate === targetSampleRate) {
-                return channelData;
-            } else {
-                // Resample simples (interpolação linear)
-                const ratio = sourceSampleRate / targetSampleRate;
-                const newLength = Math.round(channelData.length / ratio);
-                const result = new Float32Array(newLength);
-                for (let i = 0; i < newLength; i++) {
-                    const srcIndex = Math.round(i * ratio);
-                    result[i] = channelData[srcIndex];
-                }
-                return result;
-            }
-        }
-
-        // --- Converter chunks para SRT ---
-        function chunksToSRT(chunks) {
-            let srt = '';
-            chunks.forEach((chunk, index) => {
-                const start = chunk.timestamp[0];
-                const end = chunk.timestamp[1];
-                const text = chunk.text.trim();
-                if (!text) return;
-
-                function formatTime(seconds) {
-                    const h = Math.floor(seconds / 3600);
-                    const m = Math.floor((seconds % 3600) / 60);
-                    const s = Math.floor(seconds % 60);
-                    const ms = Math.floor((seconds - Math.floor(seconds)) * 1000);
-                    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')},${String(ms).padStart(3, '0')}`;
-                }
-
-                srt += `${index + 1}\n`;
-                srt += `${formatTime(start)} --> ${formatTime(end)}\n`;
-                srt += `${text}\n\n`;
+            // Abrir seletor de arquivos ao clicar na área
+            uploadArea.addEventListener('click', () => fileInput.click());
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = '#a855f7';
+                uploadArea.style.background = 'rgba(168, 85, 247, 0.05)';
             });
-            return srt;
-        }
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.style.borderColor = '#475569';
+                uploadArea.style.background = 'rgba(0,0,0,0.2)';
+            });
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = '#475569';
+                uploadArea.style.background = 'rgba(0,0,0,0.2)';
+                const files = e.dataTransfer.files;
+                if (files.length) handleFile(files[0]);
+            });
 
-        // --- Transcrever ---
-        transcribeBtn.addEventListener('click', async () => {
-            if (!selectedFile) return;
+            fileInput.addEventListener('change', () => {
+                if (fileInput.files.length) handleFile(fileInput.files[0]);
+            });
 
-            hideAlert();
-            transcriptionArea.classList.remove('show');
+            function handleFile(file) {
+                // Validação simples de tipo
+                if (!file.type.startsWith('audio/') && !file.type.startsWith('video/')) {
+                    alert('Por favor, selecione um arquivo de áudio ou vídeo.');
+                    return;
+                }
+                if (file.size > 200 * 1024 * 1024) {
+                    alert('Arquivo muito grande. Limite de 200MB.');
+                    return;
+                }
 
-            const loaded = await loadModel();
-            if (!loaded) return;
-
-            try {
-                transcribeBtn.disabled = true;
-                progressArea.classList.add('show');
-                progressMessage.innerText = 'Preparando áudio...';
-                progressFill.style.width = '10%';
-                progressPercent.innerText = '10%';
-
-                const audioData = await extractAudioData(selectedFile);
-
-                progressMessage.innerText = 'Transcrevendo...';
-                progressDetail.innerText = 'isso pode levar alguns minutos';
-
-                const language = languageSelect.value;
-                const output = await transcriber(audioData, {
-                    language: language,
-                    task: 'transcribe',
-                    return_timestamps: true,
-                    chunk_length_s: 30,
-                    stride_length_s: 5,
-                });
-
-                let srt = '';
-                if (output.chunks && output.chunks.length > 0) {
-                    srt = chunksToSRT(output.chunks);
+                currentFile = file;
+                fileNameSpan.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+                
+                // Criar preview
+                const url = URL.createObjectURL(file);
+                mediaPreview.innerHTML = ''; // limpa
+                if (file.type.startsWith('video/')) {
+                    const video = document.createElement('video');
+                    video.src = url;
+                    video.controls = true;
+                    mediaPreview.appendChild(video);
                 } else {
-                    // Fallback: uma legenda única
-                    const duration = audioData.length / 16000;
-                    const formatTime = (seconds) => {
-                        const h = Math.floor(seconds / 3600);
-                        const m = Math.floor((seconds % 3600) / 60);
-                        const s = Math.floor(seconds % 60);
-                        const ms = Math.floor((seconds - Math.floor(seconds)) * 1000);
-                        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')},${String(ms).padStart(3, '0')}`;
-                    };
-                    srt = `1\n00:00:00,000 --> ${formatTime(duration)}\n${output.text}\n`;
+                    const audio = document.createElement('audio');
+                    audio.src = url;
+                    audio.controls = true;
+                    mediaPreview.appendChild(audio);
                 }
 
-                lastSRT = srt;
-                srtOutput.innerText = srt;
-                transcriptionArea.classList.add('show');
-
-            } catch (err) {
-                console.error('Erro na transcrição:', err);
-                showAlert('Erro durante transcrição: ' + err.message);
-            } finally {
-                transcribeBtn.disabled = false;
-                progressArea.classList.remove('show');
+                previewContainer.style.display = 'block';
+                generateBtn.disabled = false;
+                resultArea.style.display = 'none'; // esconde resultado anterior
             }
-        });
 
-        // --- Copiar SRT ---
-        copyBtn.addEventListener('click', () => {
-            if (!lastSRT) return;
-            navigator.clipboard.writeText(lastSRT).then(() => {
-                showAlert('Legendas copiadas!', 'success');
-            }).catch(() => {
-                showAlert('Erro ao copiar');
+            // Remover arquivo
+            removeFileBtn.addEventListener('click', () => {
+                currentFile = null;
+                fileInput.value = '';
+                previewContainer.style.display = 'none';
+                mediaPreview.innerHTML = '';
+                generateBtn.disabled = true;
+                resultArea.style.display = 'none';
             });
-        });
 
-        // --- Download SRT ---
-        downloadBtn.addEventListener('click', () => {
-            if (!lastSRT) return;
-            const blob = new Blob([lastSRT], { type: 'text/plain;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'legendas.srt';
-            a.click();
-            URL.revokeObjectURL(url);
-        });
+            // Gerar legendas (simulação)
+            generateBtn.addEventListener('click', async () => {
+                if (!currentFile) return;
 
-        // --- Utilitários de alerta ---
-        function showAlert(msg, type = 'error') {
-            alertMessage.innerText = msg;
-            alertBox.classList.add('show');
-            if (type === 'success') {
-                alertBox.style.background = '#065f46';
-                alertBox.style.color = '#d1fae5';
-            } else {
-                alertBox.style.background = '#991b1b';
-                alertBox.style.color = '#fecaca';
+                // Esconde resultado anterior e mostra loading
+                resultArea.style.display = 'none';
+                loadingIndicator.style.display = 'flex';
+                generateBtn.disabled = true;
+
+                try {
+                    // =================================================================
+                    // SIMULAÇÃO DE TRANSCRIÇÃO
+                    // Substitua este bloco pela sua integração real com a API de IA
+                    // =================================================================
+                    const srt = await simularTranscricao(currentFile, languageSelect.value);
+                    
+                    // Exibe resultado
+                    srtContent.textContent = srt;
+                    resultArea.style.display = 'block';
+                } catch (error) {
+                    alert('Erro ao gerar legendas: ' + error.message);
+                } finally {
+                    loadingIndicator.style.display = 'none';
+                    generateBtn.disabled = false;
+                }
+            });
+
+            // Função que simula uma transcrição com timestamps aleatórios
+            function simularTranscricao(file, lang) {
+                return new Promise((resolve) => {
+                    // Simula tempo de processamento (2 a 4 segundos)
+                    setTimeout(() => {
+                        // Nome do arquivo para dar um toque personalizado
+                        const nomeBase = file.name.replace(/\.[^/.]+$/, "");
+                        
+                        // Gera um SRT de exemplo baseado no idioma
+                        const exemplos = {
+                            pt: [
+                                { start: 0, end: 2, text: "Olá, esta é uma legenda gerada automaticamente." },
+                                { start: 2, end: 5, text: "Ela foi criada a partir do arquivo: " + nomeBase },
+                                { start: 5, end: 8, text: "Este é apenas um exemplo de simulação." },
+                                { start: 8, end: 11, text: "Substitua pela sua API de reconhecimento de fala." },
+                                { start: 11, end: 14, text: "Você pode usar a Whisper da OpenAI ou seu backend próprio." }
+                            ],
+                            en: [
+                                { start: 0, end: 2, text: "Hello, this is an automatically generated subtitle." },
+                                { start: 2, end: 5, text: "It was created from the file: " + nomeBase },
+                                { start: 5, end: 8, text: "This is just a simulation example." },
+                                { start: 8, end: 11, text: "Replace it with your actual speech recognition API." },
+                                { start: 11, end: 14, text: "You can use OpenAI Whisper or your own backend." }
+                            ],
+                            es: [
+                                { start: 0, end: 2, text: "Hola, este es un subtítulo generado automáticamente." },
+                                { start: 2, end: 5, text: "Fue creado a partir del archivo: " + nomeBase },
+                                { start: 5, end: 8, text: "Esto es solo un ejemplo de simulación." },
+                                { start: 8, end: 11, text: "Reemplázalo con tu API de reconocimiento de voz." }
+                            ],
+                            fr: [
+                                { start: 0, end: 2, text: "Bonjour, ceci est un sous-titre généré automatiquement." },
+                                { start: 2, end: 5, text: "Il a été créé à partir du fichier : " + nomeBase },
+                                { start: 5, end: 8, text: "Ceci n'est qu'un exemple de simulation." }
+                            ]
+                        };
+
+                        const lista = exemplos[lang] || exemplos.pt;
+                        
+                        // Formata como SRT
+                        let srt = '';
+                        lista.forEach((item, index) => {
+                            const startStr = formatTime(item.start);
+                            const endStr = formatTime(item.end);
+                            srt += `${index + 1}\n${startStr} --> ${endStr}\n${item.text}\n\n`;
+                        });
+
+                        resolve(srt);
+                    }, 2500 + Math.random() * 1500);
+                });
             }
-            setTimeout(() => alertBox.classList.remove('show'), 3000);
-        }
-        function hideAlert() {
-            alertBox.classList.remove('show');
-        }
+
+            // Formata segundos para formato SRT (hh:mm:ss,ms)
+            function formatTime(seconds) {
+                const h = Math.floor(seconds / 3600);
+                const m = Math.floor((seconds % 3600) / 60);
+                const s = Math.floor(seconds % 60);
+                const ms = Math.floor((seconds - Math.floor(seconds)) * 1000);
+                return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')},${ms.toString().padStart(3,'0')}`;
+            }
+
+            // Download do arquivo .srt
+            downloadBtn.addEventListener('click', () => {
+                const conteudo = srtContent.textContent;
+                if (!conteudo) return;
+                
+                const blob = new Blob([conteudo], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = currentFile ? currentFile.name.replace(/\.[^/.]+$/, '') + '.srt' : 'legendas.srt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+
+            // Efeito de brilho no hover (copiado do site original)
+            document.querySelectorAll('.tool-card, .tool-container').forEach(card => {
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    card.style.setProperty('--x', x + 'px');
+                    card.style.setProperty('--y', y + 'px');
+                });
+            });
+        })();
     </script>
+    <!-- (opcional) script do google ads, se necessário -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8743588040099046" crossorigin="anonymous"></script>
 </body>
 </html>
