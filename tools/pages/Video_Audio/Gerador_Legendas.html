@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>thebox · Gerador de Legendas</title>
+    <title>thebox · Transcrição para Legendas</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="icon" type="image/png" href="../../../logo_the_box_luz_e_sombra_sem_fundo-removebg-preview.png">
     <style>
@@ -21,7 +21,7 @@
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 900px;
             margin: 0 auto;
         }
 
@@ -90,115 +90,91 @@
             box-shadow: 0 25px 40px -15px black;
         }
 
-        .subtitle-tabs {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 2rem;
-            border-bottom: 1px solid #334155;
-            padding-bottom: 1rem;
-        }
-        .tab-btn {
-            background: transparent;
-            border: none;
-            color: #94a3b8;
-            padding: 0.7rem 1.5rem;
-            border-radius: 40px;
-            font-weight: 600;
+        .upload-area {
+            border: 2px dashed #334155;
+            border-radius: 28px;
+            padding: 3rem 1rem;
+            text-align: center;
             cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
+            transition: border 0.2s, background 0.2s;
+            margin-bottom: 2rem;
         }
-        .tab-btn i {
+        .upload-area:hover {
+            border-color: #60a5fa;
+            background: rgba(96, 165, 250, 0.05);
+        }
+        .upload-area i {
+            font-size: 3.5rem;
+            color: #60a5fa;
+            margin-bottom: 1rem;
+        }
+        .upload-area p {
+            color: #cbd5e1;
             font-size: 1.1rem;
         }
-        .tab-btn.active {
-            background: #2563eb;
-            color: white;
+        .upload-area small {
+            color: #64748b;
+            display: block;
+            margin-top: 0.8rem;
         }
 
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
-        }
-
-        .textarea-label {
-            color: #cbd5e1;
-            margin-bottom: 0.5rem;
-            display: block;
-            font-weight: 500;
-        }
-        .script-textarea {
-            width: 100%;
-            background: #1e293b;
+        .file-info {
+            background: rgba(255,255,255,0.02);
+            border-radius: 20px;
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
             border: 1px solid #334155;
-            border-radius: 24px;
-            padding: 1.5rem;
-            color: white;
-            font-size: 1rem;
-            line-height: 1.6;
-            resize: vertical;
-            min-height: 200px;
-            outline: none;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
-        .script-textarea:focus {
-            border-color: #60a5fa;
+        .file-info.show {
+            display: flex;
+        }
+        .file-name {
+            color: #f1f5f9;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        .file-size {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+        .clear-file {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 0.3rem;
         }
 
-        .options-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin: 2rem 0;
+        /* Opções de idioma */
+        .language-selector {
+            margin: 1.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
         }
-        .option-group label {
-            display: block;
+        .language-selector label {
             color: #cbd5e1;
-            font-size: 0.9rem;
             font-weight: 500;
-            margin-bottom: 0.5rem;
         }
-        .option-group input {
-            width: 100%;
+        .language-selector select {
             background: #1e293b;
             border: 1px solid #334155;
             border-radius: 40px;
-            padding: 0.7rem 1.2rem;
+            padding: 0.7rem 1.5rem;
             color: white;
             font-size: 1rem;
             outline: none;
-        }
-        .option-group input:focus {
-            border-color: #60a5fa;
-        }
-
-        .preview-area {
-            background: #0f172a;
-            border-radius: 24px;
-            padding: 1.5rem;
-            margin: 2rem 0;
-            border: 1px solid #334155;
-        }
-        .preview-title {
-            color: #94a3b8;
-            margin-bottom: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        #srtPreview {
-            color: #f1f5f9;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            white-space: pre-wrap;
-            background: #1e293b;
-            padding: 1rem;
-            border-radius: 16px;
-            max-height: 300px;
-            overflow-y: auto;
+            cursor: pointer;
+            flex: 1;
         }
 
         .btn {
@@ -222,16 +198,74 @@
             width: 100%;
             margin: 1rem 0;
         }
-        .btn-primary:hover {
+        .btn-primary:hover:not(:disabled) {
             background: #3b82f6;
             transform: scale(1.02);
         }
-        .btn-download {
-            background: #10b981;
-            border-color: #34d399;
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
         }
-        .btn-download:hover {
-            background: #34d399;
+
+        .progress-area {
+            margin-top: 2rem;
+            background: #0f172a;
+            border-radius: 40px;
+            padding: 1.5rem;
+            border: 1px solid #334155;
+            display: none;
+        }
+        .progress-area.show {
+            display: block;
+        }
+        .progress-bar {
+            height: 10px;
+            background: #1e293b;
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 1rem 0 0.5rem;
+        }
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #60a5fa, #a855f7);
+            transition: width 0.2s;
+        }
+        .progress-status {
+            display: flex;
+            justify-content: space-between;
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        .transcription-area {
+            background: #0f172a;
+            border-radius: 24px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border: 1px solid #334155;
+            display: none;
+        }
+        .transcription-area.show {
+            display: block;
+        }
+        .transcription-title {
+            color: #94a3b8;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #srtOutput {
+            color: #f1f5f9;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            background: #1e293b;
+            padding: 1rem;
+            border-radius: 16px;
+            max-height: 300px;
+            overflow-y: auto;
         }
 
         .alert {
@@ -261,60 +295,74 @@
             <div class="logo-container">
                 <img src="../../../logo_the_box_luz_e_sombra_sem_fundo-removebg-preview.png" alt="thebox" class="logo-img">
             </div>
-            <h1>Gerador de Legendas</h1>
-            <p>Crie arquivos .srt a partir de um roteiro</p>
+            <h1>Transcrição para Legendas</h1>
+            <p>Envie áudio ou vídeo e gere legendas automaticamente</p>
         </header>
 
         <a href="../../../index.html" class="back-link"><i class="fas fa-arrow-left"></i> Voltar para ferramentas</a>
 
         <div class="tool-card">
-            <!-- Abas: Texto / Vídeo (simples) -->
-            <div class="subtitle-tabs">
-                <button class="tab-btn active" id="tabTextBtn"><i class="fas fa-pencil-alt"></i> A partir do texto</button>
-                <button class="tab-btn" id="tabVideoBtn" disabled><i class="fas fa-video"></i> Sincronizar com vídeo (em breve)</button>
+            <!-- Upload -->
+            <div id="uploadArea" class="upload-area">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Arraste ou clique para selecionar um arquivo</p>
+                <small>MP3, WAV, M4A, MP4, MOV (até 25 MB)</small>
+                <input type="file" id="fileInput" accept="audio/*,video/*" style="display: none;">
             </div>
 
-            <!-- Aba Texto -->
-            <div id="tabTextContent" class="tab-content active">
-                <label class="textarea-label" for="scriptInput"><i class="fas fa-align-left"></i> Cole o roteiro (uma linha por legenda):</label>
-                <textarea id="scriptInput" class="script-textarea" placeholder="Olá, mundo!&#10;Bem-vindo ao gerador de legendas.&#10;Você pode personalizar os tempos abaixo."></textarea>
-
-                <div class="options-grid">
-                    <div class="option-group">
-                        <label><i class="fas fa-hourglass-start"></i> Tempo inicial (segundos)</label>
-                        <input type="number" id="startTime" min="0" step="1" value="0">
-                    </div>
-                    <div class="option-group">
-                        <label><i class="fas fa-hourglass-half"></i> Duração por legenda (s)</label>
-                        <input type="number" id="durationPerLine" min="0.5" step="0.5" value="3.0">
-                    </div>
-                    <div class="option-group">
-                        <label><i class="fas fa-arrows-alt-h"></i> Intervalo entre legendas (s)</label>
-                        <input type="number" id="gapBetween" min="0" step="0.1" value="0.2">
-                    </div>
+            <div id="fileInfo" class="file-info">
+                <div class="file-name">
+                    <i class="fas fa-file-audio" style="color:#60a5fa;"></i>
+                    <span id="fileName">arquivo.mp3</span>
+                    <span id="fileSize" class="file-size">(5 MB)</span>
                 </div>
+                <button id="clearFile" class="clear-file" title="Remover arquivo"><i class="fas fa-times-circle"></i></button>
+            </div>
 
-                <button id="generateBtn" class="btn btn-primary"><i class="fas fa-cogs"></i> Gerar SRT</button>
+            <!-- Idioma -->
+            <div class="language-selector">
+                <label><i class="fas fa-globe"></i> Idioma do áudio:</label>
+                <select id="languageSelect">
+                    <option value="pt">Português</option>
+                    <option value="en">Inglês</option>
+                    <option value="es">Espanhol</option>
+                    <option value="fr">Francês</option>
+                    <option value="de">Alemão</option>
+                    <option value="it">Italiano</option>
+                </select>
+            </div>
 
-                <div class="preview-area">
-                    <div class="preview-title">
-                        <span><i class="fas fa-eye"></i> Pré-visualização</span>
+            <!-- Botão transcrever -->
+            <button id="transcribeBtn" class="btn btn-primary" disabled><i class="fas fa-microphone-alt"></i> Transcrever e gerar legendas</button>
+
+            <!-- Progresso -->
+            <div id="progressArea" class="progress-area">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <i class="fas fa-spinner fa-pulse" style="color:#60a5fa;"></i>
+                    <span id="progressMessage">Carregando modelo de IA...</span>
+                </div>
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill" style="width: 0%;"></div>
+                </div>
+                <div class="progress-status">
+                    <span id="progressDetail">Iniciando...</span>
+                    <span id="progressPercent">0%</span>
+                </div>
+            </div>
+
+            <!-- Resultado -->
+            <div id="transcriptionArea" class="transcription-area">
+                <div class="transcription-title">
+                    <span><i class="fas fa-closed-captioning"></i> Legendas geradas (.srt)</span>
+                    <div>
                         <button id="copyBtn" class="btn" style="padding: 0.4rem 1.2rem; background: #334155;"><i class="fas fa-copy"></i> Copiar</button>
+                        <button id="downloadBtn" class="btn" style="padding: 0.4rem 1.2rem; background: #10b981;"><i class="fas fa-download"></i> Baixar .srt</button>
                     </div>
-                    <div id="srtPreview">Clique em "Gerar SRT" para visualizar.</div>
                 </div>
-
-                <button id="downloadBtn" class="btn btn-download" disabled><i class="fas fa-download"></i> Baixar legendas.srt</button>
+                <div id="srtOutput"></div>
             </div>
 
-            <!-- Aba Vídeo (placeholder) -->
-            <div id="tabVideoContent" class="tab-content">
-                <div style="text-align: center; padding: 3rem; color: #94a3b8;">
-                    <i class="fas fa-tools" style="font-size: 4rem; margin-bottom: 1rem;"></i>
-                    <p>Em breve: sincronização automática com vídeo usando reconhecimento de fala.</p>
-                </div>
-            </div>
-
+            <!-- Alerta -->
             <div id="alertBox" class="alert">
                 <i class="fas fa-exclamation-triangle"></i>
                 <span id="alertMessage">Erro</span>
@@ -322,131 +370,304 @@
         </div>
 
         <footer>
-            <p>🚀 Gere legendas .srt rapidamente a partir de um roteiro.</p>
+            <p>🚀 Processamento local com IA (Whisper) · nenhum dado enviado para servidores</p>
         </footer>
     </div>
 
+    <!-- Scripts: Transformers.js e ffmpeg (para extrair áudio de vídeos) -->
+    <script src="https://cdn.jsdelivr.net/npm/@huggingface/transformers@2.13.0"></script>
+    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
     <script>
         (function() {
             // Elementos DOM
-            const scriptInput = document.getElementById('scriptInput');
-            const startTimeInput = document.getElementById('startTime');
-            const durationInput = document.getElementById('durationPerLine');
-            const gapInput = document.getElementById('gapBetween');
-            const generateBtn = document.getElementById('generateBtn');
-            const srtPreview = document.getElementById('srtPreview');
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+            const fileInfo = document.getElementById('fileInfo');
+            const fileNameSpan = document.getElementById('fileName');
+            const fileSizeSpan = document.getElementById('fileSize');
+            const clearFileBtn = document.getElementById('clearFile');
+            const transcribeBtn = document.getElementById('transcribeBtn');
+            const languageSelect = document.getElementById('languageSelect');
+            const progressArea = document.getElementById('progressArea');
+            const progressFill = document.getElementById('progressFill');
+            const progressMessage = document.getElementById('progressMessage');
+            const progressDetail = document.getElementById('progressDetail');
+            const progressPercent = document.getElementById('progressPercent');
+            const transcriptionArea = document.getElementById('transcriptionArea');
+            const srtOutput = document.getElementById('srtOutput');
             const copyBtn = document.getElementById('copyBtn');
             const downloadBtn = document.getElementById('downloadBtn');
             const alertBox = document.getElementById('alertBox');
             const alertMessage = document.getElementById('alertMessage');
 
-            let lastSrt = '';
+            // Estado
+            let selectedFile = null;
+            let audioBuffer = null;
+            let transcriber = null;
+            let modelLoaded = false;
+            let lastSRT = '';
 
-            // Função para formatar tempo no formato SRT (hh:mm:ss,ms)
-            function formatSRTTime(seconds) {
+            // Upload handlers
+            uploadArea.addEventListener('click', () => fileInput.click());
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = '#60a5fa';
+            });
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.style.borderColor = '#334155';
+            });
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = '#334155';
+                const file = e.dataTransfer.files[0];
+                if (file) setSelectedFile(file);
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) setSelectedFile(file);
+            });
+
+            function setSelectedFile(file) {
+                // Limitar tamanho (25MB para evitar travamentos)
+                if (file.size > 25 * 1024 * 1024) {
+                    showAlert('Arquivo muito grande. Máximo 25 MB.');
+                    return;
+                }
+                selectedFile = file;
+                fileNameSpan.innerText = file.name;
+                fileSizeSpan.innerText = `(${(file.size / (1024*1024)).toFixed(2)} MB)`;
+                fileInfo.classList.add('show');
+                transcribeBtn.disabled = false;
+                transcriptionArea.classList.remove('show');
+                lastSRT = '';
+                hideAlert();
+            }
+
+            clearFileBtn.addEventListener('click', () => {
+                selectedFile = null;
+                fileInput.value = '';
+                fileInfo.classList.remove('show');
+                transcribeBtn.disabled = true;
+                transcriptionArea.classList.remove('show');
+            });
+
+            // Carregar modelo Whisper (transformers.js)
+            async function loadModel() {
+                if (modelLoaded) return true;
+                try {
+                    progressArea.classList.add('show');
+                    progressMessage.innerText = 'Carregando modelo Whisper (150 MB)...';
+                    progressDetail.innerText = 'baixando da primeira vez pode demorar';
+                    progressFill.style.width = '10%';
+
+                    const { pipeline } = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@2.13.0');
+                    
+                    transcriber = await pipeline(
+                        'automatic-speech-recognition',
+                        'Xenova/whisper-tiny.en', // modelo pequeno (inglês) – para português, usar 'Xenova/whisper-tiny'
+                        { 
+                            progress_callback: (progress) => {
+                                if (progress.status === 'progress') {
+                                    const percent = Math.round(progress.progress * 70) + 20;
+                                    progressFill.style.width = percent + '%';
+                                    progressPercent.innerText = percent + '%';
+                                }
+                            }
+                        }
+                    );
+                    
+                    modelLoaded = true;
+                    progressFill.style.width = '100%';
+                    progressDetail.innerText = 'Modelo pronto!';
+                    setTimeout(() => {
+                        progressArea.classList.remove('show');
+                    }, 1000);
+                    return true;
+                } catch (err) {
+                    showAlert('Erro ao carregar modelo: ' + err.message);
+                    progressArea.classList.remove('show');
+                    return false;
+                }
+            }
+
+            // Extrair áudio de vídeo usando ffmpeg (se necessário)
+            async function extractAudioFromVideo(file) {
+                // Se já for áudio, retorna o arquivo
+                if (file.type.startsWith('audio/')) return file;
+
+                // Vídeo: usar ffmpeg.wasm para extrair áudio como MP3
+                const { createFFmpeg, fetchFile } = FFmpeg;
+                const ffmpeg = createFFmpeg({ log: false });
+                await ffmpeg.load();
+
+                const inputName = 'input_' + Date.now() + '.mp4';
+                const outputName = 'audio.mp3';
+                ffmpeg.FS('writeFile', inputName, await fetchFile(file));
+                await ffmpeg.run('-i', inputName, '-vn', '-acodec', 'libmp3lame', '-y', outputName);
+                const data = ffmpeg.FS('readFile', outputName);
+                ffmpeg.FS('unlink', inputName);
+                ffmpeg.FS('unlink', outputName);
+                
+                return new File([data.buffer], 'audio.mp3', { type: 'audio/mp3' });
+            }
+
+            // Converter File para ArrayBuffer e depois para Float32Array (necessário para o pipeline)
+            async function fileToAudioBuffer(file) {
+                // Se for vídeo, extrair áudio primeiro
+                const audioFile = file.type.startsWith('video/') ? await extractAudioFromVideo(file) : file;
+                
+                const arrayBuffer = await audioFile.arrayBuffer();
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                
+                // Converter para Float32Array (mono, 16000 Hz)
+                const channelData = audioBuffer.getChannelData(0); // mono
+                const targetSampleRate = 16000;
+                const sourceSampleRate = audioBuffer.sampleRate;
+                
+                if (sourceSampleRate === targetSampleRate) {
+                    return channelData;
+                } else {
+                    // Resample simples (média)
+                    const ratio = sourceSampleRate / targetSampleRate;
+                    const newLength = Math.round(channelData.length / ratio);
+                    const result = new Float32Array(newLength);
+                    for (let i = 0; i < newLength; i++) {
+                        const srcIndex = Math.round(i * ratio);
+                        result[i] = channelData[srcIndex];
+                    }
+                    return result;
+                }
+            }
+
+            // Converter chunks de transcrição para SRT
+            function chunksToSRT(chunks) {
+                let srt = '';
+                chunks.forEach((chunk, index) => {
+                    const start = chunk.timestamp[0];
+                    const end = chunk.timestamp[1];
+                    const text = chunk.text.trim();
+                    
+                    if (!text) return;
+                    
+                    function formatTime(seconds) {
+                        const h = Math.floor(seconds / 3600);
+                        const m = Math.floor((seconds % 3600) / 60);
+                        const s = Math.floor(seconds % 60);
+                        const ms = Math.floor((seconds - Math.floor(seconds)) * 1000);
+                        return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')},${String(ms).padStart(3,'0')}`;
+                    }
+                    
+                    srt += `${index + 1}\n`;
+                    srt += `${formatTime(start)} --> ${formatTime(end)}\n`;
+                    srt += `${text}\n\n`;
+                });
+                return srt;
+            }
+
+            // Transcrever
+            transcribeBtn.addEventListener('click', async () => {
+                if (!selectedFile) return;
+
+                hideAlert();
+                transcriptionArea.classList.remove('show');
+                
+                const loaded = await loadModel();
+                if (!loaded) return;
+
+                try {
+                    transcribeBtn.disabled = true;
+                    progressArea.classList.add('show');
+                    progressMessage.innerText = 'Preparando áudio...';
+                    progressFill.style.width = '10%';
+                    progressPercent.innerText = '10%';
+                    
+                    // Converter arquivo para buffer de áudio (Float32Array, 16000 Hz)
+                    const audioData = await fileToAudioBuffer(selectedFile);
+                    
+                    progressMessage.innerText = 'Transcrevendo...';
+                    progressDetail.innerText = 'isso pode levar alguns minutos';
+                    
+                    // Opções: idioma e retorno de timestamps por palavra
+                    const language = languageSelect.value;
+                    const output = await transcriber(audioData, {
+                        language: language,
+                        task: 'transcribe',
+                        return_timestamps: true, // para obter chunks com timestamps
+                        chunk_length_s: 30,        // processar em chunks de 30s
+                        stride_length_s: 5,
+                    });
+                    
+                    // output pode ser { text, chunks } ou apenas string se não pedir timestamps
+                    let srt = '';
+                    if (output.chunks && output.chunks.length > 0) {
+                        srt = chunksToSRT(output.chunks);
+                    } else {
+                        // Fallback: criar uma legenda única com o texto todo
+                        const duration = audioData.length / 16000; // segundos aproximados
+                        srt = `1\n00:00:00,000 --> ${formatTime(duration)}\n${output.text}\n`;
+                    }
+                    
+                    lastSRT = srt;
+                    srtOutput.innerText = srt;
+                    transcriptionArea.classList.add('show');
+                    
+                } catch (err) {
+                    console.error(err);
+                    showAlert('Erro durante transcrição: ' + err.message);
+                } finally {
+                    transcribeBtn.disabled = false;
+                    progressArea.classList.remove('show');
+                }
+            });
+
+            // Função auxiliar para formatar tempo (para fallback)
+            function formatTime(seconds) {
                 const h = Math.floor(seconds / 3600);
                 const m = Math.floor((seconds % 3600) / 60);
                 const s = Math.floor(seconds % 60);
                 const ms = Math.floor((seconds - Math.floor(seconds)) * 1000);
-                return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')},${String(ms).padStart(3, '0')}`;
+                return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')},${String(ms).padStart(3,'0')}`;
             }
 
-            // Gerar SRT
-            function generateSRT() {
-                const text = scriptInput.value.trim();
-                if (!text) {
-                    showAlert('Por favor, cole o roteiro.');
-                    return false;
-                }
-
-                const lines = text.split('\n').filter(line => line.trim() !== '');
-                if (lines.length === 0) {
-                    showAlert('Nenhuma linha de legenda encontrada.');
-                    return false;
-                }
-
-                const start = parseFloat(startTimeInput.value) || 0;
-                const duration = parseFloat(durationInput.value) || 3;
-                const gap = parseFloat(gapInput.value) || 0.2;
-
-                let srt = '';
-                let currentTime = start;
-
-                for (let i = 0; i < lines.length; i++) {
-                    const line = lines[i].trim();
-                    const endTime = currentTime + duration;
-                    
-                    srt += `${i + 1}\n`;
-                    srt += `${formatSRTTime(currentTime)} --> ${formatSRTTime(endTime)}\n`;
-                    srt += `${line}\n\n`;
-
-                    currentTime = endTime + gap;
-                }
-
-                lastSrt = srt;
-                srtPreview.innerText = srt;
-                downloadBtn.disabled = false;
-                hideAlert();
-                return true;
-            }
-
-            generateBtn.addEventListener('click', generateSRT);
-
-            // Copiar para área de transferência
-            copyBtn.addEventListener('click', async () => {
-                if (!lastSrt) {
-                    showAlert('Gere o SRT primeiro.');
-                    return;
-                }
-                try {
-                    await navigator.clipboard.writeText(lastSrt);
-                    alertMessage.innerText = 'SRT copiado para a área de transferência!';
-                    alertBox.classList.add('show');
-                    alertBox.style.background = '#065f46';
-                    alertBox.style.color = '#d1fae5';
-                    setTimeout(() => {
-                        alertBox.classList.remove('show');
-                        alertBox.style.background = ''; // reset
-                    }, 2000);
-                } catch (err) {
-                    showAlert('Erro ao copiar: ' + err.message);
-                }
+            // Copiar SRT
+            copyBtn.addEventListener('click', () => {
+                if (!lastSRT) return;
+                navigator.clipboard.writeText(lastSRT).then(() => {
+                    showAlert('Legendas copiadas!', 'success');
+                }).catch(() => {
+                    showAlert('Erro ao copiar');
+                });
             });
 
-            // Download
+            // Download SRT
             downloadBtn.addEventListener('click', () => {
-                if (!lastSrt) return;
-                const blob = new Blob([lastSrt], { type: 'text/plain;charset=utf-8' });
+                if (!lastSRT) return;
+                const blob = new Blob([lastSRT], { type: 'text/plain;charset=utf-8' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
                 a.download = 'legendas.srt';
-                document.body.appendChild(a);
                 a.click();
-                document.body.removeChild(a);
                 URL.revokeObjectURL(url);
             });
 
-            // Alternar abas (apenas visual, a segunda está desativada)
-            document.getElementById('tabTextBtn').addEventListener('click', () => {
-                document.getElementById('tabTextBtn').classList.add('active');
-                document.getElementById('tabVideoBtn').classList.remove('active');
-                document.getElementById('tabTextContent').classList.add('active');
-                document.getElementById('tabVideoContent').classList.remove('active');
-            });
-
-            function showAlert(msg) {
+            function showAlert(msg, type = 'error') {
                 alertMessage.innerText = msg;
                 alertBox.classList.add('show');
-                alertBox.style.background = '#991b1b';
-                alertBox.style.color = '#fecaca';
+                if (type === 'success') {
+                    alertBox.style.background = '#065f46';
+                    alertBox.style.color = '#d1fae5';
+                } else {
+                    alertBox.style.background = '#991b1b';
+                    alertBox.style.color = '#fecaca';
+                }
+                setTimeout(() => alertBox.classList.remove('show'), 3000);
             }
             function hideAlert() {
                 alertBox.classList.remove('show');
             }
-
-            // Inicialização: exemplo de texto
-            scriptInput.value = "Olá, esta é uma legenda de exemplo.\nVocê pode editar este texto.\nAjuste os tempos conforme necessário.";
         })();
     </script>
 </body>
