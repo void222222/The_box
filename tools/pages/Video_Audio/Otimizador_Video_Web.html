@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>thebox · Otimizador de Vídeo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- mesmo favicon do index (ajuste caminho se necessário) -->
+    <link rel="icon" type="image/png" href="../../../logo_the_box_luz_e_sombra_sem_fundo-removebg-preview.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* header com logo */
+        header {
+            text-align: center;
+            padding: 1rem 1rem 2rem;
+            color: white;
+        }
+
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 0.1rem;
+        }
+
+        .logo-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            object-fit: cover;
+            border: 3px solid #a855f7;
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+            background-color: #2d1b4e;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #c084fc, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        header p {
+            color: #cbd5e1;
+            font-size: 1.1rem;
+        }
+
+        /* back link */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #94a3b8;
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            transition: color 0.2s;
+            background: rgba(255,255,255,0.03);
+            padding: 0.5rem 1.2rem;
+            border-radius: 40px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .back-link:hover {
+            color: white;
+            border-color: #60a5fa;
+        }
+
+        /* card principal */
+        .optimizer-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 36px;
+            padding: 2.2rem 2rem;
+            box-shadow: 0 25px 40px -15px black;
+        }
+
+        .upload-area {
+            border: 2px dashed #334155;
+            border-radius: 28px;
+            padding: 3rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border 0.2s, background 0.2s;
+            margin-bottom: 2rem;
+        }
+        .upload-area:hover {
+            border-color: #60a5fa;
+            background: rgba(96, 165, 250, 0.05);
+        }
+        .upload-area i {
+            font-size: 3.5rem;
+            color: #60a5fa;
+            margin-bottom: 1rem;
+        }
+        .upload-area p {
+            color: #cbd5e1;
+            font-size: 1.1rem;
+        }
+        .upload-area small {
+            color: #64748b;
+            display: block;
+            margin-top: 0.8rem;
+        }
+
+        .file-info {
+            background: rgba(255,255,255,0.02);
+            border-radius: 20px;
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            border: 1px solid #334155;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .file-info.show {
+            display: flex;
+        }
+        .file-name {
+            color: #f1f5f9;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        .file-size {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+        .clear-file {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 0.3rem;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.8rem;
+            margin: 2.2rem 0;
+        }
+
+        .option-group label {
+            display: block;
+            color: #cbd5e1;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 0.6rem;
+            letter-spacing: 0.3px;
+        }
+
+        .option-group select, .option-group input[type="range"] {
+            width: 100%;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 40px;
+            padding: 0.7rem 1.2rem;
+            color: white;
+            font-size: 0.95rem;
+            outline: none;
+            cursor: pointer;
+        }
+        .option-group select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 16px;
+        }
+        .option-group select:hover {
+            border-color: #60a5fa;
+        }
+
+        .quality-slider {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .quality-slider span {
+            color: #60a5fa;
+            font-weight: 600;
+            min-width: 3rem;
+            text-align: right;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            color: #f1f5f9;
+            margin-top: 1.8rem;
+            background: #1e293b;
+            padding: 1rem 1.5rem;
+            border-radius: 60px;
+            border: 1px solid #334155;
+        }
+        .checkbox-group input {
+            width: 1.2rem;
+            height: 1.2rem;
+            accent-color: #60a5fa;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 2rem 0 1rem;
+        }
+        .btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid #334155;
+            padding: 1rem 2rem;
+            border-radius: 60px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1 1 auto;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+        }
+        .btn-primary {
+            background: #2563eb;
+            border-color: #3b82f6;
+            color: white;
+        }
+        .btn-primary:hover:not(:disabled) {
+            background: #3b82f6;
+            transform: scale(1.02);
+        }
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .progress-area {
+            margin-top: 2rem;
+            background: #0f172a;
+            border-radius: 40px;
+            padding: 1.5rem;
+            border: 1px solid #334155;
+            display: none;
+        }
+        .progress-area.show {
+            display: block;
+        }
+        .progress-bar {
+            height: 10px;
+            background: #1e293b;
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 1rem 0 0.5rem;
+        }
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #60a5fa, #a855f7);
+            transition: width 0.2s;
+        }
+        .progress-status {
+            display: flex;
+            justify-content: space-between;
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        .download-area {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #334155;
+            display: none;
+        }
+        .download-area.show {
+            display: block;
+        }
+        .download-btn {
+            background: #10b981;
+            border: none;
+            color: white;
+            padding: 1rem 2.5rem;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            border: 1px solid #34d399;
+        }
+        .download-btn:hover {
+            background: #34d399;
+        }
+
+        footer {
+            text-align: center;
+            padding: 3rem 1rem 1rem;
+            color: #64748b;
+        }
+
+        /* alert custom */
+        .alert {
+            background: #991b1b;
+            color: #fecaca;
+            padding: 1rem 1.5rem;
+            border-radius: 60px;
+            margin: 1.5rem 0;
+            display: none;
+            align-items: center;
+            gap: 1rem;
+        }
+        .alert.show {
+            display: flex;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- header simplificado com logo e link volta -->
+        <header>
+            <div class="logo-container">
+                <img src="../../../logo_the_box_luz_e_sombra_sem_fundo-removebg-preview.png" alt="thebox" class="logo-img">
+            </div>
+            <h1>Otimizador de Vídeo</h1>
+            <p>Comprima vídeos para web com qualidade sob controle</p>
+        </header>
+
+        <a href="../../../index.html" class="back-link"><i class="fas fa-arrow-left"></i> Voltar para ferramentas</a>
+
+        <div class="optimizer-card">
+            <!-- Área de upload -->
+            <div id="uploadArea" class="upload-area">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Arraste ou clique para selecionar um vídeo</p>
+                <small>MP4, MOV, WebM (máx. 500MB recomendado)</small>
+                <input type="file" id="fileInput" accept="video/*" style="display: none;">
+            </div>
+
+            <!-- Informações do arquivo -->
+            <div id="fileInfo" class="file-info">
+                <div class="file-name">
+                    <i class="fas fa-video" style="color:#60a5fa;"></i>
+                    <span id="fileName">video.mp4</span>
+                    <span id="fileSize" class="file-size">(10 MB)</span>
+                </div>
+                <button id="clearFile" class="clear-file" title="Remover arquivo"><i class="fas fa-times-circle"></i></button>
+            </div>
+
+            <!-- Opções de otimização -->
+            <div class="options-grid">
+                <div class="option-group">
+                    <label><i class="fas fa-expand-alt" style="margin-right: 6px;"></i> Resolução</label>
+                    <select id="resolutionSelect">
+                        <option value="original">Manual (original)</option>
+                        <option value="1280:720">HD (1280x720)</option>
+                        <option value="854:480">SD (854x480)</option>
+                        <option value="640:360">360p (640x360)</option>
+                        <option value="426:240">240p (426x240)</option>
+                    </select>
+                </div>
+                <div class="option-group">
+                    <label><i class="fas fa-sliders-h"></i> Qualidade (CRF)</label>
+                    <div class="quality-slider">
+                        <input type="range" id="crfSlider" min="18" max="45" value="28" step="1">
+                        <span id="crfValue">28</span>
+                    </div>
+                    <small style="color: #64748b;">Menor = melhor qualidade (maior arquivo)</small>
+                </div>
+            </div>
+
+            <!-- Checkbox remover áudio -->
+            <div class="checkbox-group">
+                <input type="checkbox" id="removeAudio">
+                <label for="removeAudio"><i class="fas fa-volume-mute" style="margin-right: 8px;"></i> Remover áudio (vídeo mudo)</label>
+            </div>
+
+            <!-- Botões de ação -->
+            <div class="action-buttons">
+                <button id="processBtn" class="btn btn-primary" disabled><i class="fas fa-magic"></i> Otimizar Vídeo</button>
+            </div>
+
+            <!-- Área de progresso -->
+            <div id="progressArea" class="progress-area">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <i class="fas fa-spinner fa-pulse" style="color:#60a5fa;"></i>
+                    <span id="progressMessage">Carregando ffmpeg...</span>
+                </div>
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill" style="width: 0%;"></div>
+                </div>
+                <div class="progress-status">
+                    <span id="progressDetail">Iniciando...</span>
+                    <span id="progressPercent">0%</span>
+                </div>
+            </div>
+
+            <!-- Alerta de erro -->
+            <div id="alertBox" class="alert">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span id="alertMessage">Erro ao processar</span>
+            </div>
+
+            <!-- Área de download -->
+            <div id="downloadArea" class="download-area">
+                <button id="downloadBtn" class="download-btn"><i class="fas fa-download"></i> Baixar vídeo otimizado</button>
+            </div>
+        </div>
+
+        <footer>
+            <p>🚀 processamento local · nenhum vídeo sai do seu computador</p>
+        </footer>
+    </div>
+
+    <!-- Carrega ffmpeg.wasm -->
+    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
+    <script>
+        (function() {
+            // Elementos DOM
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+            const fileInfo = document.getElementById('fileInfo');
+            const fileNameSpan = document.getElementById('fileName');
+            const fileSizeSpan = document.getElementById('fileSize');
+            const clearFileBtn = document.getElementById('clearFile');
+            const processBtn = document.getElementById('processBtn');
+            const resolutionSelect = document.getElementById('resolutionSelect');
+            const crfSlider = document.getElementById('crfSlider');
+            const crfValue = document.getElementById('crfValue');
+            const removeAudioCheck = document.getElementById('removeAudio');
+            const progressArea = document.getElementById('progressArea');
+            const progressFill = document.getElementById('progressFill');
+            const progressMessage = document.getElementById('progressMessage');
+            const progressDetail = document.getElementById('progressDetail');
+            const progressPercent = document.getElementById('progressPercent');
+            const downloadArea = document.getElementById('downloadArea');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const alertBox = document.getElementById('alertBox');
+            const alertMessage = document.getElementById('alertMessage');
+
+            // Variáveis de estado
+            let selectedFile = null;
+            let ffmpeg = null;
+            let ffmpegLoaded = false;
+            let outputFileName = 'video_otimizado.mp4';
+            let outputData = null;  // Uint8Array
+
+            // Inicializa ffmpeg sob demanda (quando for processar)
+            async function loadFfmpeg() {
+                if (ffmpegLoaded) return true;
+                try {
+                    progressArea.classList.add('show');
+                    progressMessage.innerText = 'Carregando ffmpeg (20MB)...';
+                    progressDetail.innerText = 'baixando módulos wasm';
+                    progressFill.style.width = '10%';
+                    
+                    const { createFFmpeg, fetchFile } = FFmpeg; // global do script
+                    ffmpeg = createFFmpeg({ 
+                        log: false,
+                        corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js',
+                    });
+                    
+                    progressFill.style.width = '30%';
+                    progressDetail.innerText = 'inicializando...';
+                    
+                    await ffmpeg.load();
+                    ffmpegLoaded = true;
+                    progressFill.style.width = '100%';
+                    progressDetail.innerText = 'ffmpeg pronto!';
+                    
+                    // esconde progresso depois de 1s
+                    setTimeout(() => {
+                        if (!ffmpeg.isProcessing()) {
+                            progressArea.classList.remove('show');
+                        }
+                    }, 1000);
+                    return true;
+                } catch (err) {
+                    showAlert('Erro ao carregar ffmpeg: ' + err.message);
+                    progressArea.classList.remove('show');
+                    return false;
+                }
+            }
+
+            // Atualiza valor do CRF
+            crfSlider.addEventListener('input', () => {
+                crfValue.innerText = crfSlider.value;
+            });
+
+            // Upload area click
+            uploadArea.addEventListener('click', () => fileInput.click());
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = '#60a5fa';
+            });
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.style.borderColor = '#334155';
+            });
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = '#334155';
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith('video/')) {
+                    setSelectedFile(file);
+                } else {
+                    showAlert('Por favor, selecione um arquivo de vídeo.');
+                }
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) setSelectedFile(file);
+            });
+
+            function setSelectedFile(file) {
+                selectedFile = file;
+                fileNameSpan.innerText = file.name;
+                fileSizeSpan.innerText = `(${(file.size / (1024*1024)).toFixed(2)} MB)`;
+                fileInfo.classList.add('show');
+                processBtn.disabled = false;
+                // esconde download anterior
+                downloadArea.classList.remove('show');
+                outputData = null;
+                hideAlert();
+            }
+
+            clearFileBtn.addEventListener('click', () => {
+                selectedFile = null;
+                fileInput.value = '';
+                fileInfo.classList.remove('show');
+                processBtn.disabled = true;
+                downloadArea.classList.remove('show');
+                progressArea.classList.remove('show');
+                hideAlert();
+            });
+
+            // Processamento
+            processBtn.addEventListener('click', async () => {
+                if (!selectedFile) return;
+                
+                hideAlert();
+                downloadArea.classList.remove('show');
+                
+                // Garantir ffmpeg carregado
+                progressArea.classList.add('show');
+                progressFill.style.width = '0%';
+                progressMessage.innerText = 'Preparando...';
+                progressDetail.innerText = 'Carregando ffmpeg';
+                
+                const loaded = await loadFfmpeg();
+                if (!loaded) return;
+
+                try {
+                    processBtn.disabled = true;
+                    
+                    // Escreve arquivo no sistema virtual do ffmpeg
+                    const inputName = 'input_' + Date.now() + '.mp4'; // nome único
+                    progressMessage.innerText = 'Lendo vídeo...';
+                    progressDetail.innerText = 'copiando para memória';
+                    progressFill.style.width = '20%';
+                    
+                    const fileData = await fetchFile(selectedFile);
+                    ffmpeg.FS('writeFile', inputName, fileData);
+                    
+                    // Monta comando ffmpeg
+                    let resolution = resolutionSelect.value;
+                    let crf = crfSlider.value;
+                    let removeAudio = removeAudioCheck.checked;
+                    
+                    // Define nome de saída
+                    outputFileName = 'otimizado_' + Date.now() + '.mp4';
+                    
+                    // Argumentos base
+                    let args = ['-i', inputName, '-c:v', 'libx264', '-preset', 'medium', '-crf', crf];
+                    
+                    // Escala se não for original
+                    if (resolution !== 'original') {
+                        let [w, h] = resolution.split(':');
+                        args = args.concat(['-vf', `scale=${w}:${h}:force_original_aspect_ratio=decrease,pad=${w}:${h}:(ow-iw)/2:(oh-ih)/2`]);
+                    }
+                    
+                    // Áudio
+                    if (removeAudio) {
+                        args.push('-an');
+                    } else {
+                        args = args.concat(['-c:a', 'aac', '-b:a', '96k']);
+                    }
+                    
+                    // Forçar yuv420p para compatibilidade
+                    args.push('-pix_fmt', 'yuv420p');
+                    args.push('-movflags', '+faststart'); // otimiza para web
+                    args.push('-y', outputFileName); // sobrescreve
+                    
+                    progressMessage.innerText = 'Processando vídeo...';
+                    progressDetail.innerText = 'aguarde, isso pode levar alguns minutos';
+                    
+                    // Monitora progresso (simples, via log)
+                    ffmpeg.setProgress(({ ratio }) => {
+                        let percent = Math.round(ratio * 80) + 20; // começa em 20% (já usamos 20% antes)
+                        if (percent > 100) percent = 100;
+                        progressFill.style.width = percent + '%';
+                        progressPercent.innerText = percent + '%';
+                    });
+                    
+                    // Executa
+                    await ffmpeg.run(...args);
+                    
+                    progressFill.style.width = '100%';
+                    progressPercent.innerText = '100%';
+                    progressDetail.innerText = 'finalizando...';
+                    
+                    // Lê o arquivo de saída
+                    outputData = ffmpeg.FS('readFile', outputFileName);
+                    
+                    // Limpa arquivos temporários
+                    ffmpeg.FS('unlink', inputName);
+                    ffmpeg.FS('unlink', outputFileName);
+                    
+                    // Mostra botão de download
+                    downloadArea.classList.add('show');
+                    progressArea.classList.remove('show');
+                    
+                } catch (err) {
+                    console.error(err);
+                    showAlert('Erro durante otimização: ' + err.message);
+                    progressArea.classList.remove('show');
+                } finally {
+                    processBtn.disabled = false;
+                }
+            });
+
+            // Download
+            downloadBtn.addEventListener('click', () => {
+                if (!outputData) return;
+                
+                const blob = new Blob([outputData.buffer], { type: 'video/mp4' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = outputFileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+
+            // Utils
+            function showAlert(msg) {
+                alertMessage.innerText = msg;
+                alertBox.classList.add('show');
+            }
+            function hideAlert() {
+                alertBox.classList.remove('show');
+            }
+
+            // Inicialização: carrega ffmpeg em background (opcional, mas melhora UX)
+            setTimeout(() => {
+                if (!ffmpegLoaded) {
+                    loadFfmpeg().catch(() => {}); // silencia erro inicial
+                }
+            }, 1000);
+        })();
+    </script>
+</body>
+</html>
