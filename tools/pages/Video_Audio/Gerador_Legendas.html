@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>thebox · Gerador de Legendas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="icon" type="image/png" href="../../../logo_the_box_luz_e_sombra_sem_fundo-removebg-preview.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 1rem 1rem 2rem;
+            color: white;
+        }
+
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 0.1rem;
+        }
+
+        .logo-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            object-fit: cover;
+            border: 3px solid #a855f7;
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+            background-color: #2d1b4e;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #c084fc, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        header p {
+            color: #cbd5e1;
+            font-size: 1.1rem;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #94a3b8;
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            transition: color 0.2s;
+            background: rgba(255,255,255,0.03);
+            padding: 0.5rem 1.2rem;
+            border-radius: 40px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .back-link:hover {
+            color: white;
+            border-color: #60a5fa;
+        }
+
+        .tool-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 36px;
+            padding: 2.2rem 2rem;
+            box-shadow: 0 25px 40px -15px black;
+        }
+
+        .subtitle-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 1rem;
+        }
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            padding: 0.7rem 1.5rem;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .tab-btn i {
+            font-size: 1.1rem;
+        }
+        .tab-btn.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        .textarea-label {
+            color: #cbd5e1;
+            margin-bottom: 0.5rem;
+            display: block;
+            font-weight: 500;
+        }
+        .script-textarea {
+            width: 100%;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 24px;
+            padding: 1.5rem;
+            color: white;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: vertical;
+            min-height: 200px;
+            outline: none;
+        }
+        .script-textarea:focus {
+            border-color: #60a5fa;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        .option-group label {
+            display: block;
+            color: #cbd5e1;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        .option-group input {
+            width: 100%;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 40px;
+            padding: 0.7rem 1.2rem;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+        }
+        .option-group input:focus {
+            border-color: #60a5fa;
+        }
+
+        .preview-area {
+            background: #0f172a;
+            border-radius: 24px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border: 1px solid #334155;
+        }
+        .preview-title {
+            color: #94a3b8;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #srtPreview {
+            color: #f1f5f9;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            background: #1e293b;
+            padding: 1rem;
+            border-radius: 16px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid #334155;
+            padding: 1rem 2rem;
+            border-radius: 60px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            font-size: 1rem;
+        }
+        .btn-primary {
+            background: #2563eb;
+            border-color: #3b82f6;
+            width: 100%;
+            margin: 1rem 0;
+        }
+        .btn-primary:hover {
+            background: #3b82f6;
+            transform: scale(1.02);
+        }
+        .btn-download {
+            background: #10b981;
+            border-color: #34d399;
+        }
+        .btn-download:hover {
+            background: #34d399;
+        }
+
+        .alert {
+            background: #991b1b;
+            color: #fecaca;
+            padding: 1rem 1.5rem;
+            border-radius: 60px;
+            margin: 1.5rem 0;
+            display: none;
+            align-items: center;
+            gap: 1rem;
+        }
+        .alert.show {
+            display: flex;
+        }
+
+        footer {
+            text-align: center;
+            padding: 3rem 1rem 1rem;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-container">
+                <img src="../../../logo_the_box_luz_e_sombra_sem_fundo-removebg-preview.png" alt="thebox" class="logo-img">
+            </div>
+            <h1>Gerador de Legendas</h1>
+            <p>Crie arquivos .srt a partir de um roteiro</p>
+        </header>
+
+        <a href="../../../index.html" class="back-link"><i class="fas fa-arrow-left"></i> Voltar para ferramentas</a>
+
+        <div class="tool-card">
+            <!-- Abas: Texto / Vídeo (simples) -->
+            <div class="subtitle-tabs">
+                <button class="tab-btn active" id="tabTextBtn"><i class="fas fa-pencil-alt"></i> A partir do texto</button>
+                <button class="tab-btn" id="tabVideoBtn" disabled><i class="fas fa-video"></i> Sincronizar com vídeo (em breve)</button>
+            </div>
+
+            <!-- Aba Texto -->
+            <div id="tabTextContent" class="tab-content active">
+                <label class="textarea-label" for="scriptInput"><i class="fas fa-align-left"></i> Cole o roteiro (uma linha por legenda):</label>
+                <textarea id="scriptInput" class="script-textarea" placeholder="Olá, mundo!&#10;Bem-vindo ao gerador de legendas.&#10;Você pode personalizar os tempos abaixo."></textarea>
+
+                <div class="options-grid">
+                    <div class="option-group">
+                        <label><i class="fas fa-hourglass-start"></i> Tempo inicial (segundos)</label>
+                        <input type="number" id="startTime" min="0" step="1" value="0">
+                    </div>
+                    <div class="option-group">
+                        <label><i class="fas fa-hourglass-half"></i> Duração por legenda (s)</label>
+                        <input type="number" id="durationPerLine" min="0.5" step="0.5" value="3.0">
+                    </div>
+                    <div class="option-group">
+                        <label><i class="fas fa-arrows-alt-h"></i> Intervalo entre legendas (s)</label>
+                        <input type="number" id="gapBetween" min="0" step="0.1" value="0.2">
+                    </div>
+                </div>
+
+                <button id="generateBtn" class="btn btn-primary"><i class="fas fa-cogs"></i> Gerar SRT</button>
+
+                <div class="preview-area">
+                    <div class="preview-title">
+                        <span><i class="fas fa-eye"></i> Pré-visualização</span>
+                        <button id="copyBtn" class="btn" style="padding: 0.4rem 1.2rem; background: #334155;"><i class="fas fa-copy"></i> Copiar</button>
+                    </div>
+                    <div id="srtPreview">Clique em "Gerar SRT" para visualizar.</div>
+                </div>
+
+                <button id="downloadBtn" class="btn btn-download" disabled><i class="fas fa-download"></i> Baixar legendas.srt</button>
+            </div>
+
+            <!-- Aba Vídeo (placeholder) -->
+            <div id="tabVideoContent" class="tab-content">
+                <div style="text-align: center; padding: 3rem; color: #94a3b8;">
+                    <i class="fas fa-tools" style="font-size: 4rem; margin-bottom: 1rem;"></i>
+                    <p>Em breve: sincronização automática com vídeo usando reconhecimento de fala.</p>
+                </div>
+            </div>
+
+            <div id="alertBox" class="alert">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span id="alertMessage">Erro</span>
+            </div>
+        </div>
+
+        <footer>
+            <p>🚀 Gere legendas .srt rapidamente a partir de um roteiro.</p>
+        </footer>
+    </div>
+
+    <script>
+        (function() {
+            // Elementos DOM
+            const scriptInput = document.getElementById('scriptInput');
+            const startTimeInput = document.getElementById('startTime');
+            const durationInput = document.getElementById('durationPerLine');
+            const gapInput = document.getElementById('gapBetween');
+            const generateBtn = document.getElementById('generateBtn');
+            const srtPreview = document.getElementById('srtPreview');
+            const copyBtn = document.getElementById('copyBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const alertBox = document.getElementById('alertBox');
+            const alertMessage = document.getElementById('alertMessage');
+
+            let lastSrt = '';
+
+            // Função para formatar tempo no formato SRT (hh:mm:ss,ms)
+            function formatSRTTime(seconds) {
+                const h = Math.floor(seconds / 3600);
+                const m = Math.floor((seconds % 3600) / 60);
+                const s = Math.floor(seconds % 60);
+                const ms = Math.floor((seconds - Math.floor(seconds)) * 1000);
+                return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')},${String(ms).padStart(3, '0')}`;
+            }
+
+            // Gerar SRT
+            function generateSRT() {
+                const text = scriptInput.value.trim();
+                if (!text) {
+                    showAlert('Por favor, cole o roteiro.');
+                    return false;
+                }
+
+                const lines = text.split('\n').filter(line => line.trim() !== '');
+                if (lines.length === 0) {
+                    showAlert('Nenhuma linha de legenda encontrada.');
+                    return false;
+                }
+
+                const start = parseFloat(startTimeInput.value) || 0;
+                const duration = parseFloat(durationInput.value) || 3;
+                const gap = parseFloat(gapInput.value) || 0.2;
+
+                let srt = '';
+                let currentTime = start;
+
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    const endTime = currentTime + duration;
+                    
+                    srt += `${i + 1}\n`;
+                    srt += `${formatSRTTime(currentTime)} --> ${formatSRTTime(endTime)}\n`;
+                    srt += `${line}\n\n`;
+
+                    currentTime = endTime + gap;
+                }
+
+                lastSrt = srt;
+                srtPreview.innerText = srt;
+                downloadBtn.disabled = false;
+                hideAlert();
+                return true;
+            }
+
+            generateBtn.addEventListener('click', generateSRT);
+
+            // Copiar para área de transferência
+            copyBtn.addEventListener('click', async () => {
+                if (!lastSrt) {
+                    showAlert('Gere o SRT primeiro.');
+                    return;
+                }
+                try {
+                    await navigator.clipboard.writeText(lastSrt);
+                    alertMessage.innerText = 'SRT copiado para a área de transferência!';
+                    alertBox.classList.add('show');
+                    alertBox.style.background = '#065f46';
+                    alertBox.style.color = '#d1fae5';
+                    setTimeout(() => {
+                        alertBox.classList.remove('show');
+                        alertBox.style.background = ''; // reset
+                    }, 2000);
+                } catch (err) {
+                    showAlert('Erro ao copiar: ' + err.message);
+                }
+            });
+
+            // Download
+            downloadBtn.addEventListener('click', () => {
+                if (!lastSrt) return;
+                const blob = new Blob([lastSrt], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'legendas.srt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+
+            // Alternar abas (apenas visual, a segunda está desativada)
+            document.getElementById('tabTextBtn').addEventListener('click', () => {
+                document.getElementById('tabTextBtn').classList.add('active');
+                document.getElementById('tabVideoBtn').classList.remove('active');
+                document.getElementById('tabTextContent').classList.add('active');
+                document.getElementById('tabVideoContent').classList.remove('active');
+            });
+
+            function showAlert(msg) {
+                alertMessage.innerText = msg;
+                alertBox.classList.add('show');
+                alertBox.style.background = '#991b1b';
+                alertBox.style.color = '#fecaca';
+            }
+            function hideAlert() {
+                alertBox.classList.remove('show');
+            }
+
+            // Inicialização: exemplo de texto
+            scriptInput.value = "Olá, esta é uma legenda de exemplo.\nVocê pode editar este texto.\nAjuste os tempos conforme necessário.";
+        })();
+    </script>
+</body>
+</html>
