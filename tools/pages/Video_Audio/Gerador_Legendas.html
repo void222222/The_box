@@ -153,7 +153,6 @@
             padding: 0.3rem;
         }
 
-        /* Opções de idioma */
         .language-selector {
             margin: 1.5rem 0;
             display: flex;
@@ -302,7 +301,6 @@
         <a href="../../../index.html" class="back-link"><i class="fas fa-arrow-left"></i> Voltar para ferramentas</a>
 
         <div class="tool-card">
-            <!-- Upload -->
             <div id="uploadArea" class="upload-area">
                 <i class="fas fa-cloud-upload-alt"></i>
                 <p>Arraste ou clique para selecionar um arquivo</p>
@@ -319,7 +317,6 @@
                 <button id="clearFile" class="clear-file" title="Remover arquivo"><i class="fas fa-times-circle"></i></button>
             </div>
 
-            <!-- Idioma -->
             <div class="language-selector">
                 <label><i class="fas fa-globe"></i> Idioma do áudio:</label>
                 <select id="languageSelect">
@@ -332,10 +329,8 @@
                 </select>
             </div>
 
-            <!-- Botão transcrever -->
             <button id="transcribeBtn" class="btn btn-primary" disabled><i class="fas fa-microphone-alt"></i> Transcrever e gerar legendas</button>
 
-            <!-- Progresso -->
             <div id="progressArea" class="progress-area">
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <i class="fas fa-spinner fa-pulse" style="color:#60a5fa;"></i>
@@ -350,7 +345,6 @@
                 </div>
             </div>
 
-            <!-- Resultado -->
             <div id="transcriptionArea" class="transcription-area">
                 <div class="transcription-title">
                     <span><i class="fas fa-closed-captioning"></i> Legendas geradas (.srt)</span>
@@ -362,7 +356,6 @@
                 <div id="srtOutput"></div>
             </div>
 
-            <!-- Alerta -->
             <div id="alertBox" class="alert">
                 <i class="fas fa-exclamation-triangle"></i>
                 <span id="alertMessage">Erro</span>
@@ -374,7 +367,7 @@
         </footer>
     </div>
 
-    <!-- Scripts: Transformers.js e ffmpeg (para extrair áudio de vídeos) -->
+    <!-- Scripts: Transformers.js (UMD) e ffmpeg -->
     <script src="https://cdn.jsdelivr.net/npm/@huggingface/transformers@2.13.0"></script>
     <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
     <script>
@@ -402,7 +395,6 @@
 
             // Estado
             let selectedFile = null;
-            let audioBuffer = null;
             let transcriber = null;
             let modelLoaded = false;
             let lastSRT = '';
@@ -429,7 +421,6 @@
             });
 
             function setSelectedFile(file) {
-                // Limitar tamanho (25MB para evitar travamentos)
                 if (file.size > 25 * 1024 * 1024) {
                     showAlert('Arquivo muito grande. Máximo 25 MB.');
                     return;
@@ -452,7 +443,7 @@
                 transcriptionArea.classList.remove('show');
             });
 
-            // Carregar modelo Whisper (transformers.js)
+            // Carregar modelo Whisper (via transformers.js UMD)
             async function loadModel() {
                 if (modelLoaded) return true;
                 try {
@@ -461,11 +452,12 @@
                     progressDetail.innerText = 'baixando da primeira vez pode demorar';
                     progressFill.style.width = '10%';
 
-                    const { pipeline } = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@2.13.0');
-                    
+                    // Acessa o objeto global transformers
+                    const { pipeline } = window.transformers;
+
                     transcriber = await pipeline(
                         'automatic-speech-recognition',
-                        'Xenova/whisper-tiny.en', // modelo pequeno (inglês) – para português, usar 'Xenova/whisper-tiny'
+                        'Xenova/whisper-tiny', // modelo multilíngue (inclui português)
                         { 
                             progress_callback: (progress) => {
                                 if (progress.status === 'progress') {
@@ -485,6 +477,7 @@
                     }, 1000);
                     return true;
                 } catch (err) {
+                    console.error('Erro ao carregar modelo:', err);
                     showAlert('Erro ao carregar modelo: ' + err.message);
                     progressArea.classList.remove('show');
                     return false;
@@ -493,10 +486,8 @@
 
             // Extrair áudio de vídeo usando ffmpeg (se necessário)
             async function extractAudioFromVideo(file) {
-                // Se já for áudio, retorna o arquivo
                 if (file.type.startsWith('audio/')) return file;
 
-                // Vídeo: usar ffmpeg.wasm para extrair áudio como MP3
                 const { createFFmpeg, fetchFile } = FFmpeg;
                 const ffmpeg = createFFmpeg({ log: false });
                 await ffmpeg.load();
@@ -512,24 +503,21 @@
                 return new File([data.buffer], 'audio.mp3', { type: 'audio/mp3' });
             }
 
-            // Converter File para ArrayBuffer e depois para Float32Array (necessário para o pipeline)
+            // Converter File para Float32Array (mono, 16000 Hz)
             async function fileToAudioBuffer(file) {
-                // Se for vídeo, extrair áudio primeiro
                 const audioFile = file.type.startsWith('video/') ? await extractAudioFromVideo(file) : file;
                 
                 const arrayBuffer = await audioFile.arrayBuffer();
                 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
                 
-                // Converter para Float32Array (mono, 16000 Hz)
-                const channelData = audioBuffer.getChannelData(0); // mono
+                const channelData = audioBuffer.getChannelData(0);
                 const targetSampleRate = 16000;
                 const sourceSampleRate = audioBuffer.sampleRate;
                 
                 if (sourceSampleRate === targetSampleRate) {
                     return channelData;
                 } else {
-                    // Resample simples (média)
                     const ratio = sourceSampleRate / targetSampleRate;
                     const newLength = Math.round(channelData.length / ratio);
                     const result = new Float32Array(newLength);
@@ -541,7 +529,7 @@
                 }
             }
 
-            // Converter chunks de transcrição para SRT
+            // Converter chunks para SRT
             function chunksToSRT(chunks) {
                 let srt = '';
                 chunks.forEach((chunk, index) => {
@@ -583,29 +571,33 @@
                     progressFill.style.width = '10%';
                     progressPercent.innerText = '10%';
                     
-                    // Converter arquivo para buffer de áudio (Float32Array, 16000 Hz)
                     const audioData = await fileToAudioBuffer(selectedFile);
                     
                     progressMessage.innerText = 'Transcrevendo...';
                     progressDetail.innerText = 'isso pode levar alguns minutos';
                     
-                    // Opções: idioma e retorno de timestamps por palavra
                     const language = languageSelect.value;
                     const output = await transcriber(audioData, {
                         language: language,
                         task: 'transcribe',
-                        return_timestamps: true, // para obter chunks com timestamps
-                        chunk_length_s: 30,        // processar em chunks de 30s
+                        return_timestamps: true,
+                        chunk_length_s: 30,
                         stride_length_s: 5,
                     });
                     
-                    // output pode ser { text, chunks } ou apenas string se não pedir timestamps
                     let srt = '';
                     if (output.chunks && output.chunks.length > 0) {
                         srt = chunksToSRT(output.chunks);
                     } else {
-                        // Fallback: criar uma legenda única com o texto todo
-                        const duration = audioData.length / 16000; // segundos aproximados
+                        // Fallback: uma legenda única
+                        const duration = audioData.length / 16000;
+                        const formatTime = (seconds) => {
+                            const h = Math.floor(seconds / 3600);
+                            const m = Math.floor((seconds % 3600) / 60);
+                            const s = Math.floor(seconds % 60);
+                            const ms = Math.floor((seconds - Math.floor(seconds)) * 1000);
+                            return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')},${String(ms).padStart(3,'0')}`;
+                        };
                         srt = `1\n00:00:00,000 --> ${formatTime(duration)}\n${output.text}\n`;
                     }
                     
@@ -614,22 +606,13 @@
                     transcriptionArea.classList.add('show');
                     
                 } catch (err) {
-                    console.error(err);
+                    console.error('Erro na transcrição:', err);
                     showAlert('Erro durante transcrição: ' + err.message);
                 } finally {
                     transcribeBtn.disabled = false;
                     progressArea.classList.remove('show');
                 }
             });
-
-            // Função auxiliar para formatar tempo (para fallback)
-            function formatTime(seconds) {
-                const h = Math.floor(seconds / 3600);
-                const m = Math.floor((seconds % 3600) / 60);
-                const s = Math.floor(seconds % 60);
-                const ms = Math.floor((seconds - Math.floor(seconds)) * 1000);
-                return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')},${String(ms).padStart(3,'0')}`;
-            }
 
             // Copiar SRT
             copyBtn.addEventListener('click', () => {
