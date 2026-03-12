@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="icon" type="image/png" href="../../../logo_the_box_luz_e_sombra_sem_fundo-removebg-preview.png">
     <style>
+        /* (mesmo estilo da versão anterior - mantido) */
         * {
             margin: 0;
             padding: 0;
@@ -367,8 +368,8 @@
         </footer>
     </div>
 
-    <!-- Scripts: Transformers.js (UMD) e ffmpeg -->
-    <script src="https://cdn.jsdelivr.net/npm/@huggingface/transformers@2.13.0"></script>
+    <!-- Scripts corrigidos: Transformers.js v3.0.2 e ffmpeg -->
+    <script src="https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2/dist/transformers.min.js"></script>
     <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
     <script>
         (function() {
@@ -443,7 +444,7 @@
                 transcriptionArea.classList.remove('show');
             });
 
-            // Carregar modelo Whisper (via transformers.js UMD)
+            // Carregar modelo Whisper (via Transformers.js v3)
             async function loadModel() {
                 if (modelLoaded) return true;
                 try {
@@ -451,17 +452,19 @@
                     progressMessage.innerText = 'Carregando modelo Whisper (150 MB)...';
                     progressDetail.innerText = 'baixando da primeira vez pode demorar';
                     progressFill.style.width = '10%';
+                    progressPercent.innerText = '10%';
 
-                    // Acessa o objeto global transformers
-                    const { pipeline } = window.transformers;
+                    // Acessa a função pipeline do objeto global Transformers (com T maiúsculo)
+                    const { pipeline } = window.Transformers;
 
                     transcriber = await pipeline(
                         'automatic-speech-recognition',
-                        'Xenova/whisper-tiny', // modelo multilíngue (inclui português)
+                        'Xenova/whisper-tiny', // modelo multilíngue (português incluso)
                         { 
                             progress_callback: (progress) => {
                                 if (progress.status === 'progress') {
-                                    const percent = Math.round(progress.progress * 70) + 20;
+                                    // Ajuste: o progresso vai de 0 a 1, mapeamos para 20-90%
+                                    const percent = 20 + Math.round(progress.progress * 70);
                                     progressFill.style.width = percent + '%';
                                     progressPercent.innerText = percent + '%';
                                 }
@@ -471,6 +474,7 @@
                     
                     modelLoaded = true;
                     progressFill.style.width = '100%';
+                    progressPercent.innerText = '100%';
                     progressDetail.innerText = 'Modelo pronto!';
                     setTimeout(() => {
                         progressArea.classList.remove('show');
@@ -503,7 +507,7 @@
                 return new File([data.buffer], 'audio.mp3', { type: 'audio/mp3' });
             }
 
-            // Converter File para Float32Array (mono, 16000 Hz)
+            // Converter File para Float32Array (mono, 16000 Hz) – necessário para o pipeline
             async function fileToAudioBuffer(file) {
                 const audioFile = file.type.startsWith('video/') ? await extractAudioFromVideo(file) : file;
                 
@@ -511,6 +515,7 @@
                 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
                 
+                // Usar apenas o primeiro canal (mono)
                 const channelData = audioBuffer.getChannelData(0);
                 const targetSampleRate = 16000;
                 const sourceSampleRate = audioBuffer.sampleRate;
@@ -518,6 +523,7 @@
                 if (sourceSampleRate === targetSampleRate) {
                     return channelData;
                 } else {
+                    // Resample simples (vizinho mais próximo)
                     const ratio = sourceSampleRate / targetSampleRate;
                     const newLength = Math.round(channelData.length / ratio);
                     const result = new Float32Array(newLength);
@@ -529,7 +535,7 @@
                 }
             }
 
-            // Converter chunks para SRT
+            // Converter chunks com timestamps para formato SRT
             function chunksToSRT(chunks) {
                 let srt = '';
                 chunks.forEach((chunk, index) => {
@@ -580,7 +586,7 @@
                     const output = await transcriber(audioData, {
                         language: language,
                         task: 'transcribe',
-                        return_timestamps: true,
+                        return_timestamps: true,   // para obter chunks com timestamps
                         chunk_length_s: 30,
                         stride_length_s: 5,
                     });
@@ -636,6 +642,7 @@
                 URL.revokeObjectURL(url);
             });
 
+            // Funções auxiliares de alerta
             function showAlert(msg, type = 'error') {
                 alertMessage.innerText = msg;
                 alertBox.classList.add('show');
