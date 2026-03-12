@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="icon" type="image/png" href="../../../logo_the_box_luz_e_sombra_sem_fundo-removebg-preview.png">
     <style>
-        /* (mantido o mesmo estilo) */
+        /* ESTILO IDÊNTICO AO SEU SITE (mantido igual) */
         * {
             margin: 0;
             padding: 0;
@@ -288,9 +288,14 @@
             color: #64748b;
         }
     </style>
-    <!-- Carregar Transformers.js via esm.sh (com CORP e CORS corretos) -->
-    <script src="https://esm.sh/@huggingface/transformers@2.17.0?bundle" crossorigin="anonymous"></script>
-    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
+    <!-- Import Map: define de onde virá o Transformers.js (Skypack) -->
+    <script type="importmap">
+        {
+            "imports": {
+                "@huggingface/transformers": "https://cdn.skypack.dev/@huggingface/transformers@3.0.2"
+            }
+        }
+    </script>
 </head>
 <body>
     <div class="container">
@@ -308,7 +313,7 @@
             <div id="uploadArea" class="upload-area">
                 <i class="fas fa-cloud-upload-alt"></i>
                 <p>Arraste ou clique para selecionar um arquivo</p>
-                <small>MP3, WAV, M4A, MP4, MOV (até 25 MB)</small>
+                <small>MP3, WAV, M4A, MP4, MOV (até 50 MB)</small>
                 <input type="file" id="fileInput" accept="audio/*,video/*" style="display: none;">
             </div>
 
@@ -371,292 +376,280 @@
         </footer>
     </div>
 
-    <script>
-        (function() {
-            // Elementos DOM
-            const uploadArea = document.getElementById('uploadArea');
-            const fileInput = document.getElementById('fileInput');
-            const fileInfo = document.getElementById('fileInfo');
-            const fileNameSpan = document.getElementById('fileName');
-            const fileSizeSpan = document.getElementById('fileSize');
-            const clearFileBtn = document.getElementById('clearFile');
-            const transcribeBtn = document.getElementById('transcribeBtn');
-            const languageSelect = document.getElementById('languageSelect');
-            const progressArea = document.getElementById('progressArea');
-            const progressFill = document.getElementById('progressFill');
-            const progressMessage = document.getElementById('progressMessage');
-            const progressDetail = document.getElementById('progressDetail');
-            const progressPercent = document.getElementById('progressPercent');
-            const transcriptionArea = document.getElementById('transcriptionArea');
-            const srtOutput = document.getElementById('srtOutput');
-            const copyBtn = document.getElementById('copyBtn');
-            const downloadBtn = document.getElementById('downloadBtn');
-            const alertBox = document.getElementById('alertBox');
-            const alertMessage = document.getElementById('alertMessage');
+    <!-- Script principal em módulo ES -->
+    <script type="module">
+        // --- Importação do Transformers.js via import map ---
+        import { pipeline } from '@huggingface/transformers';
 
-            // Estado
-            let selectedFile = null;
-            let transcriber = null;
-            let modelLoaded = false;
-            let lastSRT = '';
+        // Elementos DOM (mesmos IDs do HTML)
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileNameSpan = document.getElementById('fileName');
+        const fileSizeSpan = document.getElementById('fileSize');
+        const clearFileBtn = document.getElementById('clearFile');
+        const transcribeBtn = document.getElementById('transcribeBtn');
+        const languageSelect = document.getElementById('languageSelect');
+        const progressArea = document.getElementById('progressArea');
+        const progressFill = document.getElementById('progressFill');
+        const progressMessage = document.getElementById('progressMessage');
+        const progressDetail = document.getElementById('progressDetail');
+        const progressPercent = document.getElementById('progressPercent');
+        const transcriptionArea = document.getElementById('transcriptionArea');
+        const srtOutput = document.getElementById('srtOutput');
+        const copyBtn = document.getElementById('copyBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const alertBox = document.getElementById('alertBox');
+        const alertMessage = document.getElementById('alertMessage');
 
-            // Upload handlers
-            uploadArea.addEventListener('click', () => fileInput.click());
-            uploadArea.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                uploadArea.style.borderColor = '#60a5fa';
-            });
-            uploadArea.addEventListener('dragleave', () => {
-                uploadArea.style.borderColor = '#334155';
-            });
-            uploadArea.addEventListener('drop', (e) => {
-                e.preventDefault();
-                uploadArea.style.borderColor = '#334155';
-                const file = e.dataTransfer.files[0];
-                if (file) setSelectedFile(file);
-            });
+        // Estado
+        let selectedFile = null;
+        let transcriber = null;
+        let modelLoaded = false;
+        let lastSRT = '';
 
-            fileInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (file) setSelectedFile(file);
-            });
+        // --- Upload Handlers (idênticos) ---
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#60a5fa';
+        });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.borderColor = '#334155';
+        });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#334155';
+            const file = e.dataTransfer.files[0];
+            if (file) setSelectedFile(file);
+        });
 
-            function setSelectedFile(file) {
-                if (file.size > 25 * 1024 * 1024) {
-                    showAlert('Arquivo muito grande. Máximo 25 MB.');
-                    return;
-                }
-                selectedFile = file;
-                fileNameSpan.innerText = file.name;
-                fileSizeSpan.innerText = `(${(file.size / (1024*1024)).toFixed(2)} MB)`;
-                fileInfo.classList.add('show');
-                transcribeBtn.disabled = false;
-                transcriptionArea.classList.remove('show');
-                lastSRT = '';
-                hideAlert();
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) setSelectedFile(file);
+        });
+
+        function setSelectedFile(file) {
+            // Aumentei o limite para 50 MB (opcional)
+            if (file.size > 50 * 1024 * 1024) {
+                showAlert('Arquivo muito grande. Máximo 50 MB.');
+                return;
             }
+            selectedFile = file;
+            fileNameSpan.innerText = file.name;
+            fileSizeSpan.innerText = `(${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
+            fileInfo.classList.add('show');
+            transcribeBtn.disabled = false;
+            transcriptionArea.classList.remove('show');
+            lastSRT = '';
+            hideAlert();
+        }
 
-            clearFileBtn.addEventListener('click', () => {
-                selectedFile = null;
-                fileInput.value = '';
-                fileInfo.classList.remove('show');
-                transcribeBtn.disabled = true;
-                transcriptionArea.classList.remove('show');
-            });
+        clearFileBtn.addEventListener('click', () => {
+            selectedFile = null;
+            fileInput.value = '';
+            fileInfo.classList.remove('show');
+            transcribeBtn.disabled = true;
+            transcriptionArea.classList.remove('show');
+        });
 
-            // Carregar modelo Whisper (Transformers.js via esm.sh)
-            async function loadModel() {
-                if (modelLoaded) return true;
-                try {
-                    progressArea.classList.add('show');
-                    progressMessage.innerText = 'Carregando modelo Whisper (150 MB)...';
-                    progressDetail.innerText = 'baixando da primeira vez pode demorar';
-                    progressFill.style.width = '10%';
+        // --- Carregar modelo Whisper (com progresso) ---
+        async function loadModel() {
+            if (modelLoaded) return true;
+            try {
+                progressArea.classList.add('show');
+                progressMessage.innerText = 'Carregando modelo Whisper (~150 MB) ...';
+                progressDetail.innerText = 'baixando da primeira vez pode demorar';
+                progressFill.style.width = '10%';
 
-                    // Verifica se o objeto global transformers está disponível
-                    if (!window.transformers) {
-                        throw new Error('Biblioteca Transformers não carregada. Verifique sua conexão ou tente recarregar a página.');
-                    }
-
-                    const { pipeline } = window.transformers;
-
-                    transcriber = await pipeline(
-                        'automatic-speech-recognition',
-                        'Xenova/whisper-tiny',
-                        { 
-                            progress_callback: (progress) => {
-                                if (progress.status === 'progress') {
-                                    const percent = Math.round(progress.progress * 70) + 20;
-                                    progressFill.style.width = percent + '%';
-                                    progressPercent.innerText = percent + '%';
+                // Cria o pipeline de reconhecimento de fala
+                transcriber = await pipeline(
+                    'automatic-speech-recognition',
+                    'Xenova/whisper-tiny', // modelo pequeno multilíngue
+                    {
+                        progress_callback: (progress) => {
+                            if (progress.status === 'progress') {
+                                // progress.loaded e progress.total em bytes
+                                const percent = progress.total
+                                    ? Math.round((progress.loaded / progress.total) * 70) + 20
+                                    : 20;
+                                progressFill.style.width = percent + '%';
+                                progressPercent.innerText = percent + '%';
+                                if (progress.file) {
+                                    progressDetail.innerText = `baixando ${progress.file}`;
                                 }
                             }
                         }
-                    );
-                    
-                    modelLoaded = true;
-                    progressFill.style.width = '100%';
-                    progressDetail.innerText = 'Modelo pronto!';
-                    setTimeout(() => {
-                        progressArea.classList.remove('show');
-                    }, 1000);
-                    return true;
-                } catch (err) {
-                    console.error('Erro ao carregar modelo:', err);
-                    showAlert('Erro ao carregar modelo: ' + err.message);
-                    progressArea.classList.remove('show');
-                    return false;
-                }
-            }
-
-            // Extrair áudio de vídeo usando ffmpeg (se necessário)
-            async function extractAudioFromVideo(file) {
-                if (file.type.startsWith('audio/')) return file;
-
-                const { createFFmpeg, fetchFile } = FFmpeg;
-                const ffmpeg = createFFmpeg({ log: false });
-                await ffmpeg.load();
-
-                const inputName = 'input_' + Date.now() + '.mp4';
-                const outputName = 'audio.mp3';
-                ffmpeg.FS('writeFile', inputName, await fetchFile(file));
-                await ffmpeg.run('-i', inputName, '-vn', '-acodec', 'libmp3lame', '-y', outputName);
-                const data = ffmpeg.FS('readFile', outputName);
-                ffmpeg.FS('unlink', inputName);
-                ffmpeg.FS('unlink', outputName);
-                
-                return new File([data.buffer], 'audio.mp3', { type: 'audio/mp3' });
-            }
-
-            // Converter File para Float32Array (mono, 16000 Hz)
-            async function fileToAudioBuffer(file) {
-                const audioFile = file.type.startsWith('video/') ? await extractAudioFromVideo(file) : file;
-                
-                const arrayBuffer = await audioFile.arrayBuffer();
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-                
-                const channelData = audioBuffer.getChannelData(0);
-                const targetSampleRate = 16000;
-                const sourceSampleRate = audioBuffer.sampleRate;
-                
-                if (sourceSampleRate === targetSampleRate) {
-                    return channelData;
-                } else {
-                    const ratio = sourceSampleRate / targetSampleRate;
-                    const newLength = Math.round(channelData.length / ratio);
-                    const result = new Float32Array(newLength);
-                    for (let i = 0; i < newLength; i++) {
-                        const srcIndex = Math.round(i * ratio);
-                        result[i] = channelData[srcIndex];
                     }
-                    return result;
-                }
-            }
+                );
 
-            // Converter chunks para SRT
-            function chunksToSRT(chunks) {
+                modelLoaded = true;
+                progressFill.style.width = '100%';
+                progressDetail.innerText = 'Modelo pronto!';
+                setTimeout(() => {
+                    progressArea.classList.remove('show');
+                }, 1000);
+                return true;
+            } catch (err) {
+                console.error('Erro ao carregar modelo:', err);
+                showAlert('Erro ao carregar modelo: ' + err.message);
+                progressArea.classList.remove('show');
+                return false;
+            }
+        }
+
+        // --- Extrair áudio do arquivo (usando Web Audio API) ---
+        async function extractAudioData(file) {
+            // Converte o arquivo para ArrayBuffer
+            const arrayBuffer = await file.arrayBuffer();
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Decodifica o áudio (funciona para áudio e vídeo, pois o vídeo terá a trilha de áudio decodificada)
+            const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+            
+            // Pega o primeiro canal (mono) e faz resample para 16000 Hz (exigido pelo Whisper)
+            const channelData = audioBuffer.getChannelData(0);
+            const targetSampleRate = 16000;
+            const sourceSampleRate = audioBuffer.sampleRate;
+            
+            if (sourceSampleRate === targetSampleRate) {
+                return channelData;
+            } else {
+                // Resample simples (interpolação linear)
+                const ratio = sourceSampleRate / targetSampleRate;
+                const newLength = Math.round(channelData.length / ratio);
+                const result = new Float32Array(newLength);
+                for (let i = 0; i < newLength; i++) {
+                    const srcIndex = Math.round(i * ratio);
+                    result[i] = channelData[srcIndex];
+                }
+                return result;
+            }
+        }
+
+        // --- Converter chunks de transcrição para SRT ---
+        function chunksToSRT(chunks) {
+            let srt = '';
+            chunks.forEach((chunk, index) => {
+                const start = chunk.timestamp[0];
+                const end = chunk.timestamp[1];
+                const text = chunk.text.trim();
+                if (!text) return;
+
+                function formatTime(seconds) {
+                    const h = Math.floor(seconds / 3600);
+                    const m = Math.floor((seconds % 3600) / 60);
+                    const s = Math.floor(seconds % 60);
+                    const ms = Math.floor((seconds - Math.floor(seconds)) * 1000);
+                    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')},${String(ms).padStart(3, '0')}`;
+                }
+
+                srt += `${index + 1}\n`;
+                srt += `${formatTime(start)} --> ${formatTime(end)}\n`;
+                srt += `${text}\n\n`;
+            });
+            return srt;
+        }
+
+        // --- Transcrever (botão principal) ---
+        transcribeBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+
+            hideAlert();
+            transcriptionArea.classList.remove('show');
+
+            const loaded = await loadModel();
+            if (!loaded) return;
+
+            try {
+                transcribeBtn.disabled = true;
+                progressArea.classList.add('show');
+                progressMessage.innerText = 'Preparando áudio...';
+                progressFill.style.width = '10%';
+                progressPercent.innerText = '10%';
+
+                // Extrai o áudio como Float32Array (16000 Hz, mono)
+                const audioData = await extractAudioData(selectedFile);
+
+                progressMessage.innerText = 'Transcrevendo...';
+                progressDetail.innerText = 'isso pode levar alguns minutos';
+
+                const language = languageSelect.value;
+                const output = await transcriber(audioData, {
+                    language: language,
+                    task: 'transcribe',
+                    return_timestamps: true,
+                    chunk_length_s: 30,
+                    stride_length_s: 5,
+                });
+
                 let srt = '';
-                chunks.forEach((chunk, index) => {
-                    const start = chunk.timestamp[0];
-                    const end = chunk.timestamp[1];
-                    const text = chunk.text.trim();
-                    
-                    if (!text) return;
-                    
-                    function formatTime(seconds) {
+                if (output.chunks && output.chunks.length > 0) {
+                    srt = chunksToSRT(output.chunks);
+                } else {
+                    // Fallback: uma legenda única
+                    const duration = audioData.length / 16000;
+                    const formatTime = (seconds) => {
                         const h = Math.floor(seconds / 3600);
                         const m = Math.floor((seconds % 3600) / 60);
                         const s = Math.floor(seconds % 60);
                         const ms = Math.floor((seconds - Math.floor(seconds)) * 1000);
-                        return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')},${String(ms).padStart(3,'0')}`;
-                    }
-                    
-                    srt += `${index + 1}\n`;
-                    srt += `${formatTime(start)} --> ${formatTime(end)}\n`;
-                    srt += `${text}\n\n`;
-                });
-                return srt;
-            }
-
-            // Transcrever
-            transcribeBtn.addEventListener('click', async () => {
-                if (!selectedFile) return;
-
-                hideAlert();
-                transcriptionArea.classList.remove('show');
-                
-                const loaded = await loadModel();
-                if (!loaded) return;
-
-                try {
-                    transcribeBtn.disabled = true;
-                    progressArea.classList.add('show');
-                    progressMessage.innerText = 'Preparando áudio...';
-                    progressFill.style.width = '10%';
-                    progressPercent.innerText = '10%';
-                    
-                    const audioData = await fileToAudioBuffer(selectedFile);
-                    
-                    progressMessage.innerText = 'Transcrevendo...';
-                    progressDetail.innerText = 'isso pode levar alguns minutos';
-                    
-                    const language = languageSelect.value;
-                    const output = await transcriber(audioData, {
-                        language: language,
-                        task: 'transcribe',
-                        return_timestamps: true,
-                        chunk_length_s: 30,
-                        stride_length_s: 5,
-                    });
-                    
-                    let srt = '';
-                    if (output.chunks && output.chunks.length > 0) {
-                        srt = chunksToSRT(output.chunks);
-                    } else {
-                        // Fallback: uma legenda única
-                        const duration = audioData.length / 16000;
-                        const formatTime = (seconds) => {
-                            const h = Math.floor(seconds / 3600);
-                            const m = Math.floor((seconds % 3600) / 60);
-                            const s = Math.floor(seconds % 60);
-                            const ms = Math.floor((seconds - Math.floor(seconds)) * 1000);
-                            return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')},${String(ms).padStart(3,'0')}`;
-                        };
-                        srt = `1\n00:00:00,000 --> ${formatTime(duration)}\n${output.text}\n`;
-                    }
-                    
-                    lastSRT = srt;
-                    srtOutput.innerText = srt;
-                    transcriptionArea.classList.add('show');
-                    
-                } catch (err) {
-                    console.error('Erro na transcrição:', err);
-                    showAlert('Erro durante transcrição: ' + err.message);
-                } finally {
-                    transcribeBtn.disabled = false;
-                    progressArea.classList.remove('show');
+                        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')},${String(ms).padStart(3, '0')}`;
+                    };
+                    srt = `1\n00:00:00,000 --> ${formatTime(duration)}\n${output.text}\n`;
                 }
-            });
 
-            // Copiar SRT
-            copyBtn.addEventListener('click', () => {
-                if (!lastSRT) return;
-                navigator.clipboard.writeText(lastSRT).then(() => {
-                    showAlert('Legendas copiadas!', 'success');
-                }).catch(() => {
-                    showAlert('Erro ao copiar');
-                });
-            });
+                lastSRT = srt;
+                srtOutput.innerText = srt;
+                transcriptionArea.classList.add('show');
 
-            // Download SRT
-            downloadBtn.addEventListener('click', () => {
-                if (!lastSRT) return;
-                const blob = new Blob([lastSRT], { type: 'text/plain;charset=utf-8' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'legendas.srt';
-                a.click();
-                URL.revokeObjectURL(url);
-            });
-
-            function showAlert(msg, type = 'error') {
-                alertMessage.innerText = msg;
-                alertBox.classList.add('show');
-                if (type === 'success') {
-                    alertBox.style.background = '#065f46';
-                    alertBox.style.color = '#d1fae5';
-                } else {
-                    alertBox.style.background = '#991b1b';
-                    alertBox.style.color = '#fecaca';
-                }
-                setTimeout(() => alertBox.classList.remove('show'), 3000);
+            } catch (err) {
+                console.error('Erro na transcrição:', err);
+                showAlert('Erro durante transcrição: ' + err.message);
+            } finally {
+                transcribeBtn.disabled = false;
+                progressArea.classList.remove('show');
             }
-            function hideAlert() {
-                alertBox.classList.remove('show');
+        });
+
+        // --- Copiar SRT ---
+        copyBtn.addEventListener('click', () => {
+            if (!lastSRT) return;
+            navigator.clipboard.writeText(lastSRT).then(() => {
+                showAlert('Legendas copiadas!', 'success');
+            }).catch(() => {
+                showAlert('Erro ao copiar');
+            });
+        });
+
+        // --- Download SRT ---
+        downloadBtn.addEventListener('click', () => {
+            if (!lastSRT) return;
+            const blob = new Blob([lastSRT], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'legendas.srt';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        // --- Utilitários de alerta ---
+        function showAlert(msg, type = 'error') {
+            alertMessage.innerText = msg;
+            alertBox.classList.add('show');
+            if (type === 'success') {
+                alertBox.style.background = '#065f46';
+                alertBox.style.color = '#d1fae5';
+            } else {
+                alertBox.style.background = '#991b1b';
+                alertBox.style.color = '#fecaca';
             }
-        })();
+            setTimeout(() => alertBox.classList.remove('show'), 3000);
+        }
+        function hideAlert() {
+            alertBox.classList.remove('show');
+        }
     </script>
 </body>
 </html>
