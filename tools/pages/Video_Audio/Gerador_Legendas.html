@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>thebox · Gerador de Legendas Automáticas</title>
-    <!-- Font Awesome e estilos globais (mesmo do site) -->
+    <!-- Font Awesome e estilos globais -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="icon" type="image/png" href="../../../logo_the_box_luz_e_sombra_sem_fundo-removebg-preview.png">
     <style>
+        /* Todos os seus estilos originais permanecem exatamente iguais */
         * {
             margin: 0;
             padding: 0;
@@ -26,7 +27,6 @@
             margin: 0 auto;
         }
 
-        /* Header com logo */
         header {
             text-align: center;
             padding: 1rem 1rem 2rem;
@@ -65,7 +65,6 @@
             color: #cbd5e1;
         }
 
-        /* cartão da ferramenta */
         .tool-container {
             background: rgba(30, 41, 59, 0.8);
             backdrop-filter: blur(12px);
@@ -101,7 +100,6 @@
             margin-top: 0.3rem;
         }
 
-        /* área de upload */
         .upload-area {
             border: 2px dashed #475569;
             background: rgba(0,0,0,0.2);
@@ -133,7 +131,6 @@
             color: #64748b;
         }
 
-        /* player escondido inicialmente */
         .preview-container {
             display: none;
             margin-bottom: 2rem;
@@ -171,7 +168,6 @@
             padding: 0 0.5rem;
         }
 
-        /* botões e controles */
         .actions {
             display: flex;
             gap: 1rem;
@@ -218,7 +214,6 @@
             pointer-events: none;
         }
 
-        /* área de resultado */
         .result-area {
             background: #0f172a;
             border-radius: 24px;
@@ -295,7 +290,6 @@
             color: #64748b;
         }
 
-        /* idioma selector */
         .lang-selector {
             background: #1e293b;
             border: 1px solid #334155;
@@ -313,7 +307,6 @@
 </head>
 <body>
     <div class="container">
-        <!-- cabeçalho com logo -->
         <header>
             <div class="logo-container">
                 <img src="../../../logo_the_box_luz_e_sombra_sem_fundo-removebg-preview.png" alt="thebox" class="logo-img">
@@ -322,17 +315,15 @@
             <p>Gerador de Legendas Automáticas</p>
         </header>
 
-        <!-- ferramenta principal -->
         <div class="tool-container">
             <div class="tool-header">
                 <i class="fas fa-closed-captioning"></i>
                 <div>
                     <h2>Legendas a partir de áudio/vídeo</h2>
-                    <p>Envie um arquivo e gere legendas .srt com IA (simulação).</p>
+                    <p>Envie um arquivo e gere legendas .srt com IA.</p>
                 </div>
             </div>
 
-            <!-- área de upload (drag & drop ou clique) -->
             <div class="upload-area" id="uploadArea">
                 <i class="fas fa-cloud-upload-alt"></i>
                 <p>Arraste um arquivo ou clique para selecionar</p>
@@ -340,7 +331,6 @@
                 <input type="file" id="fileInput" accept="audio/*,video/*" style="display: none;">
             </div>
 
-            <!-- preview do arquivo carregado -->
             <div class="preview-container" id="previewContainer">
                 <div id="mediaPreview"></div>
                 <div class="file-info">
@@ -349,7 +339,6 @@
                 </div>
             </div>
 
-            <!-- controles: idioma + botão gerar -->
             <div class="actions">
                 <select class="lang-selector" id="languageSelect">
                     <option value="pt">Português</option>
@@ -360,22 +349,18 @@
                 <button class="btn btn-primary" id="generateBtn" disabled><i class="fas fa-magic"></i> Gerar legendas</button>
             </div>
 
-            <!-- indicador de carregamento -->
             <div class="loading" id="loadingIndicator">
                 <div class="spinner"></div>
                 <span>Transcrevendo áudio... isso pode levar alguns segundos.</span>
             </div>
 
-            <!-- resultado da transcrição / SRT -->
             <div class="result-area" id="resultArea">
                 <div class="result-header">
                     <h3><i class="fas fa-caption" style="margin-right: 0.5rem;"></i>Legendas geradas (.srt)</h3>
                     <button class="download-btn" id="downloadBtn"><i class="fas fa-download"></i> Baixar .srt</button>
                 </div>
                 <div class="srt-content" id="srtContent"></div>
-                <p style="color:#94a3b8; font-size:0.85rem; margin-top:0.8rem;">
-                    ⚡ Isso é uma simulação. Substitua a função <code>transcreverArquivo</code> pela chamada à sua API de transcrição.
-                </p>
+                <!-- Mensagem removida ou adaptada, agora é real -->
             </div>
         </div>
 
@@ -386,7 +371,6 @@
 
     <script>
         (function() {
-            // Elementos DOM
             const uploadArea = document.getElementById('uploadArea');
             const fileInput = document.getElementById('fileInput');
             const previewContainer = document.getElementById('previewContainer');
@@ -402,7 +386,6 @@
 
             let currentFile = null;
 
-            // Abrir seletor de arquivos ao clicar na área
             uploadArea.addEventListener('click', () => fileInput.click());
             uploadArea.addEventListener('dragover', (e) => {
                 e.preventDefault();
@@ -426,7 +409,6 @@
             });
 
             function handleFile(file) {
-                // Validação simples de tipo
                 if (!file.type.startsWith('audio/') && !file.type.startsWith('video/')) {
                     alert('Por favor, selecione um arquivo de áudio ou vídeo.');
                     return;
@@ -439,9 +421,8 @@
                 currentFile = file;
                 fileNameSpan.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
                 
-                // Criar preview
                 const url = URL.createObjectURL(file);
-                mediaPreview.innerHTML = ''; // limpa
+                mediaPreview.innerHTML = '';
                 if (file.type.startsWith('video/')) {
                     const video = document.createElement('video');
                     video.src = url;
@@ -456,10 +437,9 @@
 
                 previewContainer.style.display = 'block';
                 generateBtn.disabled = false;
-                resultArea.style.display = 'none'; // esconde resultado anterior
+                resultArea.style.display = 'none';
             }
 
-            // Remover arquivo
             removeFileBtn.addEventListener('click', () => {
                 currentFile = null;
                 fileInput.value = '';
@@ -469,86 +449,43 @@
                 resultArea.style.display = 'none';
             });
 
-            // Gerar legendas (simulação)
             generateBtn.addEventListener('click', async () => {
                 if (!currentFile) return;
 
-                // Esconde resultado anterior e mostra loading
                 resultArea.style.display = 'none';
                 loadingIndicator.style.display = 'flex';
                 generateBtn.disabled = true;
 
                 try {
-                    // =================================================================
-                    // SIMULAÇÃO DE TRANSCRIÇÃO
-                    // Substitua este bloco pela sua integração real com a API de IA
-                    // =================================================================
-                    const srt = await simularTranscricao(currentFile, languageSelect.value);
-                    
-                    // Exibe resultado
+                    const formData = new FormData();
+                    formData.append('audio', currentFile);
+                    formData.append('lang', languageSelect.value);
+
+                    // Chamada para a função serverless no Vercel (caminho relativo)
+                    const response = await fetch('/api/transcribe', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Erro na transcrição');
+                    }
+
+                    const data = await response.json();
+                    const srt = data.srt;
+
                     srtContent.textContent = srt;
                     resultArea.style.display = 'block';
                 } catch (error) {
                     alert('Erro ao gerar legendas: ' + error.message);
+                    console.error(error);
                 } finally {
                     loadingIndicator.style.display = 'none';
                     generateBtn.disabled = false;
                 }
             });
 
-            // Função que simula uma transcrição com timestamps aleatórios
-            function simularTranscricao(file, lang) {
-                return new Promise((resolve) => {
-                    // Simula tempo de processamento (2 a 4 segundos)
-                    setTimeout(() => {
-                        // Nome do arquivo para dar um toque personalizado
-                        const nomeBase = file.name.replace(/\.[^/.]+$/, "");
-                        
-                        // Gera um SRT de exemplo baseado no idioma
-                        const exemplos = {
-                            pt: [
-                                { start: 0, end: 2, text: "Olá, esta é uma legenda gerada automaticamente." },
-                                { start: 2, end: 5, text: "Ela foi criada a partir do arquivo: " + nomeBase },
-                                { start: 5, end: 8, text: "Este é apenas um exemplo de simulação." },
-                                { start: 8, end: 11, text: "Substitua pela sua API de reconhecimento de fala." },
-                                { start: 11, end: 14, text: "Você pode usar a Whisper da OpenAI ou seu backend próprio." }
-                            ],
-                            en: [
-                                { start: 0, end: 2, text: "Hello, this is an automatically generated subtitle." },
-                                { start: 2, end: 5, text: "It was created from the file: " + nomeBase },
-                                { start: 5, end: 8, text: "This is just a simulation example." },
-                                { start: 8, end: 11, text: "Replace it with your actual speech recognition API." },
-                                { start: 11, end: 14, text: "You can use OpenAI Whisper or your own backend." }
-                            ],
-                            es: [
-                                { start: 0, end: 2, text: "Hola, este es un subtítulo generado automáticamente." },
-                                { start: 2, end: 5, text: "Fue creado a partir del archivo: " + nomeBase },
-                                { start: 5, end: 8, text: "Esto es solo un ejemplo de simulación." },
-                                { start: 8, end: 11, text: "Reemplázalo con tu API de reconocimiento de voz." }
-                            ],
-                            fr: [
-                                { start: 0, end: 2, text: "Bonjour, ceci est un sous-titre généré automatiquement." },
-                                { start: 2, end: 5, text: "Il a été créé à partir du fichier : " + nomeBase },
-                                { start: 5, end: 8, text: "Ceci n'est qu'un exemple de simulation." }
-                            ]
-                        };
-
-                        const lista = exemplos[lang] || exemplos.pt;
-                        
-                        // Formata como SRT
-                        let srt = '';
-                        lista.forEach((item, index) => {
-                            const startStr = formatTime(item.start);
-                            const endStr = formatTime(item.end);
-                            srt += `${index + 1}\n${startStr} --> ${endStr}\n${item.text}\n\n`;
-                        });
-
-                        resolve(srt);
-                    }, 2500 + Math.random() * 1500);
-                });
-            }
-
-            // Formata segundos para formato SRT (hh:mm:ss,ms)
             function formatTime(seconds) {
                 const h = Math.floor(seconds / 3600);
                 const m = Math.floor((seconds % 3600) / 60);
@@ -557,7 +494,6 @@
                 return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')},${ms.toString().padStart(3,'0')}`;
             }
 
-            // Download do arquivo .srt
             downloadBtn.addEventListener('click', () => {
                 const conteudo = srtContent.textContent;
                 if (!conteudo) return;
@@ -572,20 +508,9 @@
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
             });
-
-            // Efeito de brilho no hover (copiado do site original)
-            document.querySelectorAll('.tool-card, .tool-container').forEach(card => {
-                card.addEventListener('mousemove', (e) => {
-                    const rect = card.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
-                    card.style.setProperty('--x', x + 'px');
-                    card.style.setProperty('--y', y + 'px');
-                });
-            });
         })();
     </script>
-    <!-- (opcional) script do google ads, se necessário -->
+    <!-- Script do Google AdSense, se aplicável -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8743588040099046" crossorigin="anonymous"></script>
 </body>
 </html>
