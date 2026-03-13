@@ -1,3 +1,4 @@
+<!-- tools/pages/Video_Audio/Gerador_Legendas/index.html -->
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -7,8 +8,8 @@
     <!-- Headers obrigatórios para SharedArrayBuffer (FFmpeg) -->
     <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin">
     <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp">
-    <!-- Estilos básicos (mesmo estilo do seu código) -->
     <style>
+        /* Copie os estilos que você já tinha aqui (ou mantenha os mesmos) */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
         body { background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%); min-height: 100vh; padding: 2rem 1rem; display: flex; align-items: center; justify-content: center; }
         .container { max-width: 900px; width: 100%; }
@@ -28,6 +29,7 @@
         .options button { flex: 1; min-width: 150px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #cbd5e1; padding: 0.8rem 1.5rem; border-radius: 40px; font-weight: 500; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
         .options button:hover:not(:disabled) { background: rgba(255,255,255,0.15); border-color: #a855f7; }
         .options button:disabled { opacity: 0.5; cursor: not-allowed; }
+        select { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 0.8rem 1.5rem; border-radius: 40px; font-size: 1rem; cursor: pointer; }
         .progress-area { margin-top: 1.5rem; display: none; }
         .progress-bar { width: 100%; height: 8px; background: #1e293b; border-radius: 10px; overflow: hidden; margin-bottom: 0.5rem; }
         .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #a855f7, #d946ef); transition: width 0.3s ease; }
@@ -41,14 +43,13 @@
         footer { text-align: center; padding: 2rem 1rem 0; color: #64748b; }
         .note { font-size: 0.85rem; color: #94a3b8; margin-top: 1rem; text-align: center; }
     </style>
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
 <div class="container">
     <header>
         <h1>🎬 Gerador de Legendas .srt</h1>
-        <p>100% local · sem backend · usando Whisper via Transformers.js</p>
+        <p>100% no seu navegador · sem enviar arquivos para servidor</p>
     </header>
 
     <div class="card">
@@ -65,7 +66,7 @@
 
         <div class="options">
             <button id="transcribeBtn" disabled><i class="fas fa-magic"></i> Gerar Legendas</button>
-            <select id="languageSelect" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 0.8rem 1.5rem; border-radius: 40px;">
+            <select id="languageSelect">
                 <option value="portuguese">Português</option>
                 <option value="english">Inglês</option>
                 <option value="spanish">Espanhol</option>
@@ -81,9 +82,9 @@
         </div>
 
         <div class="result-area" id="resultArea">
-            <h3 style="color: white; margin-bottom: 1rem;">📄 Transcrição (texto puro)</h3>
+            <h3 style="color: white; margin-bottom: 1rem;">📄 Transcrição</h3>
             <div class="result-text" id="transcription"></div>
-            <h3 style="color: white; margin: 1rem 0 0.5rem;">🎯 Legendas .srt geradas</h3>
+            <h3 style="color: white; margin: 1rem 0 0.5rem;">🎯 Legendas .srt</h3>
             <div class="srt-preview" id="srtContent"></div>
             <div class="action-buttons">
                 <button id="copyBtn"><i class="fas fa-copy"></i> Copiar texto</button>
@@ -94,7 +95,7 @@
     </div>
 
     <footer>
-        <p>🔊 Processamento local com Whisper (modelo baixado uma vez). Nada sai do seu computador.</p>
+        <p>🔊 Processamento local com Whisper (modelo baixado uma vez).</p>
     </footer>
 </div>
 
@@ -127,7 +128,6 @@
         if (percent !== undefined) progressFill.style.width = percent + '%';
     }
 
-    // Upload
     uploadArea.onclick = () => fileInput.click();
     fileInput.onchange = (e) => {
         const file = e.target.files[0];
@@ -139,7 +139,6 @@
         }
     };
 
-    // Formatação de tempo para SRT (hh:mm:ss,ms)
     function formatSRTTime(seconds) {
         const h = Math.floor(seconds / 3600);
         const m = Math.floor((seconds % 3600) / 60);
@@ -148,7 +147,6 @@
         return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')},${ms.toString().padStart(3, '0')}`;
     }
 
-    // Agrupa palavras em frases (a cada ~5 palavras) e gera SRT
     function generateSRT(chunks) {
         if (!chunks || chunks.length === 0) return '';
         
@@ -163,7 +161,6 @@
             buffer.push(chunk.text);
             wordCount++;
 
-            // A cada 5 palavras ou no final, cria uma legenda
             if (wordCount >= 5 || i === chunks.length - 1) {
                 const endTime = chunk.timestamp[1];
                 const text = buffer.join(' ').trim();
@@ -172,7 +169,6 @@
                 srt += `${formatSRTTime(startTime)} --> ${formatSRTTime(endTime)}\n`;
                 srt += `${text}\n\n`;
 
-                // Prepara próximo grupo
                 buffer = [];
                 wordCount = 0;
                 if (i + 1 < chunks.length) {
@@ -184,7 +180,6 @@
         return srt;
     }
 
-    // Transcrição com timestamps
     transcribeBtn.onclick = async () => {
         try {
             transcribeBtn.disabled = true;
@@ -192,11 +187,11 @@
             updateStatus('Preparando...', 0);
 
             if (!transcriber) {
-                updateStatus('Carregando modelo Whisper Small (pode demorar na primeira vez)...', 10);
+                updateStatus('Carregando modelo Whisper (primeira vez pode demorar)...', 10);
                 transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-small', {
                     progress_callback: (p) => {
                         if (p.status === 'progress') {
-                            updateStatus(`Baixando IA: ${Math.round(p.progress)}%`, 10 + (p.progress * 0.5));
+                            updateStatus(`Baixando: ${Math.round(p.progress)}%`, 10 + (p.progress * 0.5));
                         }
                     }
                 });
@@ -208,26 +203,18 @@
             const decodedData = await audioCtx.decodeAudioData(arrayBuffer);
             const audioData = decodedData.getChannelData(0);
 
-            updateStatus('Transcrevendo com timestamps... (pode levar alguns segundos)', 80);
+            updateStatus('Transcrevendo com timestamps...', 80);
             
-            // Chamada com return_timestamps = true para obter palavras com tempo
             const output = await transcriber(audioData, {
                 language: languageSelect.value,
                 task: 'transcribe',
-                return_timestamps: true   // <-- ESSENCIAL para pegar as palavras com tempo
+                return_timestamps: true
             });
 
-            // output tem a estrutura: { text, chunks: [{ text, timestamp: [start, end] }] }
-            const fullText = output.text;
-            const chunks = output.chunks || [];
-
-            // Mostra transcrição pura
-            transcriptionDiv.innerText = fullText;
-
-            // Gera SRT a partir dos chunks
-            const srt = generateSRT(chunks);
+            transcriptionDiv.innerText = output.text;
+            const srt = generateSRT(output.chunks || []);
             lastSrt = srt;
-            srtContentDiv.innerText = srt || 'Não foi possível gerar timestamps detalhados.';
+            srtContentDiv.innerText = srt || 'Não foi possível gerar timestamps.';
 
             resultArea.style.display = 'block';
             updateStatus('Concluído!', 100);
@@ -240,7 +227,6 @@
         }
     };
 
-    // Copiar texto puro
     copyBtn.onclick = () => {
         const text = transcriptionDiv.innerText;
         if (!text) return;
@@ -251,7 +237,6 @@
         });
     };
 
-    // Download do .srt
     downloadSrtBtn.onclick = () => {
         if (!lastSrt) return;
         const blob = new Blob([lastSrt], { type: 'text/plain' });
@@ -263,7 +248,6 @@
         URL.revokeObjectURL(url);
     };
 
-    // Limpar tudo
     clearBtn.onclick = () => {
         inputFile = null;
         fileInfo.style.display = 'none';
