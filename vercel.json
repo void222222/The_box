@@ -1,8 +1,7 @@
 {
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/ads.txt", "destination": "/ads.txt" },
-    { "source": "/ffmpeg/:match*", "destination": "https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/:match*" }
+    { "source": "/ads.txt", "destination": "/ads.txt" }
   ],
   "headers": [
     {
