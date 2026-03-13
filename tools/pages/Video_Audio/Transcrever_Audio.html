@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>thebox · Transcritor Universal (áudio/vídeo → texto)</title>
+    <title>thebox · Gerador de Legendas .srt (local)</title>
     <!-- Headers obrigatórios para SharedArrayBuffer (FFmpeg) -->
     <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin">
     <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp">
+    <!-- Estilos básicos (mesmo estilo do seu código) -->
     <style>
-        /* (mesmo estilo anterior, mantido) */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
         body { background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%); min-height: 100vh; padding: 2rem 1rem; display: flex; align-items: center; justify-content: center; }
-        .container { max-width: 800px; width: 100%; margin: 0 auto; }
+        .container { max-width: 900px; width: 100%; }
         header { text-align: center; padding: 1rem 1rem 2rem; color: white; }
         header h1 { font-size: 2.8rem; font-weight: 700; background: linear-gradient(135deg, #c084fc, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 0.5rem; }
         header p { color: #cbd5e1; font-size: 1.1rem; }
@@ -28,27 +28,27 @@
         .options button { flex: 1; min-width: 150px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #cbd5e1; padding: 0.8rem 1.5rem; border-radius: 40px; font-weight: 500; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
         .options button:hover:not(:disabled) { background: rgba(255,255,255,0.15); border-color: #a855f7; }
         .options button:disabled { opacity: 0.5; cursor: not-allowed; }
-        .record-btn.recording { background: #ef4444; color: white; border-color: #ef4444; }
         .progress-area { margin-top: 1.5rem; display: none; }
         .progress-bar { width: 100%; height: 8px; background: #1e293b; border-radius: 10px; overflow: hidden; margin-bottom: 0.5rem; }
         .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #a855f7, #d946ef); transition: width 0.3s ease; }
         .status { text-align: center; color: #94a3b8; font-size: 0.95rem; min-height: 2rem; margin-top: 0.5rem; }
         .result-area { margin-top: 2rem; background: rgba(0,0,0,0.3); border-radius: 24px; padding: 1.5rem; display: none; }
-        .result-text { background: rgba(255,255,255,0.05); border-radius: 16px; padding: 1.5rem; color: #f1f5f9; font-size: 1rem; line-height: 1.6; white-space: pre-wrap; max-height: 400px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); }
+        .result-text { background: rgba(255,255,255,0.05); border-radius: 16px; padding: 1.5rem; color: #f1f5f9; font-size: 1rem; line-height: 1.6; white-space: pre-wrap; max-height: 300px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); }
+        .srt-preview { background: #1e293b; border-radius: 16px; padding: 1.2rem; font-family: 'Courier New', monospace; font-size: 0.9rem; color: #cbd5e1; white-space: pre-wrap; max-height: 200px; overflow-y: auto; border: 1px solid #334155; margin-top: 1rem; }
         .action-buttons { display: flex; gap: 1rem; margin-top: 1.5rem; justify-content: flex-end; }
         .action-buttons button { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #cbd5e1; padding: 0.6rem 1.2rem; border-radius: 30px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 0.5rem; }
         .action-buttons button:hover { background: rgba(255,255,255,0.15); }
         footer { text-align: center; padding: 2rem 1rem 0; color: #64748b; }
         .note { font-size: 0.85rem; color: #94a3b8; margin-top: 1rem; text-align: center; }
     </style>
-    <!-- Ícones Font Awesome -->
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
 <div class="container">
     <header>
-        <h1>🎙️ Transcritor Universal</h1>
-        <p>Qualquer áudio/vídeo → texto. Processamento 100% local.</p>
+        <h1>🎬 Gerador de Legendas .srt</h1>
+        <p>100% local · sem backend · usando Whisper via Transformers.js</p>
     </header>
 
     <div class="card">
@@ -64,8 +64,13 @@
         </div>
 
         <div class="options">
-            <button id="transcribeBtn" disabled><i class="fas fa-play"></i> Transcrever</button>
-            <button id="recordBtn" class="record-btn"><i class="fas fa-microphone"></i> Gravar áudio</button>
+            <button id="transcribeBtn" disabled><i class="fas fa-magic"></i> Gerar Legendas</button>
+            <select id="languageSelect" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 0.8rem 1.5rem; border-radius: 40px;">
+                <option value="portuguese">Português</option>
+                <option value="english">Inglês</option>
+                <option value="spanish">Espanhol</option>
+                <option value="french">Francês</option>
+            </select>
         </div>
 
         <div class="progress-area" id="progressArea">
@@ -76,17 +81,20 @@
         </div>
 
         <div class="result-area" id="resultArea">
+            <h3 style="color: white; margin-bottom: 1rem;">📄 Transcrição (texto puro)</h3>
             <div class="result-text" id="transcription"></div>
+            <h3 style="color: white; margin: 1rem 0 0.5rem;">🎯 Legendas .srt geradas</h3>
+            <div class="srt-preview" id="srtContent"></div>
             <div class="action-buttons">
-                <button id="copyBtn"><i class="fas fa-copy"></i> Copiar</button>
+                <button id="copyBtn"><i class="fas fa-copy"></i> Copiar texto</button>
+                <button id="downloadSrtBtn"><i class="fas fa-download"></i> Baixar .srt</button>
                 <button id="clearBtn"><i class="fas fa-eraser"></i> Limpar</button>
             </div>
         </div>
     </div>
 
     <footer>
-        <p>🔒 Conversão com FFmpeg + Transcrição com Whisper. Tudo no seu dispositivo.</p>
-        <p class="note">📹 Vídeos de qualquer formato são convertidos automaticamente.</p>
+        <p>🔊 Processamento local com Whisper (modelo baixado uma vez). Nada sai do seu computador.</p>
     </footer>
 </div>
 
@@ -103,26 +111,23 @@
     const progressFill = document.getElementById('progressFill');
     const statusDiv = document.getElementById('status');
     const transcriptionDiv = document.getElementById('transcription');
+    const srtContentDiv = document.getElementById('srtContent');
     const resultArea = document.getElementById('resultArea');
     const copyBtn = document.getElementById('copyBtn');
     const clearBtn = document.getElementById('clearBtn');
-    
-    // Pegando o botão de gravar
-    const recordBtn = document.getElementById('recordBtn');
+    const downloadSrtBtn = document.getElementById('downloadSrtBtn');
+    const languageSelect = document.getElementById('languageSelect');
 
-    // Variáveis de estado
     let inputFile = null;
     let transcriber = null;
-    let isRecording = false;
-    let mediaRecorder = null;
-    let audioChunks = [];
+    let lastSrt = '';
 
     function updateStatus(msg, percent) {
         statusDiv.innerText = msg;
         if (percent !== undefined) progressFill.style.width = percent + '%';
     }
 
-    // --- LÓGICA DE UPLOAD DE ARQUIVO ---
+    // Upload
     uploadArea.onclick = () => fileInput.click();
     fileInput.onchange = (e) => {
         const file = e.target.files[0];
@@ -134,115 +139,131 @@
         }
     };
 
-    // --- LÓGICA DE GRAVAÇÃO PELO MICROFONE ---
-    recordBtn.onclick = async () => {
-        if (!isRecording) {
-            try {
-                // Pede permissão para usar o microfone
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = [];
+    // Formatação de tempo para SRT (hh:mm:ss,ms)
+    function formatSRTTime(seconds) {
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = Math.floor(seconds % 60);
+        const ms = Math.floor((seconds - Math.floor(seconds)) * 1000);
+        return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')},${ms.toString().padStart(3, '0')}`;
+    }
 
-                mediaRecorder.ondataavailable = (event) => {
-                    audioChunks.push(event.data);
-                };
+    // Agrupa palavras em frases (a cada ~5 palavras) e gera SRT
+    function generateSRT(chunks) {
+        if (!chunks || chunks.length === 0) return '';
+        
+        let srt = '';
+        let index = 1;
+        let buffer = [];
+        let startTime = chunks[0].timestamp[0];
+        let wordCount = 0;
 
-                mediaRecorder.onstop = () => {
-                    // Quando para de gravar, junta os pedaços num arquivo webm
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                    const file = new File([audioBlob], 'gravacao_microfone.webm', { type: 'audio/webm' });
-                    
-                    // Joga o arquivo para o sistema como se tivesse feito upload
-                    inputFile = file;
-                    fileNameSpan.innerText = "🎤 Áudio Gravado";
-                    fileInfo.style.display = 'flex';
-                    transcribeBtn.disabled = false;
-                    
-                    // Desliga a luzinha do microfone da aba do navegador
-                    stream.getTracks().forEach(track => track.stop());
-                };
+        for (let i = 0; i < chunks.length; i++) {
+            const chunk = chunks[i];
+            buffer.push(chunk.text);
+            wordCount++;
 
-                mediaRecorder.start();
-                isRecording = true;
-                recordBtn.classList.add('recording');
-                recordBtn.innerHTML = '<i class="fas fa-stop"></i> Parar gravação';
+            // A cada 5 palavras ou no final, cria uma legenda
+            if (wordCount >= 5 || i === chunks.length - 1) {
+                const endTime = chunk.timestamp[1];
+                const text = buffer.join(' ').trim();
                 
-                progressArea.style.display = 'block';
-                updateStatus('Gravando áudio... Fale agora!', 100);
-                progressFill.style.background = '#ef4444'; // Fica vermelho pra indicar gravação
+                srt += `${index}\n`;
+                srt += `${formatSRTTime(startTime)} --> ${formatSRTTime(endTime)}\n`;
+                srt += `${text}\n\n`;
 
-            } catch (error) {
-                alert('Erro ao acessar o microfone. Verifique as permissões do navegador!');
-                console.error(error);
+                // Prepara próximo grupo
+                buffer = [];
+                wordCount = 0;
+                if (i + 1 < chunks.length) {
+                    startTime = chunks[i + 1].timestamp[0];
+                }
+                index++;
             }
-        } else {
-            // Parar gravação
-            mediaRecorder.stop();
-            isRecording = false;
-            recordBtn.classList.remove('recording');
-            recordBtn.innerHTML = '<i class="fas fa-microphone"></i> Gravar áudio';
-            progressFill.style.background = 'linear-gradient(90deg, #a855f7, #d946ef)'; // Volta a cor normal
-            updateStatus('Gravação concluída. Clique em Transcrever.', 0);
         }
-    };
+        return srt;
+    }
 
-    // --- LÓGICA DE TRANSCRIÇÃO ---
+    // Transcrição com timestamps
     transcribeBtn.onclick = async () => {
         try {
             transcribeBtn.disabled = true;
-            recordBtn.disabled = true; // Bloqueia gravação enquanto transcreve
             progressArea.style.display = 'block';
-            
+            updateStatus('Preparando...', 0);
+
             if (!transcriber) {
-                updateStatus('Carregando modelo Whisper Small... (Pode demorar um pouco)', 10);
+                updateStatus('Carregando modelo Whisper Small (pode demorar na primeira vez)...', 10);
                 transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-small', {
                     progress_callback: (p) => {
                         if (p.status === 'progress') {
-                            updateStatus(`Baixando IA: ${Math.round(p.progress)}%`, 10 + (p.progress * 0.8));
+                            updateStatus(`Baixando IA: ${Math.round(p.progress)}%`, 10 + (p.progress * 0.5));
                         }
                     }
                 });
             }
 
-            updateStatus('Processando áudio...', 90);
+            updateStatus('Decodificando áudio...', 60);
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
             const arrayBuffer = await inputFile.arrayBuffer();
             const decodedData = await audioCtx.decodeAudioData(arrayBuffer);
-            let audioData = decodedData.getChannelData(0);
+            const audioData = decodedData.getChannelData(0);
 
-            updateStatus('Transcrevendo... (Aguarde)', 95);
+            updateStatus('Transcrevendo com timestamps... (pode levar alguns segundos)', 80);
+            
+            // Chamada com return_timestamps = true para obter palavras com tempo
             const output = await transcriber(audioData, {
-                language: 'portuguese',
-                task: 'transcribe'
+                language: languageSelect.value,
+                task: 'transcribe',
+                return_timestamps: true   // <-- ESSENCIAL para pegar as palavras com tempo
             });
 
-            transcriptionDiv.innerText = output.text;
+            // output tem a estrutura: { text, chunks: [{ text, timestamp: [start, end] }] }
+            const fullText = output.text;
+            const chunks = output.chunks || [];
+
+            // Mostra transcrição pura
+            transcriptionDiv.innerText = fullText;
+
+            // Gera SRT a partir dos chunks
+            const srt = generateSRT(chunks);
+            lastSrt = srt;
+            srtContentDiv.innerText = srt || 'Não foi possível gerar timestamps detalhados.';
+
             resultArea.style.display = 'block';
-            updateStatus('Transcrição Concluída!', 100);
+            updateStatus('Concluído!', 100);
 
         } catch (err) {
             console.error(err);
             updateStatus('Erro: ' + err.message, 0);
         } finally {
             transcribeBtn.disabled = false;
-            recordBtn.disabled = false;
         }
     };
 
-    // --- LÓGICA DOS BOTÕES EXTRAS ---
+    // Copiar texto puro
     copyBtn.onclick = () => {
         const text = transcriptionDiv.innerText;
         if (!text) return;
-        
         navigator.clipboard.writeText(text).then(() => {
-            const originalHtml = copyBtn.innerHTML;
+            const original = copyBtn.innerHTML;
             copyBtn.innerHTML = '<i class="fas fa-check"></i> Copiado!';
-            setTimeout(() => { copyBtn.innerHTML = originalHtml; }, 2000);
-        }).catch(() => {
-            alert('Não foi possível copiar. Selecione o texto manualmente.');
+            setTimeout(() => { copyBtn.innerHTML = original; }, 2000);
         });
     };
 
+    // Download do .srt
+    downloadSrtBtn.onclick = () => {
+        if (!lastSrt) return;
+        const blob = new Blob([lastSrt], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = inputFile ? inputFile.name.replace(/\.[^/.]+$/, '') + '.srt' : 'legendas.srt';
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    // Limpar tudo
     clearBtn.onclick = () => {
         inputFile = null;
         fileInfo.style.display = 'none';
@@ -250,10 +271,12 @@
         transcribeBtn.disabled = true;
         resultArea.style.display = 'none';
         transcriptionDiv.innerText = '';
+        srtContentDiv.innerText = '';
         progressArea.style.display = 'none';
         progressFill.style.width = '0%';
         statusDiv.innerText = '';
         fileInput.value = '';
+        lastSrt = '';
     };
 </script>
 </body>
