@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>thebox · Busca de CEP</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="../../../css/pages/E_commerce/Buscar_CEP.css">
+</head>
+<body>
+    <div class="tool-container">
+        <div class="tool-header">
+            <a href="../../../index.html" class="back-link"><i class="fas fa-arrow-left"></i> Voltar</a>
+            <h1><i class="fas fa-map-marker-alt"></i> Busca de CEP</h1>
+            <p>Consulte endereços completos a partir do CEP de forma rápida e gratuita.</p>
+        </div>
+
+        <div class="tool-form">
+            <div class="input-group">
+                <label for="cep">CEP</label>
+                <div class="cep-input-wrapper">
+                    <input type="text" id="cep" placeholder="00000-000" maxlength="9" autocomplete="off">
+                    <button class="btn-search" id="searchBtn"><i class="fas fa-search"></i> Buscar</button>
+                </div>
+                <small>Digite apenas números ou no formato 00000-000.</small>
+            </div>
+
+            <div class="result-area" id="resultArea" style="display: none;">
+                <div class="loading" id="loading" style="display: none;">
+                    <i class="fas fa-spinner fa-spin"></i> Consultando...
+                </div>
+                
+                <div id="resultContent">
+                    <h3><i class="fas fa-check-circle"></i> Endereço encontrado:</h3>
+                    <div class="address-card">
+                        <div class="address-row"><span class="address-label">CEP:</span><span class="address-value" id="resultCep"></span></div>
+                        <div class="address-row"><span class="address-label">Logradouro:</span><span class="address-value" id="resultLogradouro"></span></div>
+                        <div class="address-row"><span class="address-label">Bairro:</span><span class="address-value" id="resultBairro"></span></div>
+                        <div class="address-row"><span class="address-label">Cidade:</span><span class="address-value" id="resultCidade"></span></div>
+                        <div class="address-row"><span class="address-label">Estado:</span><span class="address-value" id="resultEstado"></span></div>
+                        <div class="address-row"><span class="address-label">DDD:</span><span class="address-value" id="resultDdd"></span></div>
+                    </div>
+                    <button class="btn-clear" id="clearBtn"><i class="fas fa-eraser"></i> Nova consulta</button>
+                </div>
+            </div>
+
+            <div class="error-message" id="errorMessage" style="display: none;">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span id="errorText"></span>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <h3><i class="fas fa-info-circle"></i> Sobre a consulta</h3>
+            <p>Utilizamos a <strong>BrasilAPI</strong> (gratuita e sem necessidade de cadastro) para consultar CEPs em todo o Brasil.</p>
+            <p>O CEP (Código de Endereçamento Postal) é composto por 8 dígitos e identifica logradouros, bairros, cidades e até grandes edifícios.</p>
+            <ul>
+                <li><i class="fas fa-clock"></i> Consultas em tempo real</li>
+                <li><i class="fas fa-database"></i> Dados oficiais dos Correios</li>
+                <li><i class="fas fa-globe"></i> Abrangência nacional</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="../../../js/pages/E_commerce/Buscar_CEP.js"></script>
+</body>
+</html>

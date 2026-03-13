@@ -1,0 +1,267 @@
+<!-- tools/pages/Video_Audio/Gerador_Legendas/index.html -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>thebox · Gerador de Legendas .srt (local)</title>
+    <!-- Headers obrigatórios para SharedArrayBuffer (FFmpeg) -->
+    <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin">
+    <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp">
+    <style>
+        /* Copie os estilos que você já tinha aqui (ou mantenha os mesmos) */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%); min-height: 100vh; padding: 2rem 1rem; display: flex; align-items: center; justify-content: center; }
+        .container { max-width: 900px; width: 100%; }
+        header { text-align: center; padding: 1rem 1rem 2rem; color: white; }
+        header h1 { font-size: 2.8rem; font-weight: 700; background: linear-gradient(135deg, #c084fc, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 0.5rem; }
+        header p { color: #cbd5e1; font-size: 1.1rem; }
+        .card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(8px); border-radius: 32px; padding: 2rem; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 25px 40px -12px black; }
+        .upload-area { border: 2px dashed rgba(255,255,255,0.1); border-radius: 30px; padding: 2rem; text-align: center; cursor: pointer; transition: 0.2s; background: rgba(0,0,0,0.2); margin-bottom: 1.5rem; }
+        .upload-area:hover { border-color: #a855f7; }
+        .upload-area i { font-size: 3rem; color: #a855f7; margin-bottom: 0.5rem; }
+        .upload-area p { color: #94a3b8; }
+        #fileInput { display: none; }
+        .file-info { background: rgba(0,0,0,0.2); border-radius: 40px; padding: 0.8rem 1.5rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.8rem; border: 1px solid rgba(255,255,255,0.1); }
+        .file-info i { color: #a855f7; font-size: 1.2rem; }
+        .file-info span { color: #cbd5e1; font-size: 0.95rem; word-break: break-all; }
+        .options { display: flex; gap: 1rem; margin: 1.5rem 0; flex-wrap: wrap; }
+        .options button { flex: 1; min-width: 150px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #cbd5e1; padding: 0.8rem 1.5rem; border-radius: 40px; font-weight: 500; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .options button:hover:not(:disabled) { background: rgba(255,255,255,0.15); border-color: #a855f7; }
+        .options button:disabled { opacity: 0.5; cursor: not-allowed; }
+        select { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 0.8rem 1.5rem; border-radius: 40px; font-size: 1rem; cursor: pointer; }
+        .progress-area { margin-top: 1.5rem; display: none; }
+        .progress-bar { width: 100%; height: 8px; background: #1e293b; border-radius: 10px; overflow: hidden; margin-bottom: 0.5rem; }
+        .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #a855f7, #d946ef); transition: width 0.3s ease; }
+        .status { text-align: center; color: #94a3b8; font-size: 0.95rem; min-height: 2rem; margin-top: 0.5rem; }
+        .result-area { margin-top: 2rem; background: rgba(0,0,0,0.3); border-radius: 24px; padding: 1.5rem; display: none; }
+        .result-text { background: rgba(255,255,255,0.05); border-radius: 16px; padding: 1.5rem; color: #f1f5f9; font-size: 1rem; line-height: 1.6; white-space: pre-wrap; max-height: 300px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); }
+        .srt-preview { background: #1e293b; border-radius: 16px; padding: 1.2rem; font-family: 'Courier New', monospace; font-size: 0.9rem; color: #cbd5e1; white-space: pre-wrap; max-height: 200px; overflow-y: auto; border: 1px solid #334155; margin-top: 1rem; }
+        .action-buttons { display: flex; gap: 1rem; margin-top: 1.5rem; justify-content: flex-end; }
+        .action-buttons button { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #cbd5e1; padding: 0.6rem 1.2rem; border-radius: 30px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 0.5rem; }
+        .action-buttons button:hover { background: rgba(255,255,255,0.15); }
+        footer { text-align: center; padding: 2rem 1rem 0; color: #64748b; }
+        .note { font-size: 0.85rem; color: #94a3b8; margin-top: 1rem; text-align: center; }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>🎬 Gerador de Legendas .srt</h1>
+        <p>100% no seu navegador · sem enviar arquivos para servidor</p>
+    </header>
+
+    <div class="card">
+        <div class="upload-area" id="uploadArea">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <p>Clique ou arraste um arquivo (áudio ou vídeo)</p>
+        </div>
+        <input type="file" id="fileInput" accept="audio/*,video/*">
+
+        <div id="fileInfo" class="file-info" style="display: none;">
+            <i class="fas fa-file-audio"></i>
+            <span id="fileName"></span>
+        </div>
+
+        <div class="options">
+            <button id="transcribeBtn" disabled><i class="fas fa-magic"></i> Gerar Legendas</button>
+            <select id="languageSelect">
+                <option value="portuguese">Português</option>
+                <option value="english">Inglês</option>
+                <option value="spanish">Espanhol</option>
+                <option value="french">Francês</option>
+            </select>
+        </div>
+
+        <div class="progress-area" id="progressArea">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="status" id="status"></div>
+        </div>
+
+        <div class="result-area" id="resultArea">
+            <h3 style="color: white; margin-bottom: 1rem;">📄 Transcrição</h3>
+            <div class="result-text" id="transcription"></div>
+            <h3 style="color: white; margin: 1rem 0 0.5rem;">🎯 Legendas .srt</h3>
+            <div class="srt-preview" id="srtContent"></div>
+            <div class="action-buttons">
+                <button id="copyBtn"><i class="fas fa-copy"></i> Copiar texto</button>
+                <button id="downloadSrtBtn"><i class="fas fa-download"></i> Baixar .srt</button>
+                <button id="clearBtn"><i class="fas fa-eraser"></i> Limpar</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>🔊 Processamento local com Whisper (modelo baixado uma vez).</p>
+    </footer>
+</div>
+
+<script type="module">
+    import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.1';
+
+    // Elementos DOM
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileNameSpan = document.getElementById('fileName');
+    const transcribeBtn = document.getElementById('transcribeBtn');
+    const progressArea = document.getElementById('progressArea');
+    const progressFill = document.getElementById('progressFill');
+    const statusDiv = document.getElementById('status');
+    const transcriptionDiv = document.getElementById('transcription');
+    const srtContentDiv = document.getElementById('srtContent');
+    const resultArea = document.getElementById('resultArea');
+    const copyBtn = document.getElementById('copyBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const downloadSrtBtn = document.getElementById('downloadSrtBtn');
+    const languageSelect = document.getElementById('languageSelect');
+
+    let inputFile = null;
+    let transcriber = null;
+    let lastSrt = '';
+
+    function updateStatus(msg, percent) {
+        statusDiv.innerText = msg;
+        if (percent !== undefined) progressFill.style.width = percent + '%';
+    }
+
+    uploadArea.onclick = () => fileInput.click();
+    fileInput.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            inputFile = file;
+            fileNameSpan.innerText = file.name;
+            fileInfo.style.display = 'flex';
+            transcribeBtn.disabled = false;
+        }
+    };
+
+    function formatSRTTime(seconds) {
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = Math.floor(seconds % 60);
+        const ms = Math.floor((seconds - Math.floor(seconds)) * 1000);
+        return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')},${ms.toString().padStart(3, '0')}`;
+    }
+
+    function generateSRT(chunks) {
+        if (!chunks || chunks.length === 0) return '';
+        
+        let srt = '';
+        let index = 1;
+        let buffer = [];
+        let startTime = chunks[0].timestamp[0];
+        let wordCount = 0;
+
+        for (let i = 0; i < chunks.length; i++) {
+            const chunk = chunks[i];
+            buffer.push(chunk.text);
+            wordCount++;
+
+            if (wordCount >= 5 || i === chunks.length - 1) {
+                const endTime = chunk.timestamp[1];
+                const text = buffer.join(' ').trim();
+                
+                srt += `${index}\n`;
+                srt += `${formatSRTTime(startTime)} --> ${formatSRTTime(endTime)}\n`;
+                srt += `${text}\n\n`;
+
+                buffer = [];
+                wordCount = 0;
+                if (i + 1 < chunks.length) {
+                    startTime = chunks[i + 1].timestamp[0];
+                }
+                index++;
+            }
+        }
+        return srt;
+    }
+
+    transcribeBtn.onclick = async () => {
+        try {
+            transcribeBtn.disabled = true;
+            progressArea.style.display = 'block';
+            updateStatus('Preparando...', 0);
+
+            if (!transcriber) {
+                updateStatus('Carregando modelo Whisper (primeira vez pode demorar)...', 10);
+                transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-small', {
+                    progress_callback: (p) => {
+                        if (p.status === 'progress') {
+                            updateStatus(`Baixando: ${Math.round(p.progress)}%`, 10 + (p.progress * 0.5));
+                        }
+                    }
+                });
+            }
+
+            updateStatus('Decodificando áudio...', 60);
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+            const arrayBuffer = await inputFile.arrayBuffer();
+            const decodedData = await audioCtx.decodeAudioData(arrayBuffer);
+            const audioData = decodedData.getChannelData(0);
+
+            updateStatus('Transcrevendo com timestamps...', 80);
+            
+            const output = await transcriber(audioData, {
+                language: languageSelect.value,
+                task: 'transcribe',
+                return_timestamps: true
+            });
+
+            transcriptionDiv.innerText = output.text;
+            const srt = generateSRT(output.chunks || []);
+            lastSrt = srt;
+            srtContentDiv.innerText = srt || 'Não foi possível gerar timestamps.';
+
+            resultArea.style.display = 'block';
+            updateStatus('Concluído!', 100);
+
+        } catch (err) {
+            console.error(err);
+            updateStatus('Erro: ' + err.message, 0);
+        } finally {
+            transcribeBtn.disabled = false;
+        }
+    };
+
+    copyBtn.onclick = () => {
+        const text = transcriptionDiv.innerText;
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(() => {
+            const original = copyBtn.innerHTML;
+            copyBtn.innerHTML = '<i class="fas fa-check"></i> Copiado!';
+            setTimeout(() => { copyBtn.innerHTML = original; }, 2000);
+        });
+    };
+
+    downloadSrtBtn.onclick = () => {
+        if (!lastSrt) return;
+        const blob = new Blob([lastSrt], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = inputFile ? inputFile.name.replace(/\.[^/.]+$/, '') + '.srt' : 'legendas.srt';
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    clearBtn.onclick = () => {
+        inputFile = null;
+        fileInfo.style.display = 'none';
+        fileNameSpan.innerText = '';
+        transcribeBtn.disabled = true;
+        resultArea.style.display = 'none';
+        transcriptionDiv.innerText = '';
+        srtContentDiv.innerText = '';
+        progressArea.style.display = 'none';
+        progressFill.style.width = '0%';
+        statusDiv.innerText = '';
+        fileInput.value = '';
+        lastSrt = '';
+    };
+</script>
+</body>
+</html>
