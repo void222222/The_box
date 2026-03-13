@@ -1,17 +1,7 @@
 {
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/ads.txt", "destination": "/ads.txt" }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" },
-        { "key": "Cross-Origin-Embedder-Policy", "value": "require-corp" }
-      ]
-    }
-  ],"rewrites": [
+    { "source": "/ads.txt", "destination": "/ads.txt" },
     { "source": "/ffmpeg/:match*", "destination": "https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/:match*" }
   ],
   "headers": [
@@ -21,10 +11,6 @@
         { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" },
         { "key": "Cross-Origin-Embedder-Policy", "value": "require-corp" }
       ]
-   
     }
-     ]
-  }
- 
-
-
+  ]
+}
