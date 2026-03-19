@@ -3,90 +3,366 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>thebox · Gerador de Link WhatsApp</title>
-    <!-- Font Awesome -->
+    <title>thebox</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Biblioteca QR Code -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
-    <!-- jsPDF para gerar PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <!-- CSS específico -->
-    <link rel="stylesheet" href="../../../css/pages/E_commerce/Gerador_Link_WhatsApp.css">
+    <link rel="icon" type="image/png" href="logo_the_box_luz_e_sombra_sem_fundo-removebg-preview.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* ===== HEADER COM LOGO ===== */
+        header {
+            text-align: center;
+            padding: 2rem 1rem 3rem;
+            color: white;
+        }
+
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 0.1rem;
+        }
+
+        /* Estilo para a imagem da logo */
+        .logo-img {
+            width: 120px;           /* Ajuste o tamanho conforme sua preferência */
+            height: 120px;
+            border-radius: 24px;    /* Cantos arredondados (opcional) */
+            object-fit: cover;       /* Garante que a imagem se ajuste sem distorcer */
+            border: 4px solid #a855f7;  /* Borda roxa combinando com o tema */
+            box-shadow: 0 0 25px rgba(168, 85, 247, 0.6);
+            background-color: #2d1b4e; /* Cor de fundo roxa escura caso a imagem tenha transparência */
+        }
+
+        header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #c084fc, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        header p {
+            font-size: 1.25rem;
+            color: #cbd5e1;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        /* ========================== */
+
+        .categories {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-bottom: 3rem;
+        }
+
+        .category-filter {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #e2e8f0;
+            padding: 0.5rem 1.5rem;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .category-filter:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: #60a5fa;
+            color: white;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .tool-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 28px;
+            padding: 1.8rem 1.2rem;
+            box-shadow: 0 20px 35px -10px rgba(0,0,0,0.5);
+            transition: transform 0.25s ease, box-shadow 0.3s, border-color 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            text-decoration: none;
+            color: #f1f5f9;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tool-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(800px circle at var(--x, 50%) var(--y, 50%), rgba(255,255,255,0.06), transparent 40%);
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+        }
+
+        .tool-card:hover::before {
+            opacity: 1;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(96, 165, 250, 0.4);
+            box-shadow: 0 30px 45px -15px black;
+        }
+
+        .tool-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1.2rem;
+            background: rgba(255,255,255,0.03);
+            padding: 0.6rem;
+            border-radius: 18px;
+            width: fit-content;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .cat-ecom .tool-icon { color: #60a5fa; }
+        .cat-video .tool-icon { color: #ef4444; }
+        .cat-image .tool-icon { color: #a855f7; } /* Roxo para a categoria Imagem */
+
+        .tool-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+            line-height: 1.3;
+        }
+
+        .tool-description {
+            font-size: 0.95rem;
+            color: #9ca3af;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+            flex: 1;
+        }
+
+        .tool-tag {
+            background: rgba(255,255,255,0.05);
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            color: #94a3b8;
+            border: 1px solid rgba(255,255,255,0.1);
+            margin-top: 0.5rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 4rem 1rem 2rem;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+    </style>
 </head>
 <body>
-    <div class="tool-container">
-        <div class="tool-header">
-            <a href="../../../index.html" class="back-link"><i class="fas fa-arrow-left"></i> Voltar</a>
-            <h1><i class="fab fa-whatsapp"></i> Gerador de Link WhatsApp</h1>
-            <p>Crie links personalizados para iniciar conversas no WhatsApp sem precisar salvar o contato.</p>
+    <div class="container">
+        <!-- ===== HEADER COM IMAGEM (LOGO) ===== -->
+        <header>
+            <!-- CONTAINER DA LOGO: COLOQUE SUA IMAGEM AQUI -->
+            <div class="logo-container">
+                <!-- ALTERE AQUI: Substitua "caminho/para/sua-logo.png" pelo caminho correto da sua imagem -->
+                <img src="logo_the_box_luz_e_sombra_sem_fundo-removebg-preview.png" alt="thebox logo">
+                <!-- Se preferir usar um ícone do Font Awesome no lugar da imagem (ex: caixa roxa), descomente a linha abaixo e comente a linha acima -->
+                <!-- <div class="logo-placeholder"><i class="fas fa-cube" style="font-size: 4rem; color: white; background: #a855f7; padding: 1rem; border-radius: 24px;"></i></div> -->
+            </div>
+            <h1>thebox</h1>
+            <p>Ferramentas gratuitas</p>
+        </header>
+        <!-- ===================================== -->
+
+        <!-- Filtros -->
+        <div class="categories">
+            <span class="category-filter" onclick="filterTools('all')">Todos</span>
+            <span class="category-filter" onclick="filterTools('ecom')">E‑commerce</span>
+            <span class="category-filter" onclick="filterTools('video')">Vídeo/Áudio</span>
+            <span class="category-filter" onclick="filterTools('image')">Imagem</span> <!-- NOVA CATEGORIA -->
         </div>
 
-        <div class="tool-form">
-            <div class="input-group">
-                <label for="phone">Número de telefone (com DDD e código do país)</label>
-                <div class="phone-input-wrapper">
-                    <span class="country-code">+55</span>
-                    <input type="text" id="phone" placeholder="(DDD) 9xxxx-xxxx" maxlength="15">
-                </div>
-                <small>Ex.: 11912345678 (apenas números)</small>
-            </div>
+        <div class="tools-grid" id="toolsGrid">
+            <!-- ========= E-COMMERCE ========= -->
+            <a href="tools/pages/E_commerce/Calculadora_Taxas.html" class="tool-card cat-ecom" data-category="ecom">
+                <div class="tool-icon"><i class="fas fa-calculator"></i></div>
+                <h3 class="tool-title">Calculadora de Taxas</h3>
+                <p class="tool-description">Simule lucro líquido descontando taxas da Shopee, Mercado Livre, etc.</p>
+                <span class="tool-tag">E‑commerce</span>
+            </a>
+            <a href="tools/pages/E_commerce/Gerador_Link_WhatsApp.html" class="tool-card cat-ecom" data-category="ecom">
+                <div class="tool-icon"><i class="fab fa-whatsapp"></i></div>
+                <h3 class="tool-title">Gerador de Link WhatsApp</h3>
+                <p class="tool-description">Crie links diretos para WhatsApp com mensagem pronta.</p>
+                <span class="tool-tag">E‑commerce</span>
+            </a>
+            <a href="tools/pages/E_commerce/Codigo_Barras.html" class="tool-card cat-ecom" data-category="ecom">
+                <div class="tool-icon"><i class="fas fa-barcode"></i></div>
+                <h3 class="tool-title">Criar Código de Barras</h3>
+                <p class="tool-description">Gere EAN/UPC em alta resolução para produtos.</p>
+                <span class="tool-tag">E‑commerce</span>
+            </a>
+            <a href="tools/pages/E_commerce/Buscar_CEP.html" class="tool-card cat-ecom" data-category="ecom">
+                <div class="tool-icon"><i class="fas fa-map-marker-alt"></i></div>
+                <h3 class="tool-title">Busca por CEP</h3>
+                <p class="tool-description">Consulte endereço completo a partir do CEP.</p>
+                <span class="tool-tag">E‑commerce</span>
+            </a>
+            <a href="tools/pages/E_commerce/Extrator_Avaliacoes.html" class="tool-card cat-ecom" data-category="ecom">
+                <div class="tool-icon"><i class="fas fa-star"></i></div>
+                <h3 class="tool-title">Extrator de Avaliações</h3>
+                <p class="tool-description">Formate reviews de produtos para anúncios.</p>
+                <span class="tool-tag">E‑commerce</span>
+            </a>
+            <a href="tools/pages/E_commerce/Gerador_Descricao.html" class="tool-card cat-ecom" data-category="ecom">
+                <div class="tool-icon"><i class="fas fa-robot"></i></div>
+                <h3 class="tool-title">Gerador de Descrição</h3>
+                <p class="tool-description">Crie descrições persuasivas com IA para seus produtos.</p>
+                <span class="tool-tag">E‑commerce</span>
+            </a>
 
-            <div class="input-group">
-                <label for="message">Mensagem (opcional)</label>
-                <textarea id="message" rows="4" placeholder="Digite a mensagem que aparecerá pré-preenchida..."></textarea>
-                <small>Use <kbd>Shift+Enter</kbd> para pular linha.</small>
-            </div>
+            <!-- ========= VÍDEO/ÁUDIO ========= -->
+            <a href="tools/pages/Video_Audio/Cortar_Video.html" class="tool-card cat-video" data-category="video">
+                <div class="tool-icon"><i class="fas fa-cut"></i></div>
+                <h3 class="tool-title">Cortar Vídeo</h3>
+                <p class="tool-description">Selecione trechos de MP4, MOV e outros formatos.</p>
+                <span class="tool-tag">Vídeo</span>
+            </a>
+            <a href="tools/pages/Video_Audio/Conversor_Universal.html" class="tool-card cat-video" data-category="video">
+                <div class="tool-icon"><i class="fas fa-file-audio"></i></div>
+                <h3 class="tool-title">MP4 para MP3</h3>
+                <p class="tool-description">Extraia o áudio de vídeos e converta em MP3.</p>
+                <span class="tool-tag">Áudio</span>
+            </a>
+            <a href="tools/pages/Video_Audio/Transcrever_Audio.html" class="tool-card cat-video" data-category="video">
+                <div class="tool-icon"><i class="fas fa-microphone-alt"></i></div>
+                <h3 class="tool-title">Transcrever Áudio</h3>
+                <p class="tool-description">Converta áudio em texto com IA (Whisper).</p>
+                <span class="tool-tag">Áudio</span>
+            </a>
+            <a href="tools/pages/Video_Audio/Compressor_Video.html" class="tool-card cat-video" data-category="video">
+                <div class="tool-icon"><i class="fas fa-compress"></i></div>
+                <h3 class="tool-title">Compressor de Vídeo</h3>
+                <p class="tool-description">Reduza o tamanho do vídeo para enviar no WhatsApp.</p>
+                <span class="tool-tag">Vídeo</span>
+            </a>
+            <a href="tools/pages/Video_Audio/Otimizador_Video_Web.html" class="tool-card cat-video" data-category="video">
+                <div class="tool-icon"><i class="fas fa-rocket"></i></div>
+                <h3 class="tool-title">Otimizador de Vídeo</h3>
+                <p class="tool-description">Reduza o peso mantendo qualidade para sites rápidos.</p>
+                <span class="tool-tag">Vídeo</span>
+            </a>
+            <a href="tools/pages/Video_Audio/Extrator_Frames.html" class="tool-card cat-video" data-category="video">
+                <div class="tool-icon"><i class="fas fa-camera"></i></div>
+                <h3 class="tool-title">Extrator de Frames</h3>
+                <p class="tool-description">Salve prints de vídeos em alta resolução.</p>
+                <span class="tool-tag">Vídeo</span>
+            </a>
+            <a href="tools/pages/Video_Audio/Redimensionador_Video_Social.html" class="tool-card cat-video" data-category="video">
+                <div class="tool-icon"><i class="fas fa-crop"></i></div>
+                <h3 class="tool-title">Redimensionar para Redes</h3>
+                <p class="tool-description">Ajuste vídeos para Reels, TikTok ou feed quadrado.</p>
+                <span class="tool-tag">Vídeo</span>
+            </a>
+            <a href="tools/pages/Video_Audio/Gravador_Voz.html" class="tool-card cat-video" data-category="video">
+                <div class="tool-icon"><i class="fas fa-microphone"></i></div>
+                <h3 class="tool-title">Gravador de Voz</h3>
+                <p class="tool-description">Grave áudio diretamente do microfone e baixe.</p>
+                <span class="tool-tag">Áudio</span>
+            </a>
+            <a href="tools/pages/Video_Audio/Normalizador_Volume.html" class="tool-card cat-video" data-category="video">
+                <div class="tool-icon"><i class="fas fa-volume-up"></i></div>
+                <h3 class="tool-title">Normalizador de Volume</h3>
+                <p class="tool-description">Ajuste o áudio para um nível uniforme.</p>
+                <span class="tool-tag">Áudio</span>
+            </a>
+            <a href="tools/pages/Video_Audio/Removedor_Silencio.html" class="tool-card cat-video" data-category="video">
+                <div class="tool-icon"><i class="fas fa-eraser"></i></div>
+                <h3 class="tool-title">Removedor de Silêncio</h3>
+                <p class="tool-description">Corte silêncios no início e fim do áudio automaticamente.</p>
+                <span class="tool-tag">Áudio</span>
+            </a>
+            <a href="tools/pages/Video_Audio/Metronomo.html" class="tool-card cat-video" data-category="video">
+                <div class="tool-icon"><i class="fas fa-drum"></i></div>
+                <h3 class="tool-title">Metrônomo</h3>
+                <p class="tool-description">BPM ajustável para músicos e estudos.</p>
+                <span class="tool-tag">Áudio</span>
+            </a>
+            <a href="tools/pages/Video_Audio/Visualizador_Espectro.html" class="tool-card cat-video" data-category="video">
+                <div class="tool-icon"><i class="fas fa-chart-line"></i></div>
+                <h3 class="tool-title">Visualizador de Espectro</h3>
+                <p class="tool-description">Gere a forma de onda do áudio para posts.</p>
+                <span class="tool-tag">Áudio</span>
+            </a>
 
-            <div class="options">
-                <label class="checkbox-label">
-                    <input type="checkbox" id="international" checked> 
-                    <span>Incluir código do Brasil (+55) automaticamente</span>
-                </label>
-                <label class="checkbox-label">
-                    <input type="checkbox" id="cleanNumbers" checked> 
-                    <span>Remover caracteres especiais do número</span>
-                </label>
-            </div>
-
-            <button class="btn-generate" id="generateBtn"><i class="fas fa-link"></i> Gerar Link</button>
-
-            <div class="result-area" id="resultArea" style="display: none;">
-                <label>Link gerado:</label>
-                <div class="link-box">
-                    <input type="text" id="generatedLink" readonly>
-                    <button class="btn-copy" id="copyBtn"><i class="fas fa-copy"></i> Copiar</button>
-                </div>
-
-                <!-- Botões lado a lado -->
-                <div class="qr-actions">
-                    <button class="btn-qr" id="generateQrBtn"><i class="fas fa-qrcode"></i> Gerar QR Code</button>
-                    <button class="btn-pdf" id="downloadPdfBtn" style="display: none;"><i class="fas fa-file-pdf"></i> Baixar PDF</button>
-                </div>
-
-                <div id="qrContainer" style="display: none; text-align: center; margin: 1rem 0;">
-                    <canvas id="qrCanvas"></canvas>
-                    <p style="color: #94a3b8; font-size: 0.85rem;">Aponte a câmera do celular para o QR Code</p>
-                </div>
-
-                <div class="preview">
-                    <strong>Pré‑visualização:</strong>
-                    <p id="previewText"></p>
-                </div>
-                <a href="#" id="testLink" target="_blank" class="btn-test"><i class="fas fa-external-link-alt"></i> Testar link</a>
-            </div>
+            <!-- ========= NOVA FERRAMENTA: IMAGEM ========= -->
+            <a href="tools/pages/Image/Removedor_Fundo.html" class="tool-card cat-image" data-category="image">
+                <div class="tool-icon"><i class="fas fa-magic"></i></div>
+                <h3 class="tool-title">Removedor de Fundo</h3>
+                <p class="tool-description">Remova o fundo de qualquer imagem automaticamente com IA. 100% gratuito e privado (roda no seu navegador).</p>
+                <span class="tool-tag">Imagem</span>
+            </a>
         </div>
 
-        <div class="info-box">
-            <h3><i class="fas fa-info-circle"></i> Como usar</h3>
-            <ol>
-                <li>Digite o número com DDD (ex.: 11987654321).</li>
-                <li>Escreva a mensagem desejada (opcional).</li>
-                <li>Clique em "Gerar Link".</li>
-                <li>Copie o link, compartilhe ou gere um QR Code e baixe o PDF para imprimir.</li>
-            </ol>
-        </div>
+        <footer>
+            <p>🚀 thebox — ferramentas gratuitas para e‑commerce, vídeo/áudio e imagem</p>
+        </footer>
     </div>
 
-    <script src="../../../js/pages/E_commerce/Gerador_Link_WhatsApp.js"></script>
+    <script>
+        function filterTools(category) {
+            const cards = document.querySelectorAll('.tool-card');
+            cards.forEach(card => {
+                if (category === 'all') {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = card.dataset.category === category ? 'flex' : 'none';
+                }
+            });
+        }
+
+        document.querySelectorAll('.tool-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--x', x + 'px');
+                card.style.setProperty('--y', y + 'px');
+            });
+        });
+    </script>
+
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8743588040099046" crossorigin="anonymous"></script>
 </body>
 </html>
